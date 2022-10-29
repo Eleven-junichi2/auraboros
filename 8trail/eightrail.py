@@ -1,8 +1,19 @@
+from pathlib import Path
 import pygame
 
 pygame.init()
 
 clock = pygame.time.Clock()
+
+
+class AssetFilePath:
+    def __init__(self, root_path):
+        self.root = Path(root_path)
+        self.img_dirname = Path("imgs")
+        self.sound_dirname = Path("sounds")
+
+    def img(self, filename):
+        return self.root / self.img_dirname / filename
 
 
 class Player(pygame.sprite.Sprite):
