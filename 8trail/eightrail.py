@@ -29,6 +29,8 @@ class Player(pygame.sprite.Sprite):
 
 
 def init(window_size=(960, 640), caption="", pixel_scale=2):
+    """This function initialize pygame and game engine.
+    Where to configure settings of game system is here."""
     global screen
     global w_size
     global w_size_unscaled
@@ -37,8 +39,8 @@ def init(window_size=(960, 640), caption="", pixel_scale=2):
     w_size = tuple([length // pixel_scale for length in window_size])
     pygame.display.set_mode(w_size_unscaled)
     screen = pygame.Surface(w_size)
-
     pygame.display.set_caption(caption)
+    pygame.key.set_repeat(1, 1)
 
 
 def run(fps=60):
@@ -51,18 +53,19 @@ def run(fps=60):
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP:
+                key = pygame.key.get_pressed()
+                if key[pygame.K_UP]:
                     player.rect.y -= 1
-                if event.key == pygame.K_DOWN:
+                if key[pygame.K_DOWN]:
                     player.rect.y += 1
-                if event.key == pygame.K_LEFT:
+                if key[pygame.K_LEFT]:
                     player.rect.x -= 1
-                if event.key == pygame.K_RIGHT:
+                if key[pygame.K_RIGHT]:
                     player.rect.x += 1
 
         screen.fill((0, 0, 0))
         player.draw(screen)
-        # ↓ resize pixel size
+        # resize pixel size
         pygame.transform.scale(screen, w_size_unscaled,
                                pygame.display.get_surface())
         pygame.display.update()
