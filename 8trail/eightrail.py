@@ -97,17 +97,19 @@ class Sprite(pygame.sprite.Sprite):
                  *args, **kwargs):
         super().__init__(root_group, *args, **kwargs)
         self.root_group = root_group
+        self.direction_of_movement = ArrowToTurnToward()
+        self.movement_speed = 1
 
 
 class PlayerShot(Sprite):
-    def __init__(self, shooter_sprite, *args, **kwargs):
+    def __init__(self, shooter_sprite: Sprite, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.image = pygame.image.load(AssetFilePath.img("shot1.png"))
         self.shooter = shooter_sprite
         self.rect = self.image.get_rect()
         self.reset_pos()
-        self.shooting_speed = 5
-        self.direction_of_movement = ArrowToTurnToward()
+        self.movement_speed = 2
+        self.adjust_movement_speed = 0
         self.is_launching = False
         self.kill()
 
@@ -121,19 +123,24 @@ class PlayerShot(Sprite):
         self.direction_of_movement.set(direction)
         self.root_group.add(self)
         self.is_launching = True
+        if (self.direction_of_movement.is_up and
+                self.shooter.direction_of_movement.is_up):
+            self.adjust_movement_speed = self.shooter.movement_speed
+        else:
+            self.adjust_movement_speed = 0
 
     def _fire(self):
         if self.is_launching:
             if self.direction_of_movement.is_up:
-                self.rect.y -= self.shooting_speed
+                self.rect.y -= self.movement_speed + self.adjust_movement_speed
             if self.direction_of_movement.is_down:
-                self.rect.y += self.shooting_speed
+                self.rect.y += self.movement_speed
             if self.rect.y < 0:
                 self.direction_of_movement.unset(Arrow.up)
                 self.is_launching = False
                 self.reset_pos()
                 self.allow_shooter_to_fire()
-                self.shooter.shot_list.pop()
+                self.shooter.shot_que.pop()
                 self.shooter.shot_interval_counter = 0
                 self.kill()
 
@@ -154,30 +161,26 @@ class Player(Sprite):
         super().__init__(*args, **kwargs)
         self.image = pygame.image.load(AssetFilePath.img("fighter_a.png"))
         self.rect = self.image.get_rect()
-        self.flight_speed = 1
-        self.direction_of_movement = ArrowToTurnToward()
+        self.movement_speed = 1
         self.shot_max_num = 2
-        self.shot_list: deque = deque()
-        self.shot_interval = 30
-        self.shot_interval_counter = 0
+        self.shot_que: deque = deque()
+        self.shot_interval = 3
+        self.shot_interval_counter = self.shot_interval
         self.is_shot_allowed = True
-        self.is_shooting = False
+        self.is_shot_triggered = False
 
     def trigger_shot(self):
-        self.is_shooting = True
+        self.is_shot_triggered = True
 
     def release_trigger(self):
-        self.is_shooting = False
+        self.is_shot_triggered = False
 
     def _shooting(self):
-        if self.shot_interval == self.shot_interval_counter:
-            self.is_shot_allowed = True
-            self.shot_interval_counter = 0
-        if self.is_shot_allowed and len(self.shot_list) <= self.shot_max_num:
-            self.is_shot_allowed = False
+        if (self.is_shot_allowed and len(self.shot_que) < self.shot_max_num and
+                self.shot_interval_counter % self.shot_interval == 0):
             shot = PlayerShot(self)
             shot.will_launch(Arrow.up)
-            self.shot_list.append(shot)
+            self.shot_que.append(shot)
 
     def will_move_to(self, direction: Arrow):
         self.direction_of_movement.set(direction)
@@ -187,22 +190,30 @@ class Player(Sprite):
 
     def move_on(self):
         if self.direction_of_movement.is_up:
-            self.rect.y -= self.flight_speed
+            self.rect.y -= self.movement_speed
         if self.direction_of_movement.is_down:
-            self.rect.y += self.flight_speed
+            self.rect.y += self.movement_speed
         if self.direction_of_movement.is_right:
-            self.rect.x += self.flight_speed
+            self.rect.x += self.movement_speed
         if self.direction_of_movement.is_left:
-            self.rect.x -= self.flight_speed
+            self.rect.x -= self.movement_speed
 
     def draw(self, screen: pygame.surface.Surface):
         screen.blit(self.image, self.rect)
 
     def update(self):
         self.move_on()
-        if self.is_shooting:
+        if self.is_shot_triggered:
             self._shooting()
-        self.shot_interval_counter += 1
+        if self.shot_que:
+            self.is_shooting = True
+        else:
+            self.is_shooting = False
+            self.shot_interval_counter = 0
+        if self.is_shooting:
+            self.shot_interval_counter += 1
+        if self.shot_interval_counter > self.shot_interval:
+            self.shot_interval_counter = 0
 
 
 def init(window_size=(960, 640), caption="", pixel_scale=2):
