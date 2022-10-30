@@ -33,17 +33,17 @@ class Player(pygame.sprite.Sprite):
         super(Player, self).__init__(args, kwargs)
         self.image = pygame.image.load(AssetFilePath.img("fighter_a.png"))
         self.rect = self.image.get_rect()
-        # self.flight_speed = 1
+        self.flight_speed = 1
 
     def move(self, direction: Arrow):
         if direction is Arrow.up:
-            self.rect.y -= 1
+            self.rect.y -= self.flight_speed
         if direction is Arrow.down:
-            self.rect.y += 1
+            self.rect.y += self.flight_speed
         if direction is Arrow.right:
-            self.rect.x += 1
+            self.rect.x += self.flight_speed
         if direction is Arrow.left:
-            self.rect.x -= 1
+            self.rect.x -= self.flight_speed
 
     def draw(self, screen: pygame.surface.Surface):
         screen.blit(self.image, self.rect)
@@ -83,7 +83,6 @@ def run(fps=60):
                     player.move(Arrow.left)
                 if key[pygame.K_RIGHT]:
                     player.move(Arrow.right)
-
         screen.fill((0, 0, 0))
         player.draw(screen)
         # resize pixel size
