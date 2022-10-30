@@ -162,7 +162,7 @@ class Player(Sprite):
         self.image = pygame.image.load(AssetFilePath.img("fighter_a.png"))
         self.rect = self.image.get_rect()
         self.movement_speed = 1
-        self.shot_max_num = 2
+        self.shot_max_num = 4
         self.shot_que: deque = deque()
         self.shot_interval = 3
         self.shot_interval_counter = self.shot_interval
