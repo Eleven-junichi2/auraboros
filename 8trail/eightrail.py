@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from pathlib import Path
 import sys
 import pygame
@@ -5,6 +6,15 @@ import pygame
 pygame.init()
 
 clock = pygame.time.Clock()
+
+
+@dataclass
+class Arrow:
+    """Arrow symbol"""
+    up = 0
+    down = 1
+    right = 2
+    left = 3
 
 
 class AssetFilePath:
@@ -23,6 +33,17 @@ class Player(pygame.sprite.Sprite):
         super(Player, self).__init__(args, kwargs)
         self.image = pygame.image.load(AssetFilePath.img("fighter_a.png"))
         self.rect = self.image.get_rect()
+        # self.flight_speed = 1
+
+    def move(self, direction: Arrow):
+        if direction is Arrow.up:
+            self.rect.y -= 1
+        if direction is Arrow.down:
+            self.rect.y += 1
+        if direction is Arrow.right:
+            self.rect.x += 1
+        if direction is Arrow.left:
+            self.rect.x -= 1
 
     def draw(self, screen: pygame.surface.Surface):
         screen.blit(self.image, self.rect)
@@ -55,13 +76,13 @@ def run(fps=60):
             if event.type == pygame.KEYDOWN:
                 key = pygame.key.get_pressed()
                 if key[pygame.K_UP]:
-                    player.rect.y -= 1
+                    player.move(Arrow.up)
                 if key[pygame.K_DOWN]:
-                    player.rect.y += 1
+                    player.move(Arrow.down)
                 if key[pygame.K_LEFT]:
-                    player.rect.x -= 1
+                    player.move(Arrow.left)
                 if key[pygame.K_RIGHT]:
-                    player.rect.x += 1
+                    player.move(Arrow.right)
 
         screen.fill((0, 0, 0))
         player.draw(screen)
