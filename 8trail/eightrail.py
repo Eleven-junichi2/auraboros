@@ -21,10 +21,25 @@ class AssetFilePath:
     root = Path(sys.argv[0]).parent / "assets"
     img_dirname = "imgs"
     sound_dirname = "sounds"
+    font_dirname = "fonts"
 
     @classmethod
     def img(cls, filename):
         return cls.root / cls.img_dirname / filename
+
+    @classmethod
+    def font(cls, filename):
+        return cls.root / cls.font_dirname / filename
+
+
+class TextToDebug:
+    @staticmethod
+    def arrow_keys(key):
+        key_text = f"↑{key[pygame.K_UP]}"
+        key_text += f"↓{key[pygame.K_DOWN]}"
+        key_text += f"←{key[pygame.K_LEFT]}"
+        key_text += f"→{key[pygame.K_RIGHT]}"
+        return key_text
 
 
 class Player(pygame.sprite.Sprite):
@@ -61,13 +76,15 @@ def init(window_size=(960, 640), caption="", pixel_scale=2):
     pygame.display.set_mode(w_size_unscaled)
     screen = pygame.Surface(w_size)
     pygame.display.set_caption(caption)
-    pygame.key.set_repeat(1, 1)
+    pygame.key.set_repeat(10, 10)
 
 
 def run(fps=60):
     player = Player()
     player.rect.x = w_size[0] / 2 - player.rect.width
     player.rect.y = w_size[1] - player.rect.height
+    gamefont = pygame.font.Font(AssetFilePath.font("misaki_gothic.ttf"), 16)
+    gametext = gamefont.render("", True, (255, 255, 255))
     running = True
     while running:
         for event in pygame.event.get():
@@ -75,6 +92,8 @@ def run(fps=60):
                 running = False
             if event.type == pygame.KEYDOWN:
                 key = pygame.key.get_pressed()
+                gametext = gamefont.render(
+                    TextToDebug.arrow_keys(key=key), True, (255, 255, 255))
                 if key[pygame.K_UP]:
                     player.move(Arrow.up)
                 if key[pygame.K_DOWN]:
@@ -85,6 +104,7 @@ def run(fps=60):
                     player.move(Arrow.right)
         screen.fill((0, 0, 0))
         player.draw(screen)
+        screen.blit(gametext, (0, 0))
         # resize pixel size
         pygame.transform.scale(screen, w_size_unscaled,
                                pygame.display.get_surface())
