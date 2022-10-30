@@ -1,11 +1,14 @@
+from collections import deque
 from dataclasses import dataclass
 from pathlib import Path
 import sys
+
 import pygame
 
 pygame.init()
 
 clock = pygame.time.Clock()
+all_sprites = pygame.sprite.Group()
 
 
 @dataclass
@@ -80,6 +83,7 @@ class TextToDebug:
         key_text += f"→{key[pygame.K_RIGHT]}"
         return key_text
 
+    @staticmethod
     def arrow_keys_from_event(event_key):
         key_text = f"↑{event_key == pygame.K_UP}"
         key_text += f"↓{event_key == pygame.K_DOWN}"
@@ -88,31 +92,92 @@ class TextToDebug:
         return key_text
 
 
-class PlayerShot(pygame.sprite.Sprite):
-    def __init__(self, *args, **kwargs):
-        super().__init__(args, kwargs)
-        self.image = pygame.image.load(AssetFilePath.img("shot1.png"))
-        self.rect = self.image.get_rect()
-        self.shooting_speed = 5
+class Sprite(pygame.sprite.Sprite):
+    def __init__(self, root_group: pygame.sprite.Group = all_sprites,
+                 *args, **kwargs):
+        super().__init__(root_group, *args, **kwargs)
+        self.root_group = root_group
 
-    def move(self, direction: Arrow):
-        if direction is Arrow.up:
-            self.rect.y -= self.shooting_speed
-        if direction is Arrow.down:
-            self.rect.y += self.shooting_speed
+
+class PlayerShot(Sprite):
+    def __init__(self, shooter_sprite, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.image = pygame.image.load(AssetFilePath.img("shot1.png"))
+        self.shooter = shooter_sprite
+        self.rect = self.image.get_rect()
+        self.reset_pos()
+        self.shooting_speed = 5
+        self.direction_of_movement = ArrowToTurnToward()
+        self.is_launching = False
+        self.kill()
+
+    def reset_pos(self):
+        self.rect.x = \
+            self.shooter.rect.x + \
+            self.shooter.rect.width / 2 - self.rect.width / 2
+        self.rect.y = self.shooter.rect.y - self.rect.height
+
+    def will_launch(self, direction: Arrow):
+        self.direction_of_movement.set(direction)
+        self.root_group.add(self)
+        self.is_launching = True
+
+    def _fire(self):
+        if self.is_launching:
+            if self.direction_of_movement.is_up:
+                self.rect.y -= self.shooting_speed
+            if self.direction_of_movement.is_down:
+                self.rect.y += self.shooting_speed
+            if self.rect.y < 0:
+                self.direction_of_movement.unset(Arrow.up)
+                self.is_launching = False
+                self.reset_pos()
+                self.allow_shooter_to_fire()
+                self.shooter.shot_list.pop()
+                self.shooter.shot_interval_counter = 0
+                self.kill()
+
+    def allow_shooter_to_fire(self):
+        self.shooter.is_shot_allowed = True
 
     def draw(self, screen: pygame.surface.Surface):
         screen.blit(self.image, self.rect)
 
+    def update(self):
+        if not self.is_launching:
+            self.reset_pos()
+        self._fire()
 
-class Player(pygame.sprite.Sprite):
+
+class Player(Sprite):
     def __init__(self, *args, **kwargs):
-        super().__init__(args, kwargs)
+        super().__init__(*args, **kwargs)
         self.image = pygame.image.load(AssetFilePath.img("fighter_a.png"))
-        self.shot_sprite = PlayerShot()
         self.rect = self.image.get_rect()
         self.flight_speed = 1
         self.direction_of_movement = ArrowToTurnToward()
+        self.shot_max_num = 2
+        self.shot_list: deque = deque()
+        self.shot_interval = 30
+        self.shot_interval_counter = 0
+        self.is_shot_allowed = True
+        self.is_shooting = False
+
+    def trigger_shot(self):
+        self.is_shooting = True
+
+    def release_trigger(self):
+        self.is_shooting = False
+
+    def _shooting(self):
+        if self.shot_interval == self.shot_interval_counter:
+            self.is_shot_allowed = True
+            self.shot_interval_counter = 0
+        if self.is_shot_allowed and len(self.shot_list) <= self.shot_max_num:
+            self.is_shot_allowed = False
+            shot = PlayerShot(self)
+            shot.will_launch(Arrow.up)
+            self.shot_list.append(shot)
 
     def will_move_to(self, direction: Arrow):
         self.direction_of_movement.set(direction)
@@ -130,11 +195,14 @@ class Player(pygame.sprite.Sprite):
         if self.direction_of_movement.is_left:
             self.rect.x -= self.flight_speed
 
-    def shot(self, screen):
-        self.shot_sprite.draw(screen)
-
     def draw(self, screen: pygame.surface.Surface):
         screen.blit(self.image, self.rect)
+
+    def update(self):
+        self.move_on()
+        if self.is_shooting:
+            self._shooting()
+        self.shot_interval_counter += 1
 
 
 def init(window_size=(960, 640), caption="", pixel_scale=2):
@@ -165,9 +233,9 @@ def run(fps=60):
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.KEYDOWN:
-                key = pygame.key.get_pressed()
                 debugtext1 = gamefont.render(
-                    TextToDebug.arrow_keys(key=key), True, (255, 255, 255))
+                    TextToDebug.arrow_keys_from_event(event.key),
+                    True, (255, 255, 255))
                 if event.key == pygame.K_UP:
                     player.will_move_to(Arrow.up)
                 if event.key == pygame.K_DOWN:
@@ -176,6 +244,8 @@ def run(fps=60):
                     player.will_move_to(Arrow.right)
                 if event.key == pygame.K_LEFT:
                     player.will_move_to(Arrow.left)
+                if event.key == pygame.K_z:
+                    player.trigger_shot()
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_UP:
                     player.stop_moving_to(Arrow.up)
@@ -185,9 +255,11 @@ def run(fps=60):
                     player.stop_moving_to(Arrow.right)
                 if event.key == pygame.K_LEFT:
                     player.stop_moving_to(Arrow.left)
-        player.move_on()
+                if event.key == pygame.K_z:
+                    player.release_trigger()
+        all_sprites.update()
         screen.blit(debugtext1, (0, 0))
-        player.draw(screen)
+        all_sprites.draw(screen)
         # resize pixel size
         pygame.transform.scale(screen, w_size_unscaled,
                                pygame.display.get_surface())
