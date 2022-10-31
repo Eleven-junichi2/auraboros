@@ -3,7 +3,9 @@ from dataclasses import dataclass
 from pathlib import Path
 import sys
 
+from pygame.math import Vector2
 import pygame
+
 
 pygame.init()
 
@@ -91,6 +93,10 @@ class TextToDebug:
         key_text += f"→{event_key == pygame.K_RIGHT}"
         return key_text
 
+    @staticmethod
+    def movement_speed(movement_speed):
+        return f"speed:{movement_speed}"
+
 
 class Sprite(pygame.sprite.Sprite):
     def __init__(self, root_group: pygame.sprite.Group = all_sprites,
@@ -104,9 +110,9 @@ class Sprite(pygame.sprite.Sprite):
 class ShooterSprite(Sprite):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.shot_max_num = 4
+        self.shot_max_num = 1
         self.shot_que: deque = deque()
-        self.shot_interval = 3
+        self.shot_interval = 1
         self.shot_interval_counter = self.shot_interval
         self.is_shot_allowed = True
 
@@ -174,9 +180,7 @@ class Player(ShooterSprite):
         self.movement_speed = 1
         self.shot_max_num = 4
         self.shot_que: deque = deque()
-        self.shot_interval = 3
-        self.shot_interval_counter = self.shot_interval
-        self.is_shot_allowed = True
+        self.shot_interval = 4
         self.is_shot_triggered = False
 
     def trigger_shot(self):
@@ -199,14 +203,29 @@ class Player(ShooterSprite):
         self.direction_of_movement.unset(direction)
 
     def move_on(self):
+        # if diagonal movement
+        if ((self.direction_of_movement.is_up and
+            self.direction_of_movement.is_right) or
+            (self.direction_of_movement.is_up and
+            self.direction_of_movement.is_left) or
+            (self.direction_of_movement.is_down and
+            self.direction_of_movement.is_right) or
+            (self.direction_of_movement.is_down and
+                self.direction_of_movement.is_left)):
+            vec = Vector2(self.movement_speed, self.movement_speed)
+            # Correct the speed of diagonal movement
+            movement_speed = vec.normalize().x
+        else:
+            movement_speed = self.movement_speed
+        movement_speed = self.movement_speed
         if self.direction_of_movement.is_up:
-            self.rect.y -= self.movement_speed
+            self.rect.y -= movement_speed
         if self.direction_of_movement.is_down:
-            self.rect.y += self.movement_speed
+            self.rect.y += movement_speed
         if self.direction_of_movement.is_right:
-            self.rect.x += self.movement_speed
+            self.rect.x += movement_speed
         if self.direction_of_movement.is_left:
-            self.rect.x -= self.movement_speed
+            self.rect.x -= movement_speed
 
     def draw(self, screen: pygame.surface.Surface):
         screen.blit(self.image, self.rect)
