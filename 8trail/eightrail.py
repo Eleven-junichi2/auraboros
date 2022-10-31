@@ -101,8 +101,18 @@ class Sprite(pygame.sprite.Sprite):
         self.movement_speed = 1
 
 
+class ShooterSprite(Sprite):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.shot_max_num = 4
+        self.shot_que: deque = deque()
+        self.shot_interval = 3
+        self.shot_interval_counter = self.shot_interval
+        self.is_shot_allowed = True
+
+
 class PlayerShot(Sprite):
-    def __init__(self, shooter_sprite: Sprite, *args, **kwargs):
+    def __init__(self, shooter_sprite: ShooterSprite, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.image = pygame.image.load(AssetFilePath.img("shot1.png"))
         self.shooter = shooter_sprite
@@ -156,7 +166,7 @@ class PlayerShot(Sprite):
         self._fire()
 
 
-class Player(Sprite):
+class Player(ShooterSprite):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.image = pygame.image.load(AssetFilePath.img("fighter_a.png"))
