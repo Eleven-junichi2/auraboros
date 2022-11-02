@@ -1,6 +1,7 @@
 from collections import deque
 from dataclasses import dataclass
 from pathlib import Path
+from typing import List
 import sys
 
 from pygame.math import Vector2
@@ -124,7 +125,7 @@ class PlayerShot(Sprite):
         self.shooter = shooter_sprite
         self.rect = self.image.get_rect()
         self.reset_pos()
-        self.movement_speed = 2
+        self.movement_speed = 3
         self.adjust_movement_speed = 0
         self.is_launching = False
         self.kill()
@@ -243,6 +244,34 @@ class Player(ShooterSprite):
             self.shot_interval_counter += 1
         if self.shot_interval_counter > self.shot_interval:
             self.shot_interval_counter = 0
+
+
+class Scene:
+    def __init__(self):
+        pass
+
+    def event(self):
+        pass
+
+    def draw(self):
+        pass
+
+    def update(self):
+        pass
+
+
+class SceneManager:
+    def __init__(self):
+        self.scenes: List[Scene] = []
+
+    def event(self):
+        pass
+
+    def push(self, scene: Scene):
+        self.scenes.append(scene)
+
+    def pop(self):
+        self.scenes.pop()
 
 
 def init(window_size=(960, 640), caption="", pixel_scale=2):
