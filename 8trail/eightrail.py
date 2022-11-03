@@ -34,6 +34,15 @@ def init(window_size=(960, 640), caption="", pixel_scale=2):
 init()
 
 
+def schedule_interval(interval):
+    def _decorator(func):
+        def _wrapper(self, *args, **kwargs):
+            if clock_counter % self.shot_interval == 0:
+                return func(*args, **kwargs)
+        return _wrapper
+    return _decorator
+
+
 @dataclass
 class Arrow:
     """Arrow symbol"""
@@ -258,8 +267,6 @@ class Player(ShooterSprite):
 
     def update(self):
         self.move_on()
-        if self.is_shot_triggered:
-            self._shooting()
         if self.shot_que:
             self.is_shooting = True
             self.in_shot_interval = True
@@ -269,6 +276,9 @@ class Player(ShooterSprite):
         if self.in_shot_interval:
             if clock_counter % self.shot_interval == 0:
                 self.in_shot_interval = False
+        if self.is_shot_triggered:
+            self._shooting()
+
         # if self.is_shooting:
         #     self.shot_interval_counter += 1
         # if self.shot_interval_counter > self.shot_interval:
