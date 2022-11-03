@@ -11,7 +11,27 @@ import pygame
 pygame.init()
 
 clock = pygame.time.Clock()
+clock_counter = 0  # use to implement interval
+fps = 60
 all_sprites = pygame.sprite.Group()
+
+
+def init(window_size=(960, 640), caption="", pixel_scale=2):
+    """This function initialize pygame and game engine.
+    Where to configure settings of game system is here."""
+    global screen
+    global w_size
+    global w_size_unscaled
+    pixel_scale = pixel_scale
+    w_size_unscaled = window_size
+    w_size = tuple([length // pixel_scale for length in window_size])
+    pygame.display.set_mode(w_size_unscaled)
+    screen = pygame.Surface(w_size)
+    pygame.display.set_caption(caption)
+    pygame.key.set_repeat(10, 10)
+
+
+init()
 
 
 @dataclass
@@ -246,14 +266,15 @@ class Player(ShooterSprite):
             self.shot_interval_counter = 0
 
 
-class Scene:
+@dataclass
+class Scene(object):
     def __init__(self):
         pass
 
-    def event(self):
+    def event(self, event: pygame.event):
         pass
 
-    def draw(self):
+    def draw(self, screen: pygame.surface.Surface):
         pass
 
     def update(self):
@@ -263,9 +284,16 @@ class Scene:
 class SceneManager:
     def __init__(self):
         self.scenes: List[Scene] = []
+        self.current: int = 0
 
-    def event(self):
-        pass
+    def event(self, event: pygame.event):
+        self.scenes[self.current].event(event)
+
+    def update(self):
+        self.scenes[self.current].update
+
+    def draw(self, screen: pygame.surface.Surface):
+        self.scenes[self.current].draw(screen)
 
     def push(self, scene: Scene):
         self.scenes.append(scene)
@@ -274,64 +302,74 @@ class SceneManager:
         self.scenes.pop()
 
 
-def init(window_size=(960, 640), caption="", pixel_scale=2):
-    """This function initialize pygame and game engine.
-    Where to configure settings of game system is here."""
-    global screen
-    global w_size
-    global w_size_unscaled
-    pixel_scale = pixel_scale
-    w_size_unscaled = window_size
-    w_size = tuple([length // pixel_scale for length in window_size])
-    pygame.display.set_mode(w_size_unscaled)
-    screen = pygame.Surface(w_size)
-    pygame.display.set_caption(caption)
-    pygame.key.set_repeat(10, 10)
-
-
-def run(fps=60):
+class GameScene(Scene):
     player = Player()
     player.rect.x = w_size[0] / 2 - player.rect.width
     player.rect.y = w_size[1] - player.rect.height
     gamefont = pygame.font.Font(AssetFilePath.font("misaki_gothic.ttf"), 16)
     debugtext1 = gamefont.render("", True, (255, 255, 255))
+
+    def __init__(self):
+        super().__init__()
+
+    def event(self, event):
+        if event.type == pygame.KEYDOWN:
+            self.debugtext1 = self.gamefont.render(
+                TextToDebug.arrow_keys_from_event(event.key),
+                True, (255, 255, 255))
+            if event.key == pygame.K_UP:
+                self.player.will_move_to(Arrow.up)
+            if event.key == pygame.K_DOWN:
+                self.player.will_move_to(Arrow.down)
+            if event.key == pygame.K_RIGHT:
+                self.player.will_move_to(Arrow.right)
+            if event.key == pygame.K_LEFT:
+                self.player.will_move_to(Arrow.left)
+            if event.key == pygame.K_z:
+                self.player.trigger_shot()
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_UP:
+                self.player.stop_moving_to(Arrow.up)
+            if event.key == pygame.K_DOWN:
+                self.player.stop_moving_to(Arrow.down)
+            if event.key == pygame.K_RIGHT:
+                self.player.stop_moving_to(Arrow.right)
+            if event.key == pygame.K_LEFT:
+                self.player.stop_moving_to(Arrow.left)
+            if event.key == pygame.K_z:
+                self.player.release_trigger()
+
+    def update(self):
+        pass
+
+    def draw(self, screen):
+        screen.blit(self.debugtext1, (0, 0))
+
+
+def run(fps_num=60):
+    global fps
+    global clock_counter
+    fps = fps_num
     running = True
+    scene_manager = SceneManager()
+    scene_manager.push(GameScene())
     while running:
         screen.fill((0, 0, 0))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            if event.type == pygame.KEYDOWN:
-                debugtext1 = gamefont.render(
-                    TextToDebug.arrow_keys_from_event(event.key),
-                    True, (255, 255, 255))
-                if event.key == pygame.K_UP:
-                    player.will_move_to(Arrow.up)
-                if event.key == pygame.K_DOWN:
-                    player.will_move_to(Arrow.down)
-                if event.key == pygame.K_RIGHT:
-                    player.will_move_to(Arrow.right)
-                if event.key == pygame.K_LEFT:
-                    player.will_move_to(Arrow.left)
-                if event.key == pygame.K_z:
-                    player.trigger_shot()
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_UP:
-                    player.stop_moving_to(Arrow.up)
-                if event.key == pygame.K_DOWN:
-                    player.stop_moving_to(Arrow.down)
-                if event.key == pygame.K_RIGHT:
-                    player.stop_moving_to(Arrow.right)
-                if event.key == pygame.K_LEFT:
-                    player.stop_moving_to(Arrow.left)
-                if event.key == pygame.K_z:
-                    player.release_trigger()
+            scene_manager.event(event)
+        scene_manager.update()
+        scene_manager.draw(screen)
         all_sprites.update()
-        screen.blit(debugtext1, (0, 0))
         all_sprites.draw(screen)
         # resize pixel size
         pygame.transform.scale(screen, w_size_unscaled,
                                pygame.display.get_surface())
         pygame.display.update()
         clock.tick(fps)
+        if clock_counter < fps:
+            clock_counter += 1
+        else:
+            clock_counter = 0
     pygame.quit()
