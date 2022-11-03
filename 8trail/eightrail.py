@@ -8,6 +8,7 @@ import sys
 from pygame.math import Vector2
 import pygame
 
+# TODO: Delay second shooting
 
 pygame.init()
 
