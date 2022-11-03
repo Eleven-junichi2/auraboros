@@ -45,7 +45,7 @@ def schedule_interval(interval):
     return _decorator
 
 
-def schedule_interval_with_instance_method(
+def schedule_instance_method_interval(
         name_of_variable, interval_ignorerer=None):
     """
     Args:
@@ -56,19 +56,30 @@ def schedule_interval_with_instance_method(
             interval.
             If interval_ignorer is true, the decorated function is executed
             regardless of the interval.
-    Examples:
-        def __init__(self):
-            self.interval_a = 3
 
-        @schedule_interval_self("interval_a")
-        def func_a(self):
-            pass
+    Examples:
+        class ClassA:
+            def __init__(self):
+                self.interval_a = 3
+
+            @schedule_interval_self("interval_a")
+            def func_a(self):
+                pass
+
+        while True:
+            instance_a = ClassA()
+            instance_a.func_a()
+            if clock_counter < 60:
+                clock_counter += 1
+            else:
+                clock_counter = 0
     """
     def _decorator(func):
         @functools.wraps(func)
         def _wrapper(self, *args, **kwargs):
             if clock_counter % getattr(
-                    self, name_of_variable) == 0 or interval_ignorerer:
+                    self, name_of_variable) == 0 or getattr(
+                    self, interval_ignorerer):
                 return func(self, *args, **kwargs)
         return _wrapper
     return _decorator
@@ -242,8 +253,9 @@ class Player(ShooterSprite):
         self.rect = self.image.get_rect()
         self.movement_speed = 1
         self.shot_max_num = 4
-        self.shot_interval = 10
+        self.shot_interval = 3
         self.shot_que: deque = deque()
+        self.ignore_shot_interval = True
         self.is_shot_triggered = False
 
     def trigger_shot(self):
@@ -252,7 +264,8 @@ class Player(ShooterSprite):
     def release_trigger(self):
         self.is_shot_triggered = False
 
-    @schedule_interval_with_instance_method("shot_interval")
+    @schedule_instance_method_interval(
+        "shot_interval", "ignore_shot_interval")
     def _shooting(self):
         if (self.is_shot_allowed and (len(self.shot_que) < self.shot_max_num)):
             shot = PlayerShot(self)
@@ -297,8 +310,10 @@ class Player(ShooterSprite):
         self.move_on()
         if self.shot_que:
             self.is_shooting = True
+            self.ignore_shot_interval = False
         else:
             self.is_shooting = False
+            self.ignore_shot_interval = True
         if self.is_shot_triggered:
             self._shooting()
 
