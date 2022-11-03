@@ -154,7 +154,8 @@ class PlayerShot(Sprite):
         self.rect.x = \
             self.shooter.rect.x + \
             self.shooter.rect.width / 2 - self.rect.width / 2
-        self.rect.y = self.shooter.rect.y + self.shooter.rect.height / 2 - self.rect.height
+        self.rect.y = self.shooter.rect.y + \
+            self.shooter.rect.height / 2 - self.rect.height
 
     def will_launch(self, direction: Arrow):
         self.direction_of_movement.set(direction)
@@ -201,7 +202,8 @@ class Player(ShooterSprite):
         self.movement_speed = 1
         self.shot_max_num = 4
         self.shot_que: deque = deque()
-        # self.shot_interval = 4
+        self.shot_interval = 3
+        self.in_shot_interval = False
         self.is_shot_triggered = False
 
     def trigger_shot(self):
@@ -211,9 +213,11 @@ class Player(ShooterSprite):
         self.is_shot_triggered = False
 
     def _shooting(self):
-        if (self.is_shot_allowed and (len(self.shot_que) < self.shot_max_num)):
+        # if (self.is_shot_allowed and (len(self.shot_que) < self.shot_max_num)):
         # if (self.is_shot_allowed and len(self.shot_que) < self.shot_max_num and
         #         self.shot_interval_counter % self.shot_interval == 0):
+        if (self.is_shot_allowed and (len(self.shot_que) < self.shot_max_num)
+                and not self.in_shot_interval):
             shot = PlayerShot(self)
             shot.will_launch(Arrow.up)
             self.shot_que.append(shot)
@@ -258,9 +262,13 @@ class Player(ShooterSprite):
             self._shooting()
         if self.shot_que:
             self.is_shooting = True
+            self.in_shot_interval = True
         else:
             self.is_shooting = False
-            # self.shot_interval_counter = 0
+            self.in_shot_interval = False
+        if self.in_shot_interval:
+            if clock_counter % self.shot_interval == 0:
+                self.in_shot_interval = False
         # if self.is_shooting:
         #     self.shot_interval_counter += 1
         # if self.shot_interval_counter > self.shot_interval:
