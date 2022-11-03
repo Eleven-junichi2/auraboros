@@ -2,6 +2,7 @@ from collections import deque
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List
+import functools
 import sys
 
 from pygame.math import Vector2
@@ -36,9 +37,39 @@ init()
 
 def schedule_interval(interval):
     def _decorator(func):
-        def _wrapper(self, *args, **kwargs):
-            if clock_counter % self.shot_interval == 0:
+        @functools.wraps(func)
+        def _wrapper(*args, **kwargs):
+            if clock_counter % interval == 0:
                 return func(*args, **kwargs)
+        return _wrapper
+    return _decorator
+
+
+def schedule_interval_with_instance_method(
+        name_of_variable, interval_ignorerer=None):
+    """
+    Args:
+        name_of_variable:
+            The name of the variable as interval.
+        interval_ignorerer:
+            The name of the bool variable that is the condition for ignoring
+            interval.
+            If interval_ignorer is true, the decorated function is executed
+            regardless of the interval.
+    Examples:
+        def __init__(self):
+            self.interval_a = 3
+
+        @schedule_interval_self("interval_a")
+        def func_a(self):
+            pass
+    """
+    def _decorator(func):
+        @functools.wraps(func)
+        def _wrapper(self, *args, **kwargs):
+            if clock_counter % getattr(
+                    self, name_of_variable) == 0 or interval_ignorerer:
+                return func(self, *args, **kwargs)
         return _wrapper
     return _decorator
 
@@ -204,15 +235,15 @@ class PlayerShot(Sprite):
 
 
 class Player(ShooterSprite):
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.image = pygame.image.load(AssetFilePath.img("fighter_a.png"))
         self.rect = self.image.get_rect()
         self.movement_speed = 1
         self.shot_max_num = 4
+        self.shot_interval = 10
         self.shot_que: deque = deque()
-        self.shot_interval = 3
-        self.in_shot_interval = False
         self.is_shot_triggered = False
 
     def trigger_shot(self):
@@ -221,12 +252,9 @@ class Player(ShooterSprite):
     def release_trigger(self):
         self.is_shot_triggered = False
 
+    @schedule_interval_with_instance_method("shot_interval")
     def _shooting(self):
-        # if (self.is_shot_allowed and (len(self.shot_que) < self.shot_max_num)):
-        # if (self.is_shot_allowed and len(self.shot_que) < self.shot_max_num and
-        #         self.shot_interval_counter % self.shot_interval == 0):
-        if (self.is_shot_allowed and (len(self.shot_que) < self.shot_max_num)
-                and not self.in_shot_interval):
+        if (self.is_shot_allowed and (len(self.shot_que) < self.shot_max_num)):
             shot = PlayerShot(self)
             shot.will_launch(Arrow.up)
             self.shot_que.append(shot)
@@ -269,20 +297,10 @@ class Player(ShooterSprite):
         self.move_on()
         if self.shot_que:
             self.is_shooting = True
-            self.in_shot_interval = True
         else:
             self.is_shooting = False
-            self.in_shot_interval = False
-        if self.in_shot_interval:
-            if clock_counter % self.shot_interval == 0:
-                self.in_shot_interval = False
         if self.is_shot_triggered:
             self._shooting()
-
-        # if self.is_shooting:
-        #     self.shot_interval_counter += 1
-        # if self.shot_interval_counter > self.shot_interval:
-        #     self.shot_interval_counter = 0
 
 
 @dataclass
