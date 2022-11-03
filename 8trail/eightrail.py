@@ -76,7 +76,6 @@ def schedule_instance_method_interval(
     def _decorator(func):
         @functools.wraps(func)
         def _wrapper(self, *args, **kwargs):
-            print(clock.get_time())
             if clock_counter % getattr(
                     self, name_of_variable) == 0 or getattr(
                     self, interval_ignorerer):
@@ -342,7 +341,7 @@ class SceneManager:
         self.scenes[self.current].event(event)
 
     def update(self):
-        self.scenes[self.current].update
+        self.scenes[self.current].update()
 
     def draw(self, screen: pygame.surface.Surface):
         self.scenes[self.current].draw(screen)
@@ -405,6 +404,7 @@ class TitleMenuScene(Scene):
 def run(fps_num=60):
     global fps
     global clock_counter
+    global delay_key_counter
     fps = fps_num
     running = True
     scene_manager = SceneManager()
