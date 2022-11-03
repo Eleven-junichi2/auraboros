@@ -29,7 +29,6 @@ def init(window_size=(960, 640), caption="", pixel_scale=2):
     pygame.display.set_mode(w_size_unscaled)
     screen = pygame.Surface(w_size)
     pygame.display.set_caption(caption)
-    pygame.key.set_repeat(10, 10)
 
 
 init()
@@ -77,6 +76,7 @@ def schedule_instance_method_interval(
     def _decorator(func):
         @functools.wraps(func)
         def _wrapper(self, *args, **kwargs):
+            print(clock.get_time())
             if clock_counter % getattr(
                     self, name_of_variable) == 0 or getattr(
                     self, interval_ignorerer):
@@ -398,6 +398,10 @@ class GameScene(Scene):
         screen.blit(self.debugtext1, (0, 0))
 
 
+class TitleMenuScene(Scene):
+    pass
+
+
 def run(fps_num=60):
     global fps
     global clock_counter
@@ -406,6 +410,7 @@ def run(fps_num=60):
     scene_manager = SceneManager()
     scene_manager.push(GameScene())
     while running:
+        time_delta = clock.tick(fps)  # noqa
         screen.fill((0, 0, 0))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -419,7 +424,6 @@ def run(fps_num=60):
         pygame.transform.scale(screen, w_size_unscaled,
                                pygame.display.get_surface())
         pygame.display.update()
-        clock.tick(fps)
         if clock_counter < fps:
             clock_counter += 1
         else:
