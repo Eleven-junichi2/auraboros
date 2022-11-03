@@ -1,12 +1,14 @@
 from collections import deque
 from dataclasses import dataclass
 from pathlib import Path
+from random import randint
 from typing import List
 import functools
 import sys
 
 from pygame.math import Vector2
 import pygame
+
 
 # TODO: Delay second shooting
 
@@ -360,9 +362,14 @@ class GameScene(Scene):
     player.rect.y = w_size[1] - player.rect.height
     gamefont = pygame.font.Font(AssetFilePath.font("misaki_gothic.ttf"), 16)
     debugtext1 = gamefont.render("", True, (255, 255, 255))
+    debugtext2 = gamefont.render("", True, (255, 255, 255))
+    background = pygame.surface.Surface((w_size[0], w_size[1] * 2))
+    bg_scroll_y = 0
+    density_of_stars_on_bg = randint(100, 500)
 
     def __init__(self):
         super().__init__()
+        self.set_background()
 
     def event(self, event):
         if event.type == pygame.KEYDOWN:
@@ -392,10 +399,45 @@ class GameScene(Scene):
                 self.player.release_trigger()
 
     def update(self):
-        pass
+        self.scroll_background()
 
     def draw(self, screen):
+        screen.blit(self.background, (0, self.bg_scroll_y - w_size[1]))
         screen.blit(self.debugtext1, (0, 0))
+        screen.blit(self.debugtext2, (0, 16))
+
+    def set_background(self):
+        [self.background.fill(
+            (randint(0, 255), randint(0, 255), randint(0, 255)),
+            ((randint(0, w_size[0]), randint(0, w_size[1] * 2)), (1, 1)))
+         for i in range(self.density_of_stars_on_bg)]
+
+    def set_background_for_scroll(self):
+        new_background = pygame.surface.Surface((w_size[0], w_size[1] * 2))
+        new_background.blit(
+            self.background, (0, w_size[1], w_size[0], w_size[1]))
+        randomize_density = \
+            randint(-self.density_of_stars_on_bg // 2,
+                    self.density_of_stars_on_bg // 2)
+        [new_background.fill(
+            (randint(0, 255), randint(0, 255), randint(0, 255)),
+            ((randint(0, w_size[0]), randint(0, w_size[1])),
+             (1, 1)))
+         for i in range(self.density_of_stars_on_bg + randomize_density)]
+        self.background = new_background
+        # draw line for debug
+        # new_background.fill(
+        #     (randint(0, 255), randint(0, 255), randint(0, 255)),
+        #     ((0, 0),
+        #      (w_size[0], 1)))
+
+    def scroll_background(self):
+        self.debugtext2 = self.gamefont.render(
+            f"{self.bg_scroll_y}", True, (255, 255, 255))
+        self.bg_scroll_y += 1
+        if self.bg_scroll_y > w_size[1]:
+            self.bg_scroll_y = 0
+            self.set_background_for_scroll()
 
 
 class TitleMenuScene(Scene):
