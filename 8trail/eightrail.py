@@ -154,7 +154,7 @@ class PlayerShot(Sprite):
         self.rect.x = \
             self.shooter.rect.x + \
             self.shooter.rect.width / 2 - self.rect.width / 2
-        self.rect.y = self.shooter.rect.y - self.rect.height
+        self.rect.y = self.shooter.rect.y + self.shooter.rect.height / 2 - self.rect.height
 
     def will_launch(self, direction: Arrow):
         self.direction_of_movement.set(direction)
@@ -178,7 +178,7 @@ class PlayerShot(Sprite):
                 self.reset_pos()
                 self.allow_shooter_to_fire()
                 self.shooter.shot_que.pop()
-                self.shooter.shot_interval_counter = 0
+                # self.shooter.shot_interval_counter = 0
                 self.kill()
 
     def allow_shooter_to_fire(self):
@@ -201,7 +201,7 @@ class Player(ShooterSprite):
         self.movement_speed = 1
         self.shot_max_num = 4
         self.shot_que: deque = deque()
-        self.shot_interval = 4
+        # self.shot_interval = 4
         self.is_shot_triggered = False
 
     def trigger_shot(self):
@@ -211,8 +211,9 @@ class Player(ShooterSprite):
         self.is_shot_triggered = False
 
     def _shooting(self):
-        if (self.is_shot_allowed and len(self.shot_que) < self.shot_max_num and
-                self.shot_interval_counter % self.shot_interval == 0):
+        if (self.is_shot_allowed and (len(self.shot_que) < self.shot_max_num)):
+        # if (self.is_shot_allowed and len(self.shot_que) < self.shot_max_num and
+        #         self.shot_interval_counter % self.shot_interval == 0):
             shot = PlayerShot(self)
             shot.will_launch(Arrow.up)
             self.shot_que.append(shot)
@@ -259,11 +260,11 @@ class Player(ShooterSprite):
             self.is_shooting = True
         else:
             self.is_shooting = False
-            self.shot_interval_counter = 0
-        if self.is_shooting:
-            self.shot_interval_counter += 1
-        if self.shot_interval_counter > self.shot_interval:
-            self.shot_interval_counter = 0
+            # self.shot_interval_counter = 0
+        # if self.is_shooting:
+        #     self.shot_interval_counter += 1
+        # if self.shot_interval_counter > self.shot_interval:
+        #     self.shot_interval_counter = 0
 
 
 @dataclass
