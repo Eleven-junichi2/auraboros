@@ -54,7 +54,7 @@ def schedule_instance_method_interval(
         interval_ignorerer:
             The name of the bool variable that is the condition for ignoring
             interval.
-            If interval_ignorer is true, the decorated function is executed
+            If interval_ignorer is True, the decorated function is executed
             regardless of the interval.
 
     Examples:
