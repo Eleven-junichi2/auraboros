@@ -2,7 +2,7 @@ from collections import deque
 from dataclasses import dataclass
 from pathlib import Path
 from random import randint
-from typing import List
+from typing import List, Iterator
 import functools
 import sys
 
@@ -17,7 +17,6 @@ pygame.init()
 clock = pygame.time.Clock()
 clock_counter = 0  # use to implement interval
 fps = 60
-all_sprites = pygame.sprite.Group()
 
 
 def init(window_size=(960, 640), caption="", pixel_scale=2):
@@ -173,10 +172,8 @@ class TextToDebug:
 
 
 class Sprite(pygame.sprite.Sprite):
-    def __init__(self, root_group: pygame.sprite.Group = all_sprites,
-                 *args, **kwargs):
-        super().__init__(root_group, *args, **kwargs)
-        self.root_group = root_group
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.direction_of_movement = ArrowToTurnToward()
         self.movement_speed = 1
 
@@ -192,10 +189,13 @@ class ShooterSprite(Sprite):
 
 
 class PlayerShot(Sprite):
-    def __init__(self, shooter_sprite: ShooterSprite, *args, **kwargs):
+    def __init__(self, shooter_sprite: ShooterSprite,
+                 groups_to_show_bullet: Iterator[pygame.sprite.Group],
+                 *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.image = pygame.image.load(AssetFilePath.img("shot1.png"))
         self.shooter = shooter_sprite
+        self.groups_to_show = groups_to_show_bullet
         self.rect = self.image.get_rect()
         self.reset_pos()
         self.movement_speed = 3
@@ -212,7 +212,7 @@ class PlayerShot(Sprite):
 
     def will_launch(self, direction: Arrow):
         self.direction_of_movement.set(direction)
-        self.root_group.add(self)
+        [group.add(self) for group in self.groups_to_show]
         self.is_launching = True
         if (self.direction_of_movement.is_up and
                 self.shooter.direction_of_movement.is_up):
@@ -248,7 +248,6 @@ class PlayerShot(Sprite):
 
 
 class Player(ShooterSprite):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.image = pygame.image.load(AssetFilePath.img("fighter_a.png"))
@@ -270,7 +269,7 @@ class Player(ShooterSprite):
         "shot_interval", "ignore_shot_interval")
     def _shooting(self):
         if (self.is_shot_allowed and (len(self.shot_que) < self.shot_max_num)):
-            shot = PlayerShot(self)
+            shot = PlayerShot(self, self.groups())
             shot.will_launch(Arrow.up)
             self.shot_que.append(shot)
 
@@ -323,7 +322,16 @@ class Player(ShooterSprite):
 @dataclass
 class Scene(object):
     def __init__(self):
-        pass
+        self.sprites: pygame.sprite.Group = pygame.sprite.Group()
+
+        # --- Add attributes of Sprite defined in subclass to self.sprites ---
+        attrs_of_class = set(dir(self.__class__)) - set(dir(Scene))
+        for attr_name in attrs_of_class:
+            attrs_of_object = \
+                set(getattr(self, attr_name).__class__.__mro__) - {object, }
+            is_sprite = Sprite in attrs_of_object
+            if is_sprite:
+                self.sprites.add(getattr(self, attr_name))
 
     def event(self, event: pygame.event):
         pass
@@ -345,9 +353,11 @@ class SceneManager:
 
     def update(self):
         self.scenes[self.current].update()
+        self.scenes[self.current].sprites.update()
 
     def draw(self, screen: pygame.surface.Surface):
         self.scenes[self.current].draw(screen)
+        self.scenes[self.current].sprites.draw(screen)
 
     def push(self, scene: Scene):
         self.scenes.append(scene)
@@ -441,7 +451,8 @@ class GameScene(Scene):
 
 
 class TitleMenuScene(Scene):
-    pass
+    def __init__(self):
+        super().__init__()
 
 
 def run(fps_num=60):
@@ -450,7 +461,9 @@ def run(fps_num=60):
     fps = fps_num
     running = True
     scene_manager = SceneManager()
+    # scene_manager.push(TitleMenuScene())
     scene_manager.push(GameScene())
+
     while running:
         time_delta = clock.tick(fps)  # noqa
         screen.fill((0, 0, 0))
@@ -460,8 +473,8 @@ def run(fps_num=60):
             scene_manager.event(event)
         scene_manager.update()
         scene_manager.draw(screen)
-        all_sprites.update()
-        all_sprites.draw(screen)
+        # all_sprites.update()
+        # all_sprites.draw(screen)
         # resize pixel size
         pygame.transform.scale(screen, w_size_unscaled,
                                pygame.display.get_surface())
