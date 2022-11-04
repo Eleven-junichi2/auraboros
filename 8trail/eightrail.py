@@ -447,7 +447,6 @@ class TitleMenuScene(Scene):
 def run(fps_num=60):
     global fps
     global clock_counter
-    global delay_key_counter
     fps = fps_num
     running = True
     scene_manager = SceneManager()
