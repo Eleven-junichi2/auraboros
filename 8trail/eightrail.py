@@ -230,14 +230,13 @@ class ShooterSprite(Sprite):
 
 
 class AnimationImage:
-    # unused
     def __init__(self):
         self.anim_dict: Dict[int, List[pygame.surface.Surface]] = {0: []}
         self.anim_frame_id = 0
         self.anim_action_id = 0
         self.anim_interval = 1
         self.playing_animation = False
-        self.image: pygame.surface.Surface
+        self.image = self.anim_dict[0][self.anim_frame_id]
 
     def draw(self, screen: pygame.surface.Surface):
         if self.playing_animation:
@@ -249,7 +248,8 @@ class AnimationImage:
 
     def update_frame(self):
         if self.playing_animation:
-            self.image = self.anim_dict[self.anim_frame_id]
+            self.image = self.anim_dict[
+                self.anim_action_id][self.anim_frame_id]
             if self.anim_frame_id < len(
                     self.anim_dict[self.anim_action_id]) - 1:
                 self.anim_frame_id += 1
@@ -259,6 +259,9 @@ class AnimationImage:
 
     def set_current_frame_to_image(self):
         self.image = self.anim_dict[self.anim_action_id][self.anim_frame_id]
+
+    def set_current_action_id(self, id: int):
+        self.anim_action_id = id
 
     def set_frames(self, action_id: int,
                    animation_frames: List[pygame.surface.Surface]):
@@ -281,7 +284,7 @@ class Explosion(AnimationImage):
              self.sprite_sheet.image_by_area(0, 16*5, 16, 16)]
         self.set_frames(0, anim_frames)
         self.anim_interval = 2
-        self.image = self.animations[self.anim_frame_id]
+        self.image = self.anim_dict[0][self.anim_frame_id]
         self.rect = self.image.get_rect()
 
 
