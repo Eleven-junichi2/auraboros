@@ -63,7 +63,7 @@ def schedule_instance_method_interval(
             def __init__(self):
                 self.interval_a = 3
 
-            @schedule_interval_self("interval_a")
+            @schedule_instance_method_interval("interval_a")
             def func_a(self):
                 pass
 
@@ -221,6 +221,22 @@ class Enemy(Sprite):
     def draw(self, screen: pygame.surface.Surface):
         screen.blit(self.image, self.rect)
 
+    def update(self):
+        pass
+
+
+class Explosion:
+    def __init__(self, *args, **kwargs):
+        self.images = list()
+        self.image = pygame.image.load(AssetFilePath.img("explosion_a.png"))
+        self.rect = self.image.get_rect()
+        self.anim_interval = 3
+        self.anim_index = 0
+
+    def draw(self, screen: pygame.surface.Surface):
+        screen.blit(self.image, self.rect)
+
+    @schedule_instance_method_interval("anim_interval")
     def update(self):
         pass
 
@@ -428,16 +444,19 @@ class GameScene(Scene):
         if self.is_player_shot_hit_enemy():
             print(self.is_player_shot_hit_enemy())
             self.destory_enemy()
+        # print(self.sprites)
 
     def draw(self, screen):
         screen.blit(self.background, (0, self.bg_scroll_y - w_size[1]))
         screen.blit(self.debugtext1, (0, 0))
         screen.blit(self.debugtext2, (0, 16))
+        if self.is_player_shot_hit_enemy():
+            Explosion().draw(screen)
 
     def is_player_shot_hit_enemy(self):
         return True in {
             pygame.sprite.collide_rect(shot, self.enemy_a)
-            for shot in self.player.shot_que}
+            for shot in self.player.shot_que} and self.enemy_a.alive()
 
     def destory_enemy(self):
         self.enemy_a.kill()
