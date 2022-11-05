@@ -177,6 +177,31 @@ class Sprite(pygame.sprite.Sprite):
         self.direction_of_movement = ArrowToTurnToward()
         self.movement_speed = 1
 
+    def move_on(self):
+        # if diagonal movement
+        if ((self.direction_of_movement.is_up and
+            self.direction_of_movement.is_right) or
+            (self.direction_of_movement.is_up and
+            self.direction_of_movement.is_left) or
+            (self.direction_of_movement.is_down and
+            self.direction_of_movement.is_right) or
+            (self.direction_of_movement.is_down and
+                self.direction_of_movement.is_left)):
+            vec = Vector2(self.movement_speed, self.movement_speed)
+            # Correct the speed of diagonal movement
+            movement_speed = vec.normalize().x
+        else:
+            movement_speed = self.movement_speed
+        movement_speed = self.movement_speed
+        if self.direction_of_movement.is_up:
+            self.rect.y -= movement_speed
+        if self.direction_of_movement.is_down:
+            self.rect.y += movement_speed
+        if self.direction_of_movement.is_right:
+            self.rect.x += movement_speed
+        if self.direction_of_movement.is_left:
+            self.rect.x -= movement_speed
+
 
 class ShooterSprite(Sprite):
     def __init__(self, *args, **kwargs):
@@ -184,8 +209,20 @@ class ShooterSprite(Sprite):
         self.shot_max_num = 1
         self.shot_que: deque = deque()
         self.shot_interval = 1
-        self.shot_interval_counter = self.shot_interval
         self.is_shot_allowed = True
+
+
+class Enemy(Sprite):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.image = pygame.image.load(AssetFilePath.img("enemy_a.png"))
+        self.rect = self.image.get_rect()
+
+    def draw(self, screen: pygame.surface.Surface):
+        screen.blit(self.image, self.rect)
+
+    def update(self):
+        pass
 
 
 class PlayerShot(Sprite):
@@ -255,6 +292,7 @@ class Player(ShooterSprite):
         self.movement_speed = 1
         self.shot_max_num = 4
         self.shot_interval = 3
+        self.shot_current_interval = self.shot_interval
         self.shot_que: deque = deque()
         self.ignore_shot_interval = True
         self.is_shot_triggered = False
@@ -266,7 +304,7 @@ class Player(ShooterSprite):
         self.is_shot_triggered = False
 
     @schedule_instance_method_interval(
-        "shot_interval", "ignore_shot_interval")
+        "shot_current_interval", "ignore_shot_interval")
     def _shooting(self):
         if (self.is_shot_allowed and (len(self.shot_que) < self.shot_max_num)):
             shot = PlayerShot(self, self.groups())
@@ -278,31 +316,6 @@ class Player(ShooterSprite):
 
     def stop_moving_to(self, direction: Arrow):
         self.direction_of_movement.unset(direction)
-
-    def move_on(self):
-        # if diagonal movement
-        if ((self.direction_of_movement.is_up and
-            self.direction_of_movement.is_right) or
-            (self.direction_of_movement.is_up and
-            self.direction_of_movement.is_left) or
-            (self.direction_of_movement.is_down and
-            self.direction_of_movement.is_right) or
-            (self.direction_of_movement.is_down and
-                self.direction_of_movement.is_left)):
-            vec = Vector2(self.movement_speed, self.movement_speed)
-            # Correct the speed of diagonal movement
-            movement_speed = vec.normalize().x
-        else:
-            movement_speed = self.movement_speed
-        movement_speed = self.movement_speed
-        if self.direction_of_movement.is_up:
-            self.rect.y -= movement_speed
-        if self.direction_of_movement.is_down:
-            self.rect.y += movement_speed
-        if self.direction_of_movement.is_right:
-            self.rect.x += movement_speed
-        if self.direction_of_movement.is_left:
-            self.rect.x -= movement_speed
 
     def draw(self, screen: pygame.surface.Surface):
         screen.blit(self.image, self.rect)
@@ -370,6 +383,8 @@ class GameScene(Scene):
     player = Player()
     player.rect.x = w_size[0] / 2 - player.rect.width
     player.rect.y = w_size[1] - player.rect.height
+    enemy_a = Enemy()
+    enemy_a.rect.x = w_size[0] / 2 - enemy_a.rect.width
     gamefont = pygame.font.Font(AssetFilePath.font("misaki_gothic.ttf"), 16)
     debugtext1 = gamefont.render("", True, (255, 255, 255))
     debugtext2 = gamefont.render("", True, (255, 255, 255))
@@ -410,11 +425,22 @@ class GameScene(Scene):
 
     def update(self):
         self.scroll_background()
+        if self.is_player_shot_hit_enemy():
+            print(self.is_player_shot_hit_enemy())
+            self.destory_enemy()
 
     def draw(self, screen):
         screen.blit(self.background, (0, self.bg_scroll_y - w_size[1]))
         screen.blit(self.debugtext1, (0, 0))
         screen.blit(self.debugtext2, (0, 16))
+
+    def is_player_shot_hit_enemy(self):
+        return True in {
+            pygame.sprite.collide_rect(shot, self.enemy_a)
+            for shot in self.player.shot_que}
+
+    def destory_enemy(self):
+        self.enemy_a.kill()
 
     def set_background(self):
         [self.background.fill(
