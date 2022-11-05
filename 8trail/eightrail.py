@@ -458,6 +458,7 @@ class GameScene(Scene):
     player.rect.y = w_size[1] - player.rect.height
     enemy_a = Enemy()
     enemy_a.rect.x = w_size[0] / 2 - enemy_a.rect.width
+    enemy_a.rect.y = w_size[1] / 4 - enemy_a.rect.height
     gamefont = pygame.font.Font(AssetFilePath.font("misaki_gothic.ttf"), 16)
     debugtext1 = gamefont.render("", True, (255, 255, 255))
     debugtext2 = gamefont.render("", True, (255, 255, 255))
@@ -502,10 +503,8 @@ class GameScene(Scene):
     def update(self):
         self.scroll_background()
         if self.is_player_shot_hit_enemy():
-            print(self.is_player_shot_hit_enemy())
             self.destory_enemy()
         self.explosion_anim.update()
-        # print(self.sprites)
 
     def draw(self, screen):
         screen.blit(self.background, (0, self.bg_scroll_y - w_size[1]))
