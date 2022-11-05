@@ -237,7 +237,14 @@ class AnimationImage:
         self.anim_interval = 1
         self.playing_animation = False
 
+    def draw(self, screen: pygame.surface.Surface):
+        if self.playing_animation:
+            screen.blit(self.image, self.rect)
+
     @schedule_instance_method_interval("anim_interval")
+    def update_frame_at_interval(self):
+        self.update_frame()
+
     def update_frame(self):
         if self.playing_animation:
             self.image = self.anim_frames[self.anim_frame_id]
@@ -271,10 +278,6 @@ class Explosion(AnimationImage):
         self.anim_interval = 2
         self.image = self.anim_frames[self.anim_frame_id]
         self.rect = self.image.get_rect()
-
-    def draw(self, screen: pygame.surface.Surface):
-        if self.playing_animation:
-            screen.blit(self.image, self.rect)
 
 
 class Enemy(Sprite):
@@ -502,7 +505,7 @@ class GameScene(Scene):
         self.scroll_background()
         if self.is_player_shot_hit_enemy():
             self.destory_enemy()
-        self.explosion_anim.update_frame()
+        self.explosion_anim.update_frame_at_interval()
 
     def draw(self, screen):
         screen.blit(self.background, (0, self.bg_scroll_y - w_size[1]))
