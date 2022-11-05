@@ -78,9 +78,14 @@ def schedule_instance_method_interval(
     def _decorator(func):
         @functools.wraps(func)
         def _wrapper(self, *args, **kwargs):
-            if clock_counter % getattr(
-                    self, variable_as_interval) == 0 or getattr(
-                    self, interval_ignorerer):
+            if interval_ignorerer:
+                bool_from_interval_ignorerer = getattr(
+                    self, interval_ignorerer)
+            else:
+                bool_from_interval_ignorerer = False
+            if (clock_counter % getattr(
+                    self, variable_as_interval) == 0 or
+                    bool_from_interval_ignorerer):
                 return func(self, *args, **kwargs)
         return _wrapper
     return _decorator
@@ -171,6 +176,18 @@ class TextToDebug:
         return f"speed:{movement_speed}"
 
 
+class SpriteSheet:
+    def __init__(self, filename):
+        self.image = pygame.image.load(filename)
+
+    def image_by_area(self, x, y, width, height) -> pygame.surface.Surface:
+        """"""
+        image = pygame.Surface((width, height))
+        image.blit(self.image, (0, 0), (x, y, width, height))
+        # image = pg.transform.scale(image, (width // 2, height // 2))
+        return image
+
+
 class Sprite(pygame.sprite.Sprite):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -212,32 +229,70 @@ class ShooterSprite(Sprite):
         self.is_shot_allowed = True
 
 
+class AnimationImage:
+    # unused
+    def __init__(self, frame_list: List[pygame.surface.Surface]):
+        self.anim_frames = frame_list
+        self.anim_frame_id = 0
+        self.anim_interval = 1
+        self.play_animation = False
+
+
+class Explosion:
+    def __init__(self):
+        self.sprite_sheet = SpriteSheet(AssetFilePath.img("explosion_a.png"))
+        self.anim_frames: List[pygame.surface.Surface] = []
+        self.anim_frames.append(self.sprite_sheet.image_by_area(0, 0, 16, 16))
+        self.anim_frames.append(self.sprite_sheet.image_by_area(0, 16, 16, 16))
+        self.anim_frames.append(
+            self.sprite_sheet.image_by_area(0, 16*2, 16, 16))
+        self.anim_frames.append(
+            self.sprite_sheet.image_by_area(0, 16*3, 16, 16))
+        self.anim_frames.append(
+            self.sprite_sheet.image_by_area(0, 16*4, 16, 16))
+        self.anim_frames.append(
+            self.sprite_sheet.image_by_area(0, 16*5, 16, 16))
+        self.anim_frame_id = 0
+        self.anim_interval = 2
+        self.image = self.anim_frames[self.anim_frame_id]
+        self.playing_animation = False
+        self.rect = self.image.get_rect()
+
+    def draw(self, screen: pygame.surface.Surface):
+        if self.playing_animation:
+            screen.blit(self.image, self.rect)
+
+    @schedule_instance_method_interval("anim_interval")
+    def update(self):
+        if self.playing_animation:
+            self.image = self.anim_frames[self.anim_frame_id]
+            if self.anim_frame_id < len(self.anim_frames) - 1:
+                self.anim_frame_id += 1
+            else:
+                self.anim_frame_id = 0
+                self.playing_animation = False
+
+    def set_current_frame_to_image(self):
+        self.image = self.anim_frames[self.anim_frame_id]
+
+    def play_animation(self):
+        self.playing_animation = True
+
+
 class Enemy(Sprite):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
         self.image = pygame.image.load(AssetFilePath.img("enemy_a.png"))
         self.rect = self.image.get_rect()
 
     def draw(self, screen: pygame.surface.Surface):
         screen.blit(self.image, self.rect)
 
-    def update(self):
-        pass
+    def death(self):
+        self.kill()
 
-
-class Explosion:
-    def __init__(self, *args, **kwargs):
-        self.images = list()
-        self.image = pygame.image.load(AssetFilePath.img("explosion_a.png"))
-        self.rect = self.image.get_rect()
-        self.anim_interval = 3
-        self.anim_index = 0
-
-    def draw(self, screen: pygame.surface.Surface):
-        screen.blit(self.image, self.rect)
-
-    @schedule_instance_method_interval("anim_interval")
-    def update(self):
+    def update_after_killed(self):
         pass
 
 
@@ -386,7 +441,8 @@ class SceneManager:
 
     def draw(self, screen: pygame.surface.Surface):
         self.scenes[self.current].draw(screen)
-        self.scenes[self.current].sprites.draw(screen)
+        [sprite.draw(screen)
+         for sprite in self.scenes[self.current].sprites.sprites()]
 
     def push(self, scene: Scene):
         self.scenes.append(scene)
@@ -396,6 +452,7 @@ class SceneManager:
 
 
 class GameScene(Scene):
+    explosion_anim = Explosion()
     player = Player()
     player.rect.x = w_size[0] / 2 - player.rect.width
     player.rect.y = w_size[1] - player.rect.height
@@ -407,6 +464,7 @@ class GameScene(Scene):
     background = pygame.surface.Surface((w_size[0], w_size[1] * 2))
     bg_scroll_y = 0
     density_of_stars_on_bg = randint(100, 500)
+    # explosion_effect = Explosion()
 
     def __init__(self):
         super().__init__()
@@ -427,6 +485,8 @@ class GameScene(Scene):
                 self.player.will_move_to(Arrow.left)
             if event.key == pygame.K_z:
                 self.player.trigger_shot()
+            if event.key == pygame.K_x:
+                self.sprites.add(self.enemy_a)
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_UP:
                 self.player.stop_moving_to(Arrow.up)
@@ -444,14 +504,14 @@ class GameScene(Scene):
         if self.is_player_shot_hit_enemy():
             print(self.is_player_shot_hit_enemy())
             self.destory_enemy()
+        self.explosion_anim.update()
         # print(self.sprites)
 
     def draw(self, screen):
         screen.blit(self.background, (0, self.bg_scroll_y - w_size[1]))
         screen.blit(self.debugtext1, (0, 0))
         screen.blit(self.debugtext2, (0, 16))
-        if self.is_player_shot_hit_enemy():
-            Explosion().draw(screen)
+        self.explosion_anim.draw(screen)
 
     def is_player_shot_hit_enemy(self):
         return True in {
@@ -459,7 +519,10 @@ class GameScene(Scene):
             for shot in self.player.shot_que} and self.enemy_a.alive()
 
     def destory_enemy(self):
-        self.enemy_a.kill()
+        self.explosion_anim.rect.x = self.enemy_a.rect.x
+        self.explosion_anim.rect.y = self.enemy_a.rect.y
+        self.enemy_a.death()
+        self.explosion_anim.play_animation()
 
     def set_background(self):
         [self.background.fill(
