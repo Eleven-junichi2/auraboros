@@ -47,10 +47,10 @@ def schedule_interval(interval):
 
 
 def schedule_instance_method_interval(
-        name_of_variable, interval_ignorerer=None):
+        variable_as_interval: str, interval_ignorerer=None):
     """
     Args:
-        name_of_variable:
+        variable_as_interval:
             The name of the variable as interval.
         interval_ignorerer:
             The name of the bool variable that is the condition for ignoring
@@ -79,7 +79,7 @@ def schedule_instance_method_interval(
         @functools.wraps(func)
         def _wrapper(self, *args, **kwargs):
             if clock_counter % getattr(
-                    self, name_of_variable) == 0 or getattr(
+                    self, variable_as_interval) == 0 or getattr(
                     self, interval_ignorerer):
                 return func(self, *args, **kwargs)
         return _wrapper
