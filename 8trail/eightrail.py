@@ -3,7 +3,7 @@ from collections.abc import MutableMapping
 from dataclasses import dataclass
 from pathlib import Path
 from random import randint
-from typing import Iterator
+from typing import Iterator, Optional
 from inspect import isclass
 import functools
 import sys
@@ -14,6 +14,7 @@ import pygame
 
 # TODO: Delay second shooting
 # TODO: Kill shot sprite on hit
+# TODO: Clean visual effect que
 
 pygame.init()
 
@@ -258,7 +259,7 @@ class AnimationImage:
     def update_frame_at_interval(self):
         return self.update_frame()
 
-    def update_frame(self) -> bool:
+    def update_frame(self) -> Optional[bool]:
         """Returns:
             True or False: Whether the animation is playing or not."""
         # update while playing animation
@@ -266,10 +267,12 @@ class AnimationImage:
             self.image = self.anim_frames[self.anim_frame_id]
             if self.anim_frame_id < len(self.anim_frames) - 1:
                 self.anim_frame_id += 1
+                is_finished = False
             else:
                 self.anim_frame_id = 0
                 self.playing_animation = False
-        return self.playing_animation
+                is_finished = True
+            return is_finished
 
     def set_current_frame_to_image(self):
         self.image = self.anim_frames[self.anim_frame_id]
@@ -303,6 +306,7 @@ class AnimationFactory(MutableMapping):
         animation = a["jump_animation"]
         animation.let_play_animation()
     """
+
     def __init__(self, *args, **kwargs):
         self.__dict__: dict[int, AnimationImage]
         self.__dict__.update(*args, **kwargs)
@@ -510,7 +514,7 @@ class SceneManager:
     def update(self):
         self.scenes[self.current].update()
         self.scenes[self.current].sprites.update()
-        [visual_effect.update()
+        [self.pop_played_visual_effect(visual_effect.update())
          for visual_effect in self.scenes[self.current].visual_effects]
 
     def draw(self, screen: pygame.surface.Surface):
@@ -519,6 +523,10 @@ class SceneManager:
          for sprite in self.scenes[self.current].sprites.sprites()]
         [visual_effect.draw(screen)
          for visual_effect in self.scenes[self.current].visual_effects]
+
+    def pop_played_visual_effect(self, is_played: Optional[bool]):
+        if is_played:
+            self.scenes[self.current].visual_effects.pop()
 
     def push(self, scene: Scene):
         self.scenes.append(scene)
