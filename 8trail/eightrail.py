@@ -1,8 +1,10 @@
 from collections import deque
+from collections.abc import MutableMapping
 from dataclasses import dataclass
 from pathlib import Path
 from random import randint
-from typing import List, Iterator, Dict
+from typing import Iterator
+from inspect import isclass
 import functools
 import sys
 
@@ -220,11 +222,10 @@ class Sprite(pygame.sprite.Sprite):
             self.rect.x += movement_speed
         if self.direction_of_movement.is_left:
             self.rect.x -= movement_speed
-    
+
     def center_x_on_screen(self, ):
         """Center the posistion on the screen"""
         self.rect.x = w_size[0] / 2 - self.rect.width
-        
 
     def center_y_on_screen(self, ):
         """Center the posistion on the screen"""
@@ -242,13 +243,12 @@ class ShooterSprite(Sprite):
 
 class AnimationImage:
     def __init__(self):
-        self.anim_dict: Dict[int, List[pygame.surface.Surface]] = {
-            0: [pygame.surface.Surface((0, 0))]}
+        self.anim_frames: list[pygame.surface.Surface] = [
+            pygame.surface.Surface((0, 0)), ]
         self.anim_frame_id = 0
-        self.anim_action_id = 0
         self.anim_interval = 1
         self.playing_animation = False
-        self.image = self.anim_dict[0][self.anim_frame_id]
+        self.image = self.anim_frames[self.anim_frame_id]
 
     def draw_while_playing(self, screen: pygame.surface.Surface):
         if self.playing_animation:
@@ -256,76 +256,113 @@ class AnimationImage:
 
     @schedule_instance_method_interval("anim_interval")
     def update_frame_at_interval(self):
-        self.update_frame()
+        return self.update_frame()
 
-    def update_frame(self):
+    def update_frame(self) -> bool:
+        """Returns:
+            True or False: Whether the animation is playing or not."""
         # update while playing animation
         if self.playing_animation:
-            self.image = self.anim_dict[
-                self.anim_action_id][self.anim_frame_id]
-            if self.anim_frame_id < len(
-                    self.anim_dict[self.anim_action_id]) - 1:
+            self.image = self.anim_frames[self.anim_frame_id]
+            if self.anim_frame_id < len(self.anim_frames) - 1:
                 self.anim_frame_id += 1
             else:
                 self.anim_frame_id = 0
                 self.playing_animation = False
+        return self.playing_animation
 
     def set_current_frame_to_image(self):
-        self.image = self.anim_dict[self.anim_action_id][self.anim_frame_id]
+        self.image = self.anim_frames[self.anim_frame_id]
 
     def set_current_action_id(self, id: int):
         self.anim_action_id = id
 
-    def set_frames(self, action_id: int,
-                   animation_frames: List[pygame.surface.Surface]):
-        self.anim_dict[action_id] = animation_frames
-
     def let_play_animation(self):
+        """Active update and draw function"""
+        self.playing_animation = True
+        # self.anim_frame_id = 0
+
+    def let_continue_animation(self):
+        """Active update and draw function without reset animation"""
         self.playing_animation = True
 
     def draw(self, screen):
         self.draw_while_playing(screen)
 
     def update(self):
-        self.update_frame_at_interval()
+        return self.update_frame_at_interval()
+
+
+class AnimationFactory(MutableMapping):
+    """
+    Examples:
+        class ExampleAnimation(AnimationImage):
+            pass
+        a = AnimationFactory()
+        a["animation_a"] = ExampleAnimation
+        animation = a["jump_animation"]
+        animation.let_play_animation()
+    """
+    def __init__(self, *args, **kwargs):
+        self.__dict__: dict[int, AnimationImage]
+        self.__dict__.update(*args, **kwargs)
+        # self.anim_action_id = 0
+
+    # def register(self, animation: AnimationImage):
+        # self.__setitem__()
+
+    def __getitem__(self, key) -> AnimationImage:
+        return self.__dict__[key]()
+
+    def __setitem__(self, key, value: AnimationImage):
+        if isclass(value):
+            self.__dict__[key] = value
+        else:
+            raise ValueError("The value must not be instance.")
+
+    def __delitem__(self, key: int):
+        del self.__dict__[key]
+
+    def __iter__(self):
+        return iter(self.__dict__)
+
+    def __len__(self):
+        return len(self.__dict__)
 
 
 class Explosion(AnimationImage):
     def __init__(self):
         super().__init__()
         self.sprite_sheet = SpriteSheet(AssetFilePath.img("explosion_a.png"))
-        anim_frames: List[pygame.surface.Surface] = \
+        self.anim_frames: list[pygame.surface.Surface] = \
             [self.sprite_sheet.image_by_area(0, 0, 16, 16),
              self.sprite_sheet.image_by_area(0, 16, 16, 16),
              self.sprite_sheet.image_by_area(0, 16*2, 16, 16),
              self.sprite_sheet.image_by_area(0, 16*3, 16, 16),
              self.sprite_sheet.image_by_area(0, 16*4, 16, 16),
              self.sprite_sheet.image_by_area(0, 16*5, 16, 16)]
-        self.set_frames(0, anim_frames)
         self.anim_interval = 2
-        self.image = self.anim_dict[0][self.anim_frame_id]
+        # self.image = self.anim_frames[0]
         self.rect = self.image.get_rect()
 
 
 class Enemy(Sprite):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
         self.image = pygame.image.load(AssetFilePath.img("enemy_a.png"))
         self.rect = self.image.get_rect()
+        self.animation = AnimationFactory()
+        self.animation["death"] = Explosion
 
     def draw(self, screen: pygame.surface.Surface):
         screen.blit(self.image, self.rect)
 
     def death(self):
-        explosion_anim = Explosion()
-        explosion_anim.let_play_animation()
-        explosion_anim.rect = self.rect
-        self.scene.visual_effects.append(explosion_anim)
+        animation = self.animation["death"]
+        animation.rect = self.rect
+        animation.let_play_animation()
+        self.scene.visual_effects.append(animation)
         self.kill()
-
-    def update_after_killed(self):
-        pass
 
 
 class PlayerShot(Sprite):
@@ -440,7 +477,7 @@ class Player(ShooterSprite):
 class Scene(object):
     def __init__(self):
         self.sprites: pygame.sprite.Group = pygame.sprite.Group()
-        self.visual_effects: List[AnimationImage] = []
+        self.visual_effects: list[AnimationImage] = []
 
         # --- Add attributes of Sprite defined in subclass to self.sprites ---
         attrs_of_class = set(dir(self.__class__)) - set(dir(Scene))
@@ -464,7 +501,7 @@ class Scene(object):
 
 class SceneManager:
     def __init__(self):
-        self.scenes: List[Scene] = []
+        self.scenes: list[Scene] = []
         self.current: int = 0
 
     def event(self, event: pygame.event):
@@ -539,6 +576,7 @@ class GameScene(Scene):
                 self.player.release_trigger()
 
     def update(self):
+        print(self.visual_effects)
         self.scroll_background()
         if self.is_player_shot_hit_enemy():
             self.destory_enemy()
