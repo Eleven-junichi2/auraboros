@@ -481,7 +481,7 @@ class Player(ShooterSprite):
 class Scene(object):
     def __init__(self):
         self.sprites: pygame.sprite.Group = pygame.sprite.Group()
-        self.visual_effects: list[AnimationImage] = []
+        self.visual_effects: deque[AnimationImage] = []
 
         # --- Add attributes of Sprite defined in subclass to self.sprites ---
         attrs_of_class = set(dir(self.__class__)) - set(dir(Scene))
