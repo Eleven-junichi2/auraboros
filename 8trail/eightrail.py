@@ -220,6 +220,15 @@ class Sprite(pygame.sprite.Sprite):
             self.rect.x += movement_speed
         if self.direction_of_movement.is_left:
             self.rect.x -= movement_speed
+    
+    def center_x_on_screen(self, ):
+        """Center the posistion on the screen"""
+        self.rect.x = w_size[0] / 2 - self.rect.width
+        
+
+    def center_y_on_screen(self, ):
+        """Center the posistion on the screen"""
+        self.rect.y = w_size[1] / 2 - self.rect.height
 
 
 class ShooterSprite(Sprite):
@@ -271,8 +280,14 @@ class AnimationImage:
                    animation_frames: List[pygame.surface.Surface]):
         self.anim_dict[action_id] = animation_frames
 
-    def play_animation(self):
+    def let_play_animation(self):
         self.playing_animation = True
+
+    def draw(self, screen):
+        self.draw_while_playing(screen)
+
+    def update(self):
+        self.update_frame_at_interval()
 
 
 class Explosion(AnimationImage):
@@ -304,6 +319,7 @@ class Enemy(Sprite):
 
     def death(self):
         explosion_anim = Explosion()
+        explosion_anim.let_play_animation()
         explosion_anim.rect = self.rect
         self.scene.visual_effects.append(explosion_anim)
         self.kill()
@@ -457,7 +473,7 @@ class SceneManager:
     def update(self):
         self.scenes[self.current].update()
         self.scenes[self.current].sprites.update()
-        [visual_effect.draw(screen)
+        [visual_effect.update()
          for visual_effect in self.scenes[self.current].visual_effects]
 
     def draw(self, screen: pygame.surface.Surface):
@@ -476,7 +492,7 @@ class SceneManager:
 
 class GameScene(Scene):
     player = Player()
-    player.rect.x = w_size[0] / 2 - player.rect.width
+    player.center_x_on_screen()
     player.rect.y = w_size[1] - player.rect.height
     enemy_a = Enemy()
     enemy_a.rect.x = w_size[0] / 2 - enemy_a.rect.width
