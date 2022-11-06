@@ -11,6 +11,7 @@ import pygame
 
 
 # TODO: Delay second shooting
+# TODO: Kill shot sprite on hit
 
 pygame.init()
 
@@ -231,7 +232,8 @@ class ShooterSprite(Sprite):
 
 class AnimationImage:
     def __init__(self):
-        self.anim_dict: Dict[int, List[pygame.surface.Surface]] = {0: []}
+        self.anim_dict: Dict[int, List[pygame.surface.Surface]] = {
+            0: [pygame.surface.Surface((0, 0))]}
         self.anim_frame_id = 0
         self.anim_action_id = 0
         self.anim_interval = 1
