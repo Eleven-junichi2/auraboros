@@ -12,6 +12,7 @@ import pygame
 
 # TODO: Delay second shooting
 # TODO: Kill shot sprite on hit
+# TODO: Let sprites know which scene they are in
 
 pygame.init()
 
