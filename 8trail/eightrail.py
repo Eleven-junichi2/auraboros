@@ -481,7 +481,7 @@ class Player(ShooterSprite):
 class Scene(object):
     def __init__(self):
         self.sprites: pygame.sprite.Group = pygame.sprite.Group()
-        self.visual_effects: deque[AnimationImage] = []
+        self.visual_effects: list[AnimationImage] = []
 
         # --- Add attributes of Sprite defined in subclass to self.sprites ---
         attrs_of_class = set(dir(self.__class__)) - set(dir(Scene))
@@ -525,6 +525,8 @@ class SceneManager:
          for visual_effect in self.scenes[self.current].visual_effects]
 
     def pop_played_visual_effect(self, is_played: Optional[bool]):
+        # FIX:
+        # this function don't clear finished animation completely from list
         if is_played:
             self.scenes[self.current].visual_effects.pop()
 
