@@ -240,7 +240,7 @@ class AnimationImage:
         self.playing_animation = False
         self.image = self.anim_dict[0][self.anim_frame_id]
 
-    def draw(self, screen: pygame.surface.Surface):
+    def draw_while_playing(self, screen: pygame.surface.Surface):
         if self.playing_animation:
             screen.blit(self.image, self.rect)
 
@@ -249,6 +249,7 @@ class AnimationImage:
         self.update_frame()
 
     def update_frame(self):
+        # update while playing animation
         if self.playing_animation:
             self.image = self.anim_dict[
                 self.anim_action_id][self.anim_frame_id]
@@ -333,6 +334,7 @@ class PlayerShot(Sprite):
         self.direction_of_movement.set(direction)
         [group.add(self) for group in self.groups_to_show]
         self.is_launching = True
+        # Accelerate if the direction is the same as that of the shooter.
         if (self.direction_of_movement.is_up and
                 self.shooter.direction_of_movement.is_up):
             self.adjust_movement_speed = self.shooter.movement_speed
@@ -463,7 +465,6 @@ class SceneManager:
 
 
 class GameScene(Scene):
-    explosion_anim = Explosion()
     player = Player()
     player.rect.x = w_size[0] / 2 - player.rect.width
     player.rect.y = w_size[1] - player.rect.height
@@ -515,13 +516,11 @@ class GameScene(Scene):
         self.scroll_background()
         if self.is_player_shot_hit_enemy():
             self.destory_enemy()
-        self.explosion_anim.update_frame_at_interval()
 
     def draw(self, screen):
         screen.blit(self.background, (0, self.bg_scroll_y - w_size[1]))
         screen.blit(self.debugtext1, (0, 0))
         screen.blit(self.debugtext2, (0, 16))
-        self.explosion_anim.draw(screen)
 
     def is_player_shot_hit_enemy(self):
         return True in {
@@ -529,10 +528,7 @@ class GameScene(Scene):
             for shot in self.player.shot_que} and self.enemy_a.alive()
 
     def destory_enemy(self):
-        self.explosion_anim.rect.x = self.enemy_a.rect.x
-        self.explosion_anim.rect.y = self.enemy_a.rect.y
         self.enemy_a.death()
-        self.explosion_anim.play_animation()
 
     def set_background(self):
         [self.background.fill(
