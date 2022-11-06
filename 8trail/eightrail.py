@@ -12,7 +12,6 @@ import pygame
 
 # TODO: Delay second shooting
 # TODO: Kill shot sprite on hit
-# TODO: Let sprites know which scene they are in
 
 pygame.init()
 
@@ -193,6 +192,7 @@ class SpriteSheet:
 class Sprite(pygame.sprite.Sprite):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.scene: Scene
         self.direction_of_movement = ArrowToTurnToward()
         self.movement_speed = 1
 
@@ -303,6 +303,9 @@ class Enemy(Sprite):
         screen.blit(self.image, self.rect)
 
     def death(self):
+        explosion_anim = Explosion()
+        explosion_anim.rect = self.rect
+        self.scene.visual_effects.append(explosion_anim)
         self.kill()
 
     def update_after_killed(self):
@@ -421,6 +424,7 @@ class Player(ShooterSprite):
 class Scene(object):
     def __init__(self):
         self.sprites: pygame.sprite.Group = pygame.sprite.Group()
+        self.visual_effects: List[AnimationImage] = []
 
         # --- Add attributes of Sprite defined in subclass to self.sprites ---
         attrs_of_class = set(dir(self.__class__)) - set(dir(Scene))
@@ -430,6 +434,7 @@ class Scene(object):
             is_sprite = Sprite in attrs_of_object
             if is_sprite:
                 self.sprites.add(getattr(self, attr_name))
+                getattr(self, attr_name).scene = self
 
     def event(self, event: pygame.event):
         pass
@@ -452,11 +457,15 @@ class SceneManager:
     def update(self):
         self.scenes[self.current].update()
         self.scenes[self.current].sprites.update()
+        [visual_effect.draw(screen)
+         for visual_effect in self.scenes[self.current].visual_effects]
 
     def draw(self, screen: pygame.surface.Surface):
         self.scenes[self.current].draw(screen)
         [sprite.draw(screen)
          for sprite in self.scenes[self.current].sprites.sprites()]
+        [visual_effect.draw(screen)
+         for visual_effect in self.scenes[self.current].visual_effects]
 
     def push(self, scene: Scene):
         self.scenes.append(scene)
