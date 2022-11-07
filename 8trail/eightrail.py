@@ -250,6 +250,7 @@ class AnimationImage:
         self.anim_interval = 1
         self.playing_animation = False
         self.image = self.anim_frames[self.anim_frame_id]
+        self.was_played_once = False  # to notify for garbage collection
 
     def draw_while_playing(self, screen: pygame.surface.Surface):
         if self.playing_animation:
@@ -259,7 +260,7 @@ class AnimationImage:
     def update_frame_at_interval(self):
         return self.update_frame()
 
-    def update_frame(self) -> Optional[bool]:
+    def update_frame(self):
         """Returns:
             True or False: Whether the animation is playing or not."""
         # update while playing animation
@@ -267,12 +268,10 @@ class AnimationImage:
             self.image = self.anim_frames[self.anim_frame_id]
             if self.anim_frame_id < len(self.anim_frames) - 1:
                 self.anim_frame_id += 1
-                is_finished = False
             else:
                 self.anim_frame_id = 0
                 self.playing_animation = False
-                is_finished = True
-            return is_finished
+                self.was_played_once = True
 
     def set_current_frame_to_image(self):
         self.image = self.anim_frames[self.anim_frame_id]
@@ -293,7 +292,7 @@ class AnimationImage:
         self.draw_while_playing(screen)
 
     def update(self):
-        return self.update_frame_at_interval()
+        self.update_frame_at_interval()
 
 
 class AnimationFactory(MutableMapping):
@@ -514,7 +513,7 @@ class SceneManager:
     def update(self):
         self.scenes[self.current].update()
         self.scenes[self.current].sprites.update()
-        [self.pop_played_visual_effect(visual_effect.update())
+        [visual_effect.update()
          for visual_effect in self.scenes[self.current].visual_effects]
 
     def draw(self, screen: pygame.surface.Surface):
@@ -523,12 +522,11 @@ class SceneManager:
          for sprite in self.scenes[self.current].sprites.sprites()]
         [visual_effect.draw(screen)
          for visual_effect in self.scenes[self.current].visual_effects]
-
-    def pop_played_visual_effect(self, is_played: Optional[bool]):
-        # FIX:
-        # this function don't clear finished animation completely from list
-        if is_played:
-            self.scenes[self.current].visual_effects.pop()
+        # Delete finished animations
+        [self.scenes[self.current].visual_effects.pop(i)
+         for i, visual_effect in enumerate(
+            self.scenes[self.current].visual_effects)
+         if visual_effect.was_played_once]
 
     def push(self, scene: Scene):
         self.scenes.append(scene)
@@ -550,7 +548,6 @@ class GameScene(Scene):
     background = pygame.surface.Surface((w_size[0], w_size[1] * 2))
     bg_scroll_y = 0
     density_of_stars_on_bg = randint(100, 500)
-    # explosion_effect = Explosion()
 
     def __init__(self):
         super().__init__()
