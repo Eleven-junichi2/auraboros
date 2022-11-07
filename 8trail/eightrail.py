@@ -3,7 +3,7 @@ from collections.abc import MutableMapping
 from dataclasses import dataclass
 from pathlib import Path
 from random import randint
-from typing import Iterator, Optional
+from typing import Iterator
 from inspect import isclass
 import functools
 import sys
@@ -14,7 +14,6 @@ import pygame
 
 # TODO: Delay second shooting
 # TODO: Kill shot sprite on hit
-# TODO: Clean visual effect que
 
 pygame.init()
 
@@ -413,7 +412,6 @@ class PlayerShot(Sprite):
                 self.reset_pos()
                 self.allow_shooter_to_fire()
                 self.shooter.shot_que.pop()
-                # self.shooter.shot_interval_counter = 0
                 self.kill()
 
     def allow_shooter_to_fire(self):
