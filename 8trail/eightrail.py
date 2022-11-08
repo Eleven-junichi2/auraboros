@@ -13,7 +13,6 @@ import pygame
 
 
 # TODO: Delay second shooting
-# TODO: Kill shot sprite on hit
 
 pygame.init()
 
@@ -247,12 +246,12 @@ class AnimationImage:
             pygame.surface.Surface((0, 0)), ]
         self.anim_frame_id = 0
         self.anim_interval = 1
-        self.playing_animation = False
+        self.is_playing_animation = False
         self.image = self.anim_frames[self.anim_frame_id]
         self.was_played_once = False  # to notify for garbage collection
 
     def draw_while_playing(self, screen: pygame.surface.Surface):
-        if self.playing_animation:
+        if self.is_playing_animation:
             screen.blit(self.image, self.rect)
 
     @schedule_instance_method_interval("anim_interval")
@@ -263,13 +262,13 @@ class AnimationImage:
         """Returns:
             True or False: Whether the animation is playing or not."""
         # update while playing animation
-        if self.playing_animation:
+        if self.is_playing_animation:
             self.image = self.anim_frames[self.anim_frame_id]
             if self.anim_frame_id < len(self.anim_frames) - 1:
                 self.anim_frame_id += 1
             else:
                 self.anim_frame_id = 0
-                self.playing_animation = False
+                self.is_playing_animation = False
                 self.was_played_once = True
 
     def set_current_frame_to_image(self):
@@ -280,12 +279,12 @@ class AnimationImage:
 
     def let_play_animation(self):
         """Active update and draw function"""
-        self.playing_animation = True
+        self.is_playing_animation = True
         # self.anim_frame_id = 0
 
     def let_continue_animation(self):
         """Active update and draw function without reset animation"""
-        self.playing_animation = True
+        self.is_playing_animation = True
 
     def draw(self, screen):
         self.draw_while_playing(screen)
@@ -360,11 +359,12 @@ class Enemy(Sprite):
         screen.blit(self.image, self.rect)
 
     def death(self):
-        animation = self.animation["death"]
-        animation.rect = self.rect
-        animation.let_play_animation()
-        self.scene.visual_effects.append(animation)
-        self.kill()
+        if self.alive():
+            animation = self.animation["death"]
+            animation.rect = self.rect
+            animation.let_play_animation()
+            self.scene.visual_effects.append(animation)
+            self.kill()
 
 
 class PlayerShot(Sprite):
@@ -380,6 +380,7 @@ class PlayerShot(Sprite):
         self.movement_speed = 3
         self.adjust_movement_speed = 0
         self.is_launching = False
+        self.allow_to_destruct = False
         self.kill()
 
     def reset_pos(self):
@@ -411,8 +412,14 @@ class PlayerShot(Sprite):
                 self.is_launching = False
                 self.reset_pos()
                 self.allow_shooter_to_fire()
-                self.shooter.shot_que.pop()
-                self.kill()
+                self.allow_to_destruct = True
+
+    def _destruct(self):
+        """Remove sprite from group and que of shooter."""
+        # print(self.alive())
+        # if self.alive():
+        self.shooter.shot_que.pop()
+        self.kill()
 
     def allow_shooter_to_fire(self):
         self.shooter.is_shot_allowed = True
@@ -424,6 +431,9 @@ class PlayerShot(Sprite):
         if not self.is_launching:
             self.reset_pos()
         self._fire()
+        if self.allow_to_destruct:
+            self._destruct()
+            self.allow_to_destruct = False
 
 
 class Player(ShooterSprite):
@@ -432,7 +442,7 @@ class Player(ShooterSprite):
         self.image = pygame.image.load(AssetFilePath.img("fighter_a.png"))
         self.rect = self.image.get_rect()
         self.movement_speed = 1
-        self.shot_max_num = 4
+        self.shot_max_num = 3
         self.shot_interval = 3
         self.shot_current_interval = self.shot_interval
         self.shot_que: deque = deque()
@@ -581,23 +591,32 @@ class GameScene(Scene):
                 self.player.release_trigger()
 
     def update(self):
-        print(self.visual_effects)
         self.scroll_background()
-        if self.is_player_shot_hit_enemy():
-            self.destory_enemy()
+        shots = self.shots_that_hit_enemy()
+        # print(shots)
+        if shots:
+            # print("happy kun")
+            self.destroy_enemy()
+            [self.destroy_shot_of_player(shot) for shot in shots]
 
     def draw(self, screen):
         screen.blit(self.background, (0, self.bg_scroll_y - w_size[1]))
         screen.blit(self.debugtext1, (0, 0))
         screen.blit(self.debugtext2, (0, 16))
 
-    def is_player_shot_hit_enemy(self):
-        return True in {
-            pygame.sprite.collide_rect(shot, self.enemy_a)
-            for shot in self.player.shot_que} and self.enemy_a.alive()
+    def shots_that_hit_enemy(self) -> list[PlayerShot]:
+        # is_hit = True in {
+        # pygame.sprite.collide_rect(shot, self.enemy_a)
+        # for shot in self.player.shot_que} and self.enemy_a.alive()
+        shots = [shot for shot in self.player.shot_que
+                 if pygame.sprite.collide_rect(shot, self.enemy_a)]
+        return shots
 
-    def destory_enemy(self):
+    def destroy_enemy(self):
         self.enemy_a.death()
+
+    def destroy_shot_of_player(self, shot: PlayerShot):
+        shot.allow_to_destruct = True
 
     def set_background(self):
         [self.background.fill(
