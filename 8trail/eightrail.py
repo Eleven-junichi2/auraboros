@@ -13,6 +13,7 @@ import pygame
 
 
 # TODO: Delay second shooting
+# TODO: delta time and fps
 
 pygame.init()
 
@@ -177,6 +178,10 @@ class TextToDebug:
     def movement_speed(movement_speed):
         return f"speed:{movement_speed}"
 
+    @staticmethod
+    def fps():
+        return f"FPS:{clock.get_fps()}"
+
 
 class SpriteSheet:
     def __init__(self, filename):
@@ -196,9 +201,29 @@ class Sprite(pygame.sprite.Sprite):
         self.scene: Scene
         self.direction_of_movement = ArrowToTurnToward()
         self.movement_speed = 1
+        self._x = 0
+        self._y = 0
 
-    def move_on(self):
-        # if diagonal movement
+    @property
+    def x(self):
+        return self._x
+
+    @x.setter
+    def x(self, value):
+        self._x = value
+        self.rect.x = self._x
+
+    @property
+    def y(self):
+        return self._y
+
+    @y.setter
+    def y(self, value):
+        self._y = value
+        self.rect.y = self._y
+
+    def move_on(self, dt):
+        # diagonal movement
         if ((self.direction_of_movement.is_up and
             self.direction_of_movement.is_right) or
             (self.direction_of_movement.is_up and
@@ -212,23 +237,27 @@ class Sprite(pygame.sprite.Sprite):
             movement_speed = vec.normalize().x
         else:
             movement_speed = self.movement_speed
-        movement_speed = self.movement_speed
+        movement_speed = movement_speed * dt * fps
         if self.direction_of_movement.is_up:
-            self.rect.y -= movement_speed
+            self.y -= movement_speed
+            print(-movement_speed)
         if self.direction_of_movement.is_down:
-            self.rect.y += movement_speed
+            self.y += movement_speed
+            print(movement_speed)
         if self.direction_of_movement.is_right:
-            self.rect.x += movement_speed
+            self.x += movement_speed
+            print(movement_speed)
         if self.direction_of_movement.is_left:
-            self.rect.x -= movement_speed
+            self.x -= movement_speed
+            print(-movement_speed)
 
     def center_x_on_screen(self, ):
         """Center the posistion on the screen"""
-        self.rect.x = w_size[0] / 2 - self.rect.width
+        self.x = w_size[0] / 2 - self.rect.width
 
     def center_y_on_screen(self, ):
         """Center the posistion on the screen"""
-        self.rect.y = w_size[1] / 2 - self.rect.height
+        self.y = w_size[1] / 2 - self.rect.height
 
 
 class ShooterSprite(Sprite):
@@ -289,7 +318,7 @@ class AnimationImage:
     def draw(self, screen):
         self.draw_while_playing(screen)
 
-    def update(self):
+    def update(self, dt):
         self.update_frame_at_interval()
 
 
@@ -384,10 +413,10 @@ class PlayerShot(Sprite):
         self.kill()
 
     def reset_pos(self):
-        self.rect.x = \
-            self.shooter.rect.x + \
+        self.x = \
+            self.shooter.x + \
             self.shooter.rect.width / 2 - self.rect.width / 2
-        self.rect.y = self.shooter.rect.y + \
+        self.y = self.shooter.y + \
             self.shooter.rect.height / 2 - self.rect.height
 
     def will_launch(self, direction: Arrow):
@@ -401,13 +430,14 @@ class PlayerShot(Sprite):
         else:
             self.adjust_movement_speed = 0
 
-    def _fire(self):
+    def _fire(self, dt):
         if self.is_launching:
+            self.move_on(dt)
             if self.direction_of_movement.is_up:
-                self.rect.y -= self.movement_speed + self.adjust_movement_speed
+                self.y -= self.movement_speed + self.adjust_movement_speed
             if self.direction_of_movement.is_down:
-                self.rect.y += self.movement_speed
-            if self.rect.y < 0:
+                self.y += self.movement_speed
+            if self.y < 0:
                 self.direction_of_movement.unset(Arrow.up)
                 self.is_launching = False
                 self.reset_pos()
@@ -427,10 +457,10 @@ class PlayerShot(Sprite):
     def draw(self, screen: pygame.surface.Surface):
         screen.blit(self.image, self.rect)
 
-    def update(self):
+    def update(self, dt):
         if not self.is_launching:
             self.reset_pos()
-        self._fire()
+        self._fire(dt)
         if self.allow_to_destruct:
             self._destruct()
             self.allow_to_destruct = False
@@ -472,8 +502,8 @@ class Player(ShooterSprite):
     def draw(self, screen: pygame.surface.Surface):
         screen.blit(self.image, self.rect)
 
-    def update(self):
-        self.move_on()
+    def update(self, dt):
+        self.move_on(dt)
         if self.shot_que:
             self.is_shooting = True
             self.ignore_shot_interval = False
@@ -506,7 +536,7 @@ class Scene(object):
     def draw(self, screen: pygame.surface.Surface):
         pass
 
-    def update(self):
+    def update(self, dt):
         pass
 
 
@@ -518,10 +548,10 @@ class SceneManager:
     def event(self, event: pygame.event):
         self.scenes[self.current].event(event)
 
-    def update(self):
-        self.scenes[self.current].update()
-        self.scenes[self.current].sprites.update()
-        [visual_effect.update()
+    def update(self, dt):
+        self.scenes[self.current].update(dt)
+        self.scenes[self.current].sprites.update(dt)
+        [visual_effect.update(dt)
          for visual_effect in self.scenes[self.current].visual_effects]
 
     def draw(self, screen: pygame.surface.Surface):
@@ -546,16 +576,15 @@ class SceneManager:
 class GameScene(Scene):
     player = Player()
     player.center_x_on_screen()
-    player.rect.y = w_size[1] - player.rect.height
+    player.y = w_size[1] - player.rect.height
     enemy_a = Enemy()
-    enemy_a.rect.x = w_size[0] / 2 - enemy_a.rect.width
-    enemy_a.rect.y = w_size[1] / 4 - enemy_a.rect.height
+    enemy_a.x = w_size[0] / 2 - enemy_a.rect.width
+    enemy_a.y = w_size[1] / 4 - enemy_a.rect.height
     gamefont = pygame.font.Font(AssetFilePath.font("misaki_gothic.ttf"), 16)
-    debugtext1 = gamefont.render("", True, (255, 255, 255))
-    debugtext2 = gamefont.render("", True, (255, 255, 255))
     background = pygame.surface.Surface((w_size[0], w_size[1] * 2))
     bg_scroll_y = 0
     density_of_stars_on_bg = randint(100, 500)
+    debugtext1 = gamefont.render("", True, (255, 255, 255))
 
     def __init__(self):
         super().__init__()
@@ -590,7 +619,9 @@ class GameScene(Scene):
             if event.key == pygame.K_z:
                 self.player.release_trigger()
 
-    def update(self):
+    def update(self, dt):
+        self.debugtext3 = self.gamefont.render(
+            f"dt:{dt}", True, (255, 255, 255))
         self.scroll_background()
         shots = self.shots_that_hit_enemy()
         # print(shots)
@@ -600,9 +631,20 @@ class GameScene(Scene):
             [self.destroy_shot_of_player(shot) for shot in shots]
 
     def draw(self, screen):
+        self.debugtext2 = self.gamefont.render(
+            TextToDebug.fps(), True, (255, 255, 255))
+        self.debugtext4 = self.gamefont.render(
+            f"Rect X:{self.player.rect.x} Rect Y:{self.player.rect.y}",
+            True, (255, 255, 255))
+        self.debugtext5 = self.gamefont.render(
+            f"X:{self.player.x} Y:{self.player.y}",
+            True, (255, 255, 255))
         screen.blit(self.background, (0, self.bg_scroll_y - w_size[1]))
         screen.blit(self.debugtext1, (0, 0))
         screen.blit(self.debugtext2, (0, 16))
+        screen.blit(self.debugtext3, (0, 32))
+        screen.blit(self.debugtext4, (0, 48))
+        screen.blit(self.debugtext5, (0, 64))
 
     def shots_that_hit_enemy(self) -> list[PlayerShot]:
         # is_hit = True in {
@@ -644,8 +686,6 @@ class GameScene(Scene):
         #      (w_size[0], 1)))
 
     def scroll_background(self):
-        self.debugtext2 = self.gamefont.render(
-            f"{self.bg_scroll_y}", True, (255, 255, 255))
         self.bg_scroll_y += 1
         if self.bg_scroll_y > w_size[1]:
             self.bg_scroll_y = 0
@@ -657,7 +697,8 @@ class TitleMenuScene(Scene):
         super().__init__()
 
 
-def run(fps_num=60):
+def run(fps_num=fps):
+    # import time
     global fps
     global clock_counter
     fps = fps_num
@@ -665,15 +706,19 @@ def run(fps_num=60):
     scene_manager = SceneManager()
     # scene_manager.push(TitleMenuScene())
     scene_manager.push(GameScene())
-
+    # prev_time = 0
     while running:
-        time_delta = clock.tick(fps)  # noqa
+        dt = clock.tick(fps)/1000  # dt means delta time
+        # now = time.time()
+        # print(now - prev_time)
+        # prev_time = now
+
         screen.fill((0, 0, 0))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             scene_manager.event(event)
-        scene_manager.update()
+        scene_manager.update(dt)
         scene_manager.draw(screen)
         # resize pixel size
         pygame.transform.scale(screen, w_size_unscaled,
