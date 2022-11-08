@@ -3,7 +3,7 @@ from collections.abc import MutableMapping
 from dataclasses import dataclass
 from pathlib import Path
 from random import randint
-from typing import Iterator
+from typing import Callable, Iterator
 from inspect import isclass
 import functools
 import sys
@@ -13,13 +13,13 @@ import pygame
 
 
 # TODO: Delay second shooting
-# TODO: delta time and fps
+# TODO: Fix interval decorator
 
 pygame.init()
 
 clock = pygame.time.Clock()
-clock_counter = 0  # use to implement interval
 fps = 60
+TARGET_FPS = 60
 
 
 def init(window_size=(960, 640), caption="", pixel_scale=2):
@@ -39,6 +39,33 @@ def init(window_size=(960, 640), caption="", pixel_scale=2):
 init()
 
 
+class ClockCounter:
+    """Use to implement interval"""
+    counters = []
+
+    def __init__(self):
+        self.counters.append(self)
+        self.interval = 0
+        self.count = 0
+
+    def increment_count(self):
+        self.count += 1
+
+    @classmethod
+    def tick(cls):
+        [counter.increment_count() for counter in cls.counters]
+
+
+class Scheduler:
+    funcs: dict[Callable, ClockCounter] = {}
+
+    def __init__(self):
+        pass
+
+    def register(self, func_name: str, clock: ClockCounter):
+        self.funcs[func_name] = clock
+
+
 def schedule_interval(interval):
     def _decorator(func):
         @functools.wraps(func)
@@ -55,6 +82,8 @@ def schedule_instance_method_interval(
     Args:
         variable_as_interval:
             The name of the variable as interval.
+        times:
+            Indicates how many times the decorated function is executed.
         interval_ignorerer:
             The name of the bool variable that is the condition for ignoring
             interval.
@@ -79,22 +108,35 @@ def schedule_instance_method_interval(
                 clock_counter = 0
     """
     def _decorator(func):
+        _decorator.scheduler = Scheduler()
+
         @functools.wraps(func)
         def _wrapper(self, *args, **kwargs):
+            if not (func.__name__ in _decorator.scheduler.funcs):
+                _decorator.scheduler.funcs[func.__name__] = ClockCounter()
+                _decorator.scheduler.funcs[func.__name__].count = getattr(
+                    self, variable_as_interval)
+            # count = _decorator.scheduler.funcs[func.__name__].count
+            # print(
+                # f"{func.__name__}: {count}")
             if interval_ignorerer:
                 bool_from_interval_ignorerer = getattr(
                     self, interval_ignorerer)
             else:
                 bool_from_interval_ignorerer = False
-            if (clock_counter % getattr(
-                    self, variable_as_interval) == 0 or
-                    bool_from_interval_ignorerer):
+            if ((_decorator.scheduler.funcs[func.__name__].count ==
+                 getattr(self, variable_as_interval))
+                    or bool_from_interval_ignorerer):
                 return func(self, *args, **kwargs)
+            elif (_decorator.scheduler.funcs[func.__name__].count >
+                  getattr(self, variable_as_interval)):
+                _decorator.scheduler.funcs[func.__name__].count = 0
         return _wrapper
+
     return _decorator
 
 
-@dataclass
+@ dataclass
 class Arrow:
     """Arrow symbol"""
     up = 0
@@ -103,7 +145,7 @@ class Arrow:
     left = 3
 
 
-@dataclass
+@ dataclass
 class ArrowToTurnToward:
     """Use to set direction"""
     is_up: bool = False
@@ -148,17 +190,17 @@ class AssetFilePath:
     sound_dirname = "sounds"
     font_dirname = "fonts"
 
-    @classmethod
+    @ classmethod
     def img(cls, filename):
         return cls.root / cls.img_dirname / filename
 
-    @classmethod
+    @ classmethod
     def font(cls, filename):
         return cls.root / cls.font_dirname / filename
 
 
 class TextToDebug:
-    @staticmethod
+    @ staticmethod
     def arrow_keys(key):
         key_text = f"↑{key[pygame.K_UP]}"
         key_text += f"↓{key[pygame.K_DOWN]}"
@@ -166,7 +208,7 @@ class TextToDebug:
         key_text += f"→{key[pygame.K_RIGHT]}"
         return key_text
 
-    @staticmethod
+    @ staticmethod
     def arrow_keys_from_event(event_key):
         key_text = f"↑{event_key == pygame.K_UP}"
         key_text += f"↓{event_key == pygame.K_DOWN}"
@@ -174,11 +216,11 @@ class TextToDebug:
         key_text += f"→{event_key == pygame.K_RIGHT}"
         return key_text
 
-    @staticmethod
+    @ staticmethod
     def movement_speed(movement_speed):
         return f"speed:{movement_speed}"
 
-    @staticmethod
+    @ staticmethod
     def fps():
         return f"FPS:{clock.get_fps()}"
 
@@ -204,20 +246,20 @@ class Sprite(pygame.sprite.Sprite):
         self._x = 0
         self._y = 0
 
-    @property
+    @ property
     def x(self):
         return self._x
 
-    @x.setter
+    @ x.setter
     def x(self, value):
         self._x = value
         self.rect.x = self._x
 
-    @property
+    @ property
     def y(self):
         return self._y
 
-    @y.setter
+    @ y.setter
     def y(self, value):
         self._y = value
         self.rect.y = self._y
@@ -237,7 +279,7 @@ class Sprite(pygame.sprite.Sprite):
             movement_speed = vec.normalize().x
         else:
             movement_speed = self.movement_speed
-        movement_speed = movement_speed * dt * fps
+        movement_speed = movement_speed * dt * TARGET_FPS
         if self.direction_of_movement.is_up:
             self.y -= movement_speed
         if self.direction_of_movement.is_down:
@@ -270,16 +312,22 @@ class AnimationImage:
         self.anim_frames: list[pygame.surface.Surface] = [
             pygame.surface.Surface((0, 0)), ]
         self.anim_frame_id = 0
+        self._anim_frame_progress = 0
         self.anim_interval = 1
         self.is_playing_animation = False
         self.image = self.anim_frames[self.anim_frame_id]
         self.was_played_once = False  # to notify for garbage collection
+        self._frame_num = len(self.anim_frames)
+
+    @ property
+    def frame_num(self):
+        return len(self.anim_frames)
 
     def draw_while_playing(self, screen: pygame.surface.Surface):
         if self.is_playing_animation:
             screen.blit(self.image, self.rect)
 
-    @schedule_instance_method_interval("anim_interval")
+    @ schedule_instance_method_interval("anim_interval")
     def update_frame_at_interval(self):
         return self.update_frame()
 
@@ -287,17 +335,23 @@ class AnimationImage:
         """Returns:
             True or False: Whether the animation is playing or not."""
         # update while playing animation
-        print("b:", self.anim_frame_id)
+        # TODO: FIX: animation is removed before draw last frame
         if self.is_playing_animation:
-            self.image = self.anim_frames[self.anim_frame_id]
+
+            # print("b:", self.anim_frame_id)
             if self.anim_frame_id < len(self.anim_frames) - 1:
+                self.image = self.anim_frames[self.anim_frame_id]
                 self.anim_frame_id += 1
+                self._anim_frame_progress += 1
+            elif self._anim_frame_progress < len(self.anim_frames):
+                self.image = self.anim_frames[self.anim_frame_id]
+                self._anim_frame_progress += 1
+            # if self.anim_frame_id > len(self.anim_frames) - 1:
             else:
                 self.anim_frame_id = 0
+                self._anim_frame_progress = 0
                 self.is_playing_animation = False
                 self.was_played_once = True
-        print("a:", self.anim_frame_id)
-        
 
     def set_current_frame_to_image(self):
         self.image = self.anim_frames[self.anim_frame_id]
@@ -363,16 +417,21 @@ class Explosion(AnimationImage):
     def __init__(self):
         super().__init__()
         self.sprite_sheet = SpriteSheet(AssetFilePath.img("explosion_a.png"))
-        self.anim_frames: list[pygame.surface.Surface] = \
-            [self.sprite_sheet.image_by_area(0, 0, 16, 16),
-             self.sprite_sheet.image_by_area(0, 16, 16, 16),
-             self.sprite_sheet.image_by_area(0, 16*2, 16, 16),
-             self.sprite_sheet.image_by_area(0, 16*3, 16, 16),
-             self.sprite_sheet.image_by_area(0, 16*4, 16, 16),
-             self.sprite_sheet.image_by_area(0, 16*5, 16, 16)]
-        self.anim_interval = 2
+        self.anim_frames: list[pygame.surface.Surface] = [
+            self.sprite_sheet.image_by_area(0, 0, 16, 16),
+            self.sprite_sheet.image_by_area(
+                0, 16, 16, 16),
+            self.sprite_sheet.image_by_area(
+                0, 16*2, 16, 16),
+            self.sprite_sheet.image_by_area(
+                0, 16*3, 16, 16),
+            self.sprite_sheet.image_by_area(
+                0, 16*4, 16, 16),
+            self.sprite_sheet.image_by_area(0, 16*5, 16, 16)]
+        self.anim_interval = 1
         # self.image = self.anim_frames[0]
         self.rect = self.image.get_rect()
+        # print("len:", len(self.anim_frames))
 
 
 class Enemy(Sprite):
@@ -412,8 +471,7 @@ class PlayerShot(Sprite):
         self.kill()
 
     def reset_pos(self):
-        self.x = \
-            self.shooter.x + \
+        self.x = self.shooter.x + \
             self.shooter.rect.width / 2 - self.rect.width / 2
         self.y = self.shooter.y + \
             self.shooter.rect.height / 2 - self.rect.height
@@ -432,10 +490,10 @@ class PlayerShot(Sprite):
     def _fire(self, dt):
         if self.is_launching:
             self.move_on(dt)
-            if self.direction_of_movement.is_up:
-                self.y -= self.movement_speed + self.adjust_movement_speed
-            if self.direction_of_movement.is_down:
-                self.y += self.movement_speed
+            # if self.direction_of_movement.is_up:
+            #     self.y -= self.movement_speed + self.adjust_movement_speed
+            # if self.direction_of_movement.is_down:
+            #     self.y += self.movement_speed
             if self.y < 0:
                 self.direction_of_movement.unset(Arrow.up)
                 self.is_launching = False
@@ -470,7 +528,7 @@ class Player(ShooterSprite):
         self.rect = self.image.get_rect()
         self.movement_speed = 1
         self.shot_max_num = 3
-        self.shot_interval = 3
+        self.shot_interval = 1
         self.shot_current_interval = self.shot_interval
         self.shot_que: deque = deque()
         self.ignore_shot_interval = True
@@ -482,8 +540,8 @@ class Player(ShooterSprite):
     def release_trigger(self):
         self.is_shot_triggered = False
 
-    @schedule_instance_method_interval(
-        "shot_current_interval", "ignore_shot_interval")
+    @ schedule_instance_method_interval(
+        "shot_current_interval", interval_ignorerer="ignore_shot_interval")
     def _shooting(self):
         if (self.is_shot_allowed and (len(self.shot_que) < self.shot_max_num)):
             shot = PlayerShot(self, self.groups())
@@ -511,7 +569,7 @@ class Player(ShooterSprite):
             self._shooting()
 
 
-@dataclass
+@ dataclass
 class Scene(object):
     def __init__(self):
         self.sprites: pygame.sprite.Group = pygame.sprite.Group()
@@ -520,8 +578,8 @@ class Scene(object):
         # --- Add attributes of Sprite defined in subclass to self.sprites ---
         attrs_of_class = set(dir(self.__class__)) - set(dir(Scene))
         for attr_name in attrs_of_class:
-            attrs_of_object = \
-                set(getattr(self, attr_name).__class__.__mro__) - {object, }
+            attrs_of_object = set(
+                getattr(self, attr_name).__class__.__mro__) - {object, }
             is_sprite = Sprite in attrs_of_object
             if is_sprite:
                 self.sprites.add(getattr(self, attr_name))
@@ -665,9 +723,8 @@ class GameScene(Scene):
         new_background = pygame.surface.Surface((w_size[0], w_size[1] * 2))
         new_background.blit(
             self.background, (0, w_size[1], w_size[0], w_size[1]))
-        randomize_density = \
-            randint(-self.density_of_stars_on_bg // 2,
-                    self.density_of_stars_on_bg // 2)
+        randomize_density = randint(-self.density_of_stars_on_bg // 2,
+                                    self.density_of_stars_on_bg // 2)
         [new_background.fill(
             (randint(0, 255), randint(0, 255), randint(0, 255)),
             ((randint(0, w_size[0]), randint(0, w_size[1])),
@@ -715,8 +772,5 @@ def run(fps_num=fps):
         pygame.transform.scale(screen, w_size_unscaled,
                                pygame.display.get_surface())
         pygame.display.update()
-        if clock_counter < fps:
-            clock_counter += 1
-        else:
-            clock_counter = 0
+        ClockCounter.tick()
     pygame.quit()
