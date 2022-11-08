@@ -240,16 +240,12 @@ class Sprite(pygame.sprite.Sprite):
         movement_speed = movement_speed * dt * fps
         if self.direction_of_movement.is_up:
             self.y -= movement_speed
-            print(-movement_speed)
         if self.direction_of_movement.is_down:
             self.y += movement_speed
-            print(movement_speed)
         if self.direction_of_movement.is_right:
             self.x += movement_speed
-            print(movement_speed)
         if self.direction_of_movement.is_left:
             self.x -= movement_speed
-            print(-movement_speed)
 
     def center_x_on_screen(self, ):
         """Center the posistion on the screen"""
@@ -291,6 +287,7 @@ class AnimationImage:
         """Returns:
             True or False: Whether the animation is playing or not."""
         # update while playing animation
+        print("b:", self.anim_frame_id)
         if self.is_playing_animation:
             self.image = self.anim_frames[self.anim_frame_id]
             if self.anim_frame_id < len(self.anim_frames) - 1:
@@ -299,6 +296,8 @@ class AnimationImage:
                 self.anim_frame_id = 0
                 self.is_playing_animation = False
                 self.was_played_once = True
+        print("a:", self.anim_frame_id)
+        
 
     def set_current_frame_to_image(self):
         self.image = self.anim_frames[self.anim_frame_id]
@@ -446,8 +445,6 @@ class PlayerShot(Sprite):
 
     def _destruct(self):
         """Remove sprite from group and que of shooter."""
-        # print(self.alive())
-        # if self.alive():
         self.shooter.shot_que.pop()
         self.kill()
 
@@ -624,9 +621,7 @@ class GameScene(Scene):
             f"dt:{dt}", True, (255, 255, 255))
         self.scroll_background()
         shots = self.shots_that_hit_enemy()
-        # print(shots)
         if shots:
-            # print("happy kun")
             self.destroy_enemy()
             [self.destroy_shot_of_player(shot) for shot in shots]
 
@@ -706,12 +701,8 @@ def run(fps_num=fps):
     scene_manager = SceneManager()
     # scene_manager.push(TitleMenuScene())
     scene_manager.push(GameScene())
-    # prev_time = 0
     while running:
         dt = clock.tick(fps)/1000  # dt means delta time
-        # now = time.time()
-        # print(now - prev_time)
-        # prev_time = now
 
         screen.fill((0, 0, 0))
         for event in pygame.event.get():
