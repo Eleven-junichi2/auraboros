@@ -3,4 +3,4 @@ import eightrail
 eightrail.init()
 
 if __name__ == "__main__":
-    eightrail.run(30)
+    eightrail.run(60)

@@ -13,7 +13,6 @@ import pygame
 
 
 # TODO: Delay second shooting
-# TODO: Fix interval decorator
 
 pygame.init()
 
@@ -48,15 +47,17 @@ class ClockCounter:
         self.interval = 0
         self.count = 0
 
-    def increment_count(self):
-        self.count += 1
+    def increment_count(self, dt):
+        self.count += round(1 * dt * TARGET_FPS, 3)
+        # self.count += 1 * dt * TARGET_FPS
+
 
     @classmethod
-    def tick(cls):
-        [counter.increment_count() for counter in cls.counters]
+    def tick(cls, dt):
+        [counter.increment_count(dt) for counter in cls.counters]
 
 
-class Scheduler:
+class _Scheduler:
     funcs: dict[Callable, ClockCounter] = {}
 
     def __init__(self):
@@ -108,10 +109,11 @@ def schedule_instance_method_interval(
                 clock_counter = 0
     """
     def _decorator(func):
-        _decorator.scheduler = Scheduler()
+        _decorator.scheduler = _Scheduler()
 
         @functools.wraps(func)
         def _wrapper(self, *args, **kwargs):
+            execute_func = False
             if not (func.__name__ in _decorator.scheduler.funcs):
                 _decorator.scheduler.funcs[func.__name__] = ClockCounter()
                 _decorator.scheduler.funcs[func.__name__].count = getattr(
@@ -124,13 +126,16 @@ def schedule_instance_method_interval(
                     self, interval_ignorerer)
             else:
                 bool_from_interval_ignorerer = False
-            if ((_decorator.scheduler.funcs[func.__name__].count ==
-                 getattr(self, variable_as_interval))
+            count = _decorator.scheduler.funcs[func.__name__].count
+            interval = float(getattr(self, variable_as_interval))
+            print(count, interval)
+            if ((count >= interval)
                     or bool_from_interval_ignorerer):
-                return func(self, *args, **kwargs)
-            elif (_decorator.scheduler.funcs[func.__name__].count >
-                  getattr(self, variable_as_interval)):
+                execute_func = True
+            if (count > interval):
                 _decorator.scheduler.funcs[func.__name__].count = 0
+            if execute_func:
+                return func(self, *args, **kwargs)
         return _wrapper
 
     return _decorator
@@ -279,7 +284,7 @@ class Sprite(pygame.sprite.Sprite):
             movement_speed = vec.normalize().x
         else:
             movement_speed = self.movement_speed
-        movement_speed = round(movement_speed * dt * TARGET_FPS)
+        movement_speed = round(movement_speed * dt * TARGET_FPS, 1)
         if self.direction_of_movement.is_up:
             self.y -= movement_speed
         if self.direction_of_movement.is_down:
@@ -424,7 +429,7 @@ class Explosion(AnimationImage):
             self.sprite_sheet.image_by_area(
                 0, 16*4, 16, 16),
             self.sprite_sheet.image_by_area(0, 16*5, 16, 16)]
-        self.anim_interval = 1
+        self.anim_interval = 4
         # self.image = self.anim_frames[0]
         self.rect = self.image.get_rect()
         # print("len:", len(self.anim_frames))
@@ -769,5 +774,5 @@ def run(fps_num=fps):
         pygame.transform.scale(screen, w_size_unscaled,
                                pygame.display.get_surface())
         pygame.display.update()
-        ClockCounter.tick()
+        ClockCounter.tick(dt)
     pygame.quit()
