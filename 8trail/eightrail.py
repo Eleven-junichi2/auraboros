@@ -332,10 +332,6 @@ class AnimationImage:
         return self.update_frame()
 
     def update_frame(self):
-        """Returns:
-            True or False: Whether the animation is playing or not."""
-        # update while playing animation
-        # TODO: FIX: animation is removed before draw last frame
         if self.is_playing_animation:
 
             # print("b:", self.anim_frame_id)
