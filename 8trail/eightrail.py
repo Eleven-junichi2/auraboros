@@ -279,7 +279,7 @@ class Sprite(pygame.sprite.Sprite):
             movement_speed = vec.normalize().x
         else:
             movement_speed = self.movement_speed
-        movement_speed = movement_speed * dt * TARGET_FPS
+        movement_speed = round(movement_speed * dt * TARGET_FPS)
         if self.direction_of_movement.is_up:
             self.y -= movement_speed
         if self.direction_of_movement.is_down:
