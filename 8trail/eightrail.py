@@ -610,16 +610,16 @@ class SceneManager:
          for visual_effect in self.scenes[self.current].visual_effects]
 
     def draw(self, screen: pygame.surface.Surface):
-        self.scenes[self.current].draw(screen)
-        [sprite.draw(screen)
-         for sprite in self.scenes[self.current].sprites.sprites()]
-        [visual_effect.draw(screen)
-         for visual_effect in self.scenes[self.current].visual_effects]
         # Delete finished animations
         [self.scenes[self.current].visual_effects.pop(i)
          for i, visual_effect in enumerate(
             self.scenes[self.current].visual_effects)
          if visual_effect.was_played_once]
+        self.scenes[self.current].draw(screen)
+        [sprite.draw(screen)
+         for sprite in self.scenes[self.current].sprites.sprites()]
+        [visual_effect.draw(screen)
+         for visual_effect in self.scenes[self.current].visual_effects]
 
     def push(self, scene: Scene):
         self.scenes.append(scene)
@@ -704,7 +704,8 @@ class GameScene(Scene):
         # pygame.sprite.collide_rect(shot, self.enemy_a)
         # for shot in self.player.shot_que} and self.enemy_a.alive()
         shots = [shot for shot in self.player.shot_que
-                 if pygame.sprite.collide_rect(shot, self.enemy_a)]
+                 if pygame.sprite.collide_rect(shot, self.enemy_a)
+                 and self.enemy_a.alive()]
         return shots
 
     def destroy_enemy(self):
