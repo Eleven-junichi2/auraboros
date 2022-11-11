@@ -135,7 +135,7 @@ class Player(ShooterSprite):
         self.rect = self.image.get_rect()
         self.movement_speed = 2
         self.shot_max_num = 3
-        self.shot_interval = 1
+        self.shot_interval = 3
         self.shot_current_interval = self.shot_interval
         self.shot_que: deque = deque()
         self.ignore_shot_interval = True
