@@ -71,8 +71,8 @@ class PlayerShot(Sprite):
         self.groups_to_show = groups_to_show_bullet
         self.rect = self.image.get_rect()
         self.reset_pos()
-        self.movement_speed = 3
-        self.adjust_movement_speed = 0
+        self.movement_speed = 4
+        self.adjust_movement_speed = 1
         self.is_launching = False
         self.allow_to_destruct = False
         self.kill()
@@ -97,10 +97,6 @@ class PlayerShot(Sprite):
     def _fire(self, dt):
         if self.is_launching:
             self.move_on(dt)
-            # if self.direction_of_movement.is_up:
-            #     self.y -= self.movement_speed + self.adjust_movement_speed
-            # if self.direction_of_movement.is_down:
-            #     self.y += self.movement_speed
             if self.y < 0:
                 self.direction_of_movement.unset(Arrow.up)
                 self.is_launching = False
