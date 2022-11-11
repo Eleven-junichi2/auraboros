@@ -1,4 +1,4 @@
-import eightrail
+from eightrail import eightrail
 
 eightrail.init()
 
