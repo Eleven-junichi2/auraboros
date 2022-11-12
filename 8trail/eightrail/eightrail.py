@@ -38,8 +38,6 @@ class Explosion(AnimationImage):
                 0, 16*4, 16, 16),
             self.sprite_sheet.image_by_area(0, 16*5, 16, 16)]
         self.anim_interval = 2
-        # self.rect = self.image.get_rect()
-        # self.image = self.anim_frames[0]
 
 
 class FighterIdle(AnimationImage):
@@ -48,8 +46,6 @@ class FighterIdle(AnimationImage):
         self.sprite_sheet = SpriteSheet(AssetFilePath.img("fighter_a.png"))
         self.anim_frames: list[pygame.surface.Surface] = [
             self.sprite_sheet.image_by_area(0, 22 * 2, 22, 22), ]
-        # self.anim_interval = 4
-        # self.rect = self.image.get_rect()
 
 
 class FighterRollLeft(AnimationImage):
@@ -61,7 +57,6 @@ class FighterRollLeft(AnimationImage):
             self.sprite_sheet.image_by_area(0, 22, 22, 22), ]
         self.anim_interval = 20
         self.is_loop = False
-        # self.rect = self.image.get_rect()
 
 
 class FighterRollRight(AnimationImage):
@@ -302,9 +297,6 @@ class GameScene(Scene):
         screen.blit(self.debugtext5, (0, 64))
 
     def shots_that_hit_enemy(self) -> list[PlayerShot]:
-        # is_hit = True in {
-        # pygame.sprite.collide_rect(shot, self.enemy_a)
-        # for shot in self.player.shot_que} and self.enemy_a.alive()
         shots = [shot for shot in self.player.shot_que
                  if pygame.sprite.collide_rect(shot, self.enemy_a)
                  and self.enemy_a.alive()]
