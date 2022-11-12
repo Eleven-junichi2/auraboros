@@ -122,7 +122,7 @@ class PlayerShot(Sprite):
         self.direction_of_movement.set(direction)
         [group.add(self) for group in self.groups_to_show]
         self.is_launching = True
-        # Accelerate if the direction is the same as that of the shooter.
+        # set accelerater if the direction is the same as that of the shooter.
         if (self.direction_of_movement.is_up and
                 self.shooter.direction_of_movement.is_up):
             self.adjust_movement_speed = self.shooter.movement_speed
@@ -248,9 +248,6 @@ class GameScene(Scene):
 
     def event(self, event):
         if event.type == pygame.KEYDOWN:
-            self.debugtext1 = self.gamefont.render(
-                TextToDebug.arrow_keys_from_event(event.key),
-                True, (255, 255, 255))
             if event.key == pygame.K_UP:
                 self.player.will_move_to(Arrow.up)
             if event.key == pygame.K_DOWN:
@@ -284,20 +281,8 @@ class GameScene(Scene):
         self.gamelevel.scroll()
 
     def draw(self, screen):
-        self.debugtext2 = self.gamefont.render(
-            TextToDebug.fps(clock), True, (255, 255, 255))
-        self.debugtext4 = self.gamefont.render(
-            f"Rect X:{self.player.rect.x} Rect Y:{self.player.rect.y}",
-            True, (255, 255, 255))
-        self.debugtext5 = self.gamefont.render(
-            f"X:{self.player.x} Y:{self.player.y}",
-            True, (255, 255, 255))
         screen.blit(self.gamelevel.bg_surf,
                     (0, self.gamelevel.bg_scroll_y - w_size[1]))
-        screen.blit(self.debugtext1, (0, 0))
-        screen.blit(self.debugtext2, (0, 16))
-        screen.blit(self.debugtext4, (0, 48))
-        screen.blit(self.debugtext5, (0, 64))
 
 
 class TitleMenuScene(Scene):
