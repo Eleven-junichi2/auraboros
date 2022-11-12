@@ -74,6 +74,7 @@ class FighterRollRight(AnimationImage):
 class Enemy(Sprite):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.explosion_sound = pygame.mixer.Sound(AssetFilePath.sound("explosion1.wav"))
         self.image = pygame.image.load(AssetFilePath.img("enemy_a.png"))
         self.rect = self.image.get_rect()
         self.animation = AnimationFactory()
@@ -88,6 +89,7 @@ class Enemy(Sprite):
             animation.rect = self.rect
             animation.let_play_animation()
             self.scene.visual_effects.append(animation)
+            self.explosion_sound.play()
             self.kill()
 
 
@@ -172,6 +174,7 @@ class Player(ShooterSprite):
         self.ignore_shot_interval = True
         self.is_shot_triggered = False
         self.is_moving = True
+        self.shot_sound = pygame.mixer.Sound(AssetFilePath.sound("shot1.wav"))
 
     def trigger_shot(self):
         self.is_shot_triggered = True
@@ -183,6 +186,7 @@ class Player(ShooterSprite):
         "shot_current_interval", interval_ignorerer="ignore_shot_interval")
     def _shooting(self):
         if (self.is_shot_allowed and (len(self.shot_que) < self.shot_max_num)):
+            self.shot_sound.play()
             shot = PlayerShot(self, self.groups())
             shot.will_launch(Arrow.up)
             self.shot_que.append(shot)
@@ -236,7 +240,6 @@ class GameScene(Scene):
     bg_scroll_y = 0
     density_of_stars_on_bg = randint(100, 500)
     debugtext1 = gamefont.render("", True, (255, 255, 255))
-    shot_sound = pygame.mixer.Sound(AssetFilePath.sound("shot1.wav"))
 
     def __init__(self):
         super().__init__()
