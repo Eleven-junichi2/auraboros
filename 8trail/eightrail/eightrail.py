@@ -5,6 +5,7 @@ from .entity import Sprite, ShooterSprite
 from collections import deque
 from random import randint
 from typing import Iterator
+import json
 
 import pygame
 
@@ -55,7 +56,7 @@ class FighterRollLeft(AnimationImage):
         self.anim_frames: list[pygame.surface.Surface] = [
             self.sprite_sheet.image_by_area(0, 0, 22, 22),
             self.sprite_sheet.image_by_area(0, 22, 22, 22), ]
-        self.anim_interval = 20
+        self.anim_interval = 15
         self.is_loop = False
 
 
@@ -66,7 +67,7 @@ class FighterRollRight(AnimationImage):
         self.anim_frames: list[pygame.surface.Surface] = [
             self.sprite_sheet.image_by_area(0, 22 * 3, 22, 22),
             self.sprite_sheet.image_by_area(0, 22 * 4, 22, 22), ]
-        self.anim_interval = 20
+        self.anim_interval = 15
         self.is_loop = False
         # self.rect = self.image.get_rect()
 
@@ -74,7 +75,8 @@ class FighterRollRight(AnimationImage):
 class Enemy(Sprite):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.explosion_sound = pygame.mixer.Sound(AssetFilePath.sound("explosion1.wav"))
+        self.explosion_sound = pygame.mixer.Sound(
+            AssetFilePath.sound("explosion1.wav"))
         self.image = pygame.image.load(AssetFilePath.img("enemy_a.png"))
         self.rect = self.image.get_rect()
         self.animation = AnimationFactory()
@@ -91,6 +93,10 @@ class Enemy(Sprite):
             self.scene.visual_effects.append(animation)
             self.explosion_sound.play()
             self.kill()
+
+    def collide_with_shot(self, shot):
+        if pygame.sprite.collide_rect(shot, self):
+            self.death()
 
 
 class PlayerShot(Sprite):
@@ -228,22 +234,77 @@ class Player(ShooterSprite):
         self.image = self.animation[self.action].image
 
 
+def open_json_file(filepath):
+    with open(filepath, "r") as f:
+        return json.load(f)
+
+
+class GameStage:
+
+    def __init__(self, level_filepath):
+        self.stage_data = open_json_file(level_filepath)
+        self.enemies: list[Enemy] = []
+        self.bg_surf = pygame.surface.Surface(
+            (w_size[0], w_size[1] * 2))
+        self.bg_scroll_y = 0
+        self.bg_scroll_x = 0
+        self.density_of_stars_on_bg = randint(100, 500)
+
+    def add_enemy(self, enemy: Enemy):
+        self.enemies.append(enemy)
+
+    def set_background(self):
+        [self.bg_surf.fill(
+            (randint(0, 255), randint(0, 255), randint(0, 255)),
+            ((randint(0, w_size[0]), randint(0, w_size[1] * 2)), (1, 1)))
+         for i in range(self.density_of_stars_on_bg)]
+
+    def set_background_for_scroll(self):
+        new_background = pygame.surface.Surface((w_size[0], w_size[1] * 2))
+        new_background.blit(
+            self.bg_surf, (0, w_size[1], w_size[0], w_size[1]))
+        randomize_density = randint(-self.density_of_stars_on_bg // 2,
+                                    self.density_of_stars_on_bg // 2)
+        [new_background.fill(
+            (randint(0, 255), randint(0, 255), randint(0, 255)),
+            ((randint(0, w_size[0]), randint(0, w_size[1])),
+             (1, 1)))
+         for i in range(self.density_of_stars_on_bg + randomize_density)]
+        self.bg_surf = new_background
+
+    def scroll(self):
+        for enemy in self.enemies:
+            enemy.y += 1
+        self.bg_scroll_y += 1
+        if self.bg_scroll_y > w_size[1]:
+            self.bg_scroll_y = 0
+            self.set_background_for_scroll()
+
+
 class GameScene(Scene):
     player = Player()
     player.center_x_on_screen()
     player.y = w_size[1] - player.rect.height
-    enemy_a = Enemy()
-    enemy_a.x = w_size[0] / 2 - enemy_a.rect.width
-    enemy_a.y = w_size[1] / 4 - enemy_a.rect.height
     gamefont = pygame.font.Font(AssetFilePath.font("misaki_gothic.ttf"), 16)
-    background = pygame.surface.Surface((w_size[0], w_size[1] * 2))
-    bg_scroll_y = 0
-    density_of_stars_on_bg = randint(100, 500)
     debugtext1 = gamefont.render("", True, (255, 255, 255))
 
     def __init__(self):
         super().__init__()
-        self.set_background()
+        self.game_stage = GameStage(AssetFilePath.level("stage1.json"))
+        self.game_stage.set_background()
+        self.enemy_a = Enemy()
+        self.enemy_a.center_x_on_screen()
+        self.enemy_a.y = w_size[1] / 4 - self.enemy_a.rect.height
+        self.enemy_a.scene = self
+        self.enemy_b = Enemy()
+        self.enemy_b.center_x_on_screen()
+        self.enemy_b.x += 20
+        self.enemy_b.y = w_size[1] / 4 - self.enemy_b.rect.height
+        self.enemy_b.scene = self
+        self.game_stage.add_enemy(self.enemy_a)
+        self.game_stage.add_enemy(self.enemy_b)
+        self.sprites.add(self.game_stage.enemies)
+        print(self.game_stage.stage_data)
 
     def event(self, event):
         if event.type == pygame.KEYDOWN:
@@ -275,13 +336,10 @@ class GameScene(Scene):
                 self.player.release_trigger()
 
     def update(self, dt):
-        self.debugtext3 = self.gamefont.render(
-            f"dt:{dt}", True, (255, 255, 255))
-        self.scroll_background()
-        shots = self.shots_that_hit_enemy()
-        if shots:
-            self.destroy_enemy()
-            [self.destroy_shot_of_player(shot) for shot in shots]
+        for shot in self.player.shot_que:
+            for enemy in self.game_stage.enemies:
+                enemy.collide_with_shot(shot)
+        # self.game_stage.scroll()
 
     def draw(self, screen):
         self.debugtext2 = self.gamefont.render(
@@ -292,54 +350,12 @@ class GameScene(Scene):
         self.debugtext5 = self.gamefont.render(
             f"X:{self.player.x} Y:{self.player.y}",
             True, (255, 255, 255))
-        screen.blit(self.background, (0, self.bg_scroll_y - w_size[1]))
+        screen.blit(self.game_stage.bg_surf,
+                    (0, self.game_stage.bg_scroll_y - w_size[1]))
         screen.blit(self.debugtext1, (0, 0))
         screen.blit(self.debugtext2, (0, 16))
-        screen.blit(self.debugtext3, (0, 32))
         screen.blit(self.debugtext4, (0, 48))
         screen.blit(self.debugtext5, (0, 64))
-
-    def shots_that_hit_enemy(self) -> list[PlayerShot]:
-        shots = [shot for shot in self.player.shot_que
-                 if pygame.sprite.collide_rect(shot, self.enemy_a)
-                 and self.enemy_a.alive()]
-        return shots
-
-    def destroy_enemy(self):
-        self.enemy_a.death()
-
-    def destroy_shot_of_player(self, shot: PlayerShot):
-        shot.allow_to_destruct = True
-
-    def set_background(self):
-        [self.background.fill(
-            (randint(0, 255), randint(0, 255), randint(0, 255)),
-            ((randint(0, w_size[0]), randint(0, w_size[1] * 2)), (1, 1)))
-         for i in range(self.density_of_stars_on_bg)]
-
-    def set_background_for_scroll(self):
-        new_background = pygame.surface.Surface((w_size[0], w_size[1] * 2))
-        new_background.blit(
-            self.background, (0, w_size[1], w_size[0], w_size[1]))
-        randomize_density = randint(-self.density_of_stars_on_bg // 2,
-                                    self.density_of_stars_on_bg // 2)
-        [new_background.fill(
-            (randint(0, 255), randint(0, 255), randint(0, 255)),
-            ((randint(0, w_size[0]), randint(0, w_size[1])),
-             (1, 1)))
-         for i in range(self.density_of_stars_on_bg + randomize_density)]
-        self.background = new_background
-        # draw line for debug
-        # new_background.fill(
-        #     (randint(0, 255), randint(0, 255), randint(0, 255)),
-        #     ((0, 0),
-        #      (w_size[0], 1)))
-
-    def scroll_background(self):
-        self.bg_scroll_y += 1
-        if self.bg_scroll_y > w_size[1]:
-            self.bg_scroll_y = 0
-            self.set_background_for_scroll()
 
 
 class TitleMenuScene(Scene):

@@ -62,6 +62,7 @@ class AssetFilePath:
     # img_dict = {} # {"key": "file path"}
     font_dirname = "fonts"
     sound_dirname = "sounds"
+    level_dirname = "level_data"
 
     @ classmethod
     def img(cls, filename):
@@ -74,6 +75,10 @@ class AssetFilePath:
     @ classmethod
     def sound(cls, filename):
         return cls.root / cls.sound_dirname / filename
+
+    @ classmethod
+    def level(cls, filename):
+        return cls.root / cls.level_dirname / filename
 
 
 class TextToDebug:

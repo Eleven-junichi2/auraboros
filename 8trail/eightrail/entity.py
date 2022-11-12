@@ -75,3 +75,11 @@ class ShooterSprite(Sprite):
         self.shot_que: deque = deque()
         self.shot_interval = 1
         self.is_shot_allowed = True
+
+
+class SpriteGroupInScene(pygame.sprite.Group):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def add(self, *sprites):
+        super().add(*sprites)
