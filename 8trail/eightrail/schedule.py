@@ -3,6 +3,8 @@ from typing import Callable
 
 from .__init__ import TARGET_FPS
 
+# TODO: make clock count reset feature
+
 
 class IntervalCounter:
     """This is used to implement intervals forscheduling functions."""
@@ -11,6 +13,7 @@ class IntervalCounter:
     def __init__(self):
         self.counters.append(self)
         self.count = 0
+        self.interval_ignorerer = None
 
     def increment_count(self, dt):
         self.count += round(1 * dt * TARGET_FPS, 3)
@@ -33,7 +36,7 @@ class _ScheduleManager:
 
 def schedule_instance_method_interval(
         variable_as_interval: str, interval_ignorerer=None):
-    """
+    """This decorator is for method of object.
     Args:
         variable_as_interval:
             The name of the variable as interval.
@@ -68,27 +71,27 @@ def schedule_instance_method_interval(
         @functools.wraps(func)
         def _wrapper(self, *args, **kwargs):
             execute_func = False
-            if not (func.__name__ in _decorator.schedule_manager.funcs):
+            method_id = str(id(self)) + str(func.__name__)
+            if not (method_id in _decorator.schedule_manager.funcs):
                 _decorator.schedule_manager.funcs[
-                    func.__name__] = IntervalCounter()
+                    method_id] = IntervalCounter()
                 _decorator.schedule_manager.funcs[
-                    func.__name__].count = getattr(self, variable_as_interval)
-            # count = _decorator.schedule_manager.funcs[func.__name__].count
-            # print(
-                # f"{func.__name__}: {count}")
+                    method_id].count = getattr(self, variable_as_interval)
+                _decorator.schedule_manager.funcs[
+                    method_id].interval_ignorerer = interval_ignorerer
+            print(method_id)
             if interval_ignorerer:
                 bool_from_interval_ignorerer = getattr(
                     self, interval_ignorerer)
             else:
                 bool_from_interval_ignorerer = False
-            count = _decorator.schedule_manager.funcs[func.__name__].count
+            count = _decorator.schedule_manager.funcs[method_id].count
             interval = float(getattr(self, variable_as_interval))
-            # print(count, interval)
             if ((count >= interval)
                     or bool_from_interval_ignorerer):
                 execute_func = True
             if (count > interval):
-                _decorator.schedule_manager.funcs[func.__name__].count = 0
+                _decorator.schedule_manager.funcs[method_id].count = 0
             if execute_func:
                 return func(self, *args, **kwargs)
         return _wrapper

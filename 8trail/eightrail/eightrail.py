@@ -1,14 +1,16 @@
+from .utilities import Arrow, AssetFilePath, TextToDebug
+from .schedule import IntervalCounter, schedule_instance_method_interval
+from .gamescene import Scene, SceneManager
+from .entity import Sprite, ShooterSprite
 from collections import deque
 from random import randint
 from typing import Iterator
 
 import pygame
 
-from .animation import AnimationImage, AnimationFactory, SpriteSheet
-from .entity import Sprite, ShooterSprite
-from .gamescene import Scene, SceneManager
-from .schedule import IntervalCounter, schedule_instance_method_interval
-from .utilities import Arrow, AssetFilePath, TextToDebug
+from .animation import (
+    AnimationDict, AnimationImage, AnimationFactory, SpriteSheet
+)
 
 from .__init__ import init, w_size, screen, w_size_unscaled  # noqa
 
@@ -35,10 +37,43 @@ class Explosion(AnimationImage):
             self.sprite_sheet.image_by_area(
                 0, 16*4, 16, 16),
             self.sprite_sheet.image_by_area(0, 16*5, 16, 16)]
-        self.anim_interval = 4
+        self.anim_interval = 2
+        # self.rect = self.image.get_rect()
         # self.image = self.anim_frames[0]
-        self.rect = self.image.get_rect()
-        # print("len:", len(self.anim_frames))
+
+
+class FighterIdle(AnimationImage):
+    def __init__(self):
+        super().__init__()
+        self.sprite_sheet = SpriteSheet(AssetFilePath.img("fighter_a.png"))
+        self.anim_frames: list[pygame.surface.Surface] = [
+            self.sprite_sheet.image_by_area(0, 22 * 2, 22, 22), ]
+        # self.anim_interval = 4
+        # self.rect = self.image.get_rect()
+
+
+class FighterRollLeft(AnimationImage):
+    def __init__(self):
+        super().__init__()
+        self.sprite_sheet = SpriteSheet(AssetFilePath.img("fighter_a.png"))
+        self.anim_frames: list[pygame.surface.Surface] = [
+            self.sprite_sheet.image_by_area(0, 0, 22, 22),
+            self.sprite_sheet.image_by_area(0, 22, 22, 22), ]
+        self.anim_interval = 20
+        self.is_loop = False
+        # self.rect = self.image.get_rect()
+
+
+class FighterRollRight(AnimationImage):
+    def __init__(self):
+        super().__init__()
+        self.sprite_sheet = SpriteSheet(AssetFilePath.img("fighter_a.png"))
+        self.anim_frames: list[pygame.surface.Surface] = [
+            self.sprite_sheet.image_by_area(0, 22 * 3, 22, 22),
+            self.sprite_sheet.image_by_area(0, 22 * 4, 22, 22), ]
+        self.anim_interval = 20
+        self.is_loop = False
+        # self.rect = self.image.get_rect()
 
 
 class Enemy(Sprite):
@@ -127,7 +162,12 @@ class PlayerShot(Sprite):
 class Player(ShooterSprite):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.image = pygame.image.load(AssetFilePath.img("fighter_a.png"))
+        self.animation = AnimationDict()
+        self.animation["idle"] = FighterIdle()
+        self.animation["roll_left"] = FighterRollLeft()
+        self.animation["roll_right"] = FighterRollRight()
+        self.action = "idle"
+        self.image = self.animation[self.action].image
         self.rect = self.image.get_rect()
         self.movement_speed = 2
         self.shot_max_num = 3
@@ -136,6 +176,7 @@ class Player(ShooterSprite):
         self.shot_que: deque = deque()
         self.ignore_shot_interval = True
         self.is_shot_triggered = False
+        self.is_moving = True
 
     def trigger_shot(self):
         self.is_shot_triggered = True
@@ -153,15 +194,26 @@ class Player(ShooterSprite):
 
     def will_move_to(self, direction: Arrow):
         self.direction_of_movement.set(direction)
+        if self.direction_of_movement.is_left:
+            self.action = "roll_left"
+        elif self.direction_of_movement.is_right:
+            self.action = "roll_right"
+        if not self.is_moving:
+            self.animation[self.action].let_play_animation()
+        self.is_moving = True
 
     def stop_moving_to(self, direction: Arrow):
         self.direction_of_movement.unset(direction)
+        if not self.direction_of_movement.is_set_any():
+            self.action = "idle"
+            self.is_moving = False
 
     def draw(self, screen: pygame.surface.Surface):
         screen.blit(self.image, self.rect)
 
     def update(self, dt):
-        self.move_on(dt)
+        if self.is_moving:
+            self.move_on(dt)
         if self.shot_que:
             self.is_shooting = True
             self.ignore_shot_interval = False
@@ -170,6 +222,11 @@ class Player(ShooterSprite):
             self.ignore_shot_interval = True
         if self.is_shot_triggered:
             self._shooting()
+        self.do_animation(dt)
+
+    def do_animation(self, dt):
+        self.animation[self.action].update(dt)
+        self.image = self.animation[self.action].image
 
 
 class GameScene(Scene):

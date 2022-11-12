@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field, asdict
 from pathlib import Path
 import sys
 
@@ -17,10 +17,10 @@ class Arrow:
 @dataclass
 class ArrowToTurnToward:
     """Use to set direction"""
-    is_up: bool = False
-    is_down: bool = False
-    is_right: bool = False
-    is_left: bool = False
+    is_up: bool = field(default=False)
+    is_down: bool = field(default=False)
+    is_right: bool = field(default=False)
+    is_left: bool = field(default=False)
 
     def set(self, direction: Arrow):
         if direction is Arrow.up:
@@ -52,10 +52,14 @@ class ArrowToTurnToward:
         elif direction is Arrow.left:
             self.is_left = self.is_left
 
+    def is_set_any(self):
+        return True in set(asdict(self).values())
+
 
 class AssetFilePath:
     root = Path(sys.argv[0]).parent / "assets"
     img_dirname = "imgs"
+    # img_dict = {} # {"key": "file path"}
     font_dirname = "fonts"
     sound_dirname = "sounds"
 
