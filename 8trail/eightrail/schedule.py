@@ -13,7 +13,6 @@ class IntervalCounter:
     def __init__(self):
         self.counters.append(self)
         self.count = 0
-        self.interval_ignorerer = None
 
     def increment_count(self, dt):
         self.count += round(1 * dt * TARGET_FPS, 3)
@@ -77,9 +76,6 @@ def schedule_instance_method_interval(
                     method_id] = IntervalCounter()
                 _decorator.schedule_manager.funcs[
                     method_id].count = getattr(self, variable_as_interval)
-                _decorator.schedule_manager.funcs[
-                    method_id].interval_ignorerer = interval_ignorerer
-            print(method_id)
             if interval_ignorerer:
                 bool_from_interval_ignorerer = getattr(
                     self, interval_ignorerer)
