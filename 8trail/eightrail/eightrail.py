@@ -3,7 +3,6 @@ from .schedule import IntervalCounter, schedule_instance_method_interval
 from .gamelevel import Level
 from .gamescene import Scene, SceneManager
 from .entity import Sprite, ShooterSprite
-from collections import deque
 from typing import Iterator
 
 import pygame
@@ -156,7 +155,7 @@ class PlayerShot(Sprite):
         if not self.is_launching:
             self.reset_pos()
         self._fire(dt)
-    
+
     def collide(self, sprite):
         if pygame.sprite.collide_rect(self, sprite):
             self._destruct()
@@ -283,7 +282,6 @@ class GameScene(Scene):
                 shot.collide(enemy)
         self.gamelevel.run_level()
         self.gamelevel.scroll()
-
 
     def draw(self, screen):
         self.debugtext2 = self.gamefont.render(
