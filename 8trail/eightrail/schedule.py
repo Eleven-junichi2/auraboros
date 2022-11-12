@@ -7,7 +7,7 @@ from .__init__ import TARGET_FPS
 
 
 class IntervalCounter:
-    """This is used to implement intervals forscheduling functions."""
+    """This is used to implement intervals for scheduling functions."""
     counters = []
 
     def __init__(self):

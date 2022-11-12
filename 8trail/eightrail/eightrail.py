@@ -14,7 +14,7 @@ from .animation import (
 
 from .__init__ import init, w_size, screen, w_size_unscaled  # noqa
 
-# TODO: Delay second shooting
+# TODO: Game Level
 
 pygame.init()
 
@@ -234,6 +234,7 @@ class Player(ShooterSprite):
 
 
 class GameScene(Scene):
+    gamelevel = Level(AssetFilePath.level("stage1.json"))
     player = Player()
     player.center_x_on_screen()
     player.y = w_size[1] - player.rect.height
@@ -242,21 +243,20 @@ class GameScene(Scene):
 
     def __init__(self):
         super().__init__()
-        self.gamelevel = Level(AssetFilePath.level("stage1.json"))
         self.gamelevel.set_background()
-        self.enemy_a = Enemy()
-        self.enemy_a.center_x_on_screen()
-        self.enemy_a.y = w_size[1] / 4 - self.enemy_a.rect.height
-        self.enemy_a.scene = self
-        self.enemy_b = Enemy()
-        self.enemy_b.center_x_on_screen()
-        self.enemy_b.x += 20
-        self.enemy_b.y = w_size[1] / 4 - self.enemy_b.rect.height
-        self.enemy_b.scene = self
-        self.gamelevel.add_enemy(self.enemy_a)
-        self.gamelevel.add_enemy(self.enemy_b)
-        self.sprites.add(self.gamelevel.enemies)
-        print(self.gamelevel.stage_data)
+        self.gamelevel.enemy_factory["scoutdisk"] = Enemy
+        # self.enemy_a.center_x_on_screen()
+        # self.enemy_a.y = w_size[1] / 4 - self.enemy_a.rect.height
+        # self.enemy_a.scene = self
+        # self.enemy_b = Enemy()
+        # self.enemy_b.center_x_on_screen()
+        # self.enemy_b.x += 20
+        # self.enemy_b.y = w_size[1] / 4 - self.enemy_b.rect.height
+        # self.enemy_b.scene = self
+        # self.gamelevel.add_enemy(self.enemy_a)
+        # self.gamelevel.add_enemy(self.enemy_b)
+        # self.sprites.add(self.gamelevel.enemies)
+        # print(self.gamelevel.stage_data)
 
     def event(self, event):
         if event.type == pygame.KEYDOWN:
@@ -274,7 +274,7 @@ class GameScene(Scene):
             if event.key == pygame.K_z:
                 self.player.trigger_shot()
             if event.key == pygame.K_x:
-                self.sprites.add(self.enemy_a)
+                self.gamelevel.reset_level()
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_UP:
                 self.player.stop_moving_to(Arrow.up)
@@ -291,7 +291,8 @@ class GameScene(Scene):
         for shot in self.player.shot_que:
             for enemy in self.gamelevel.enemies:
                 enemy.collide_with_shot(shot)
-        # self.gamelevel.scroll()
+        self.gamelevel.run_level()
+        self.gamelevel.scroll()
 
     def draw(self, screen):
         self.debugtext2 = self.gamefont.render(
@@ -317,7 +318,6 @@ class TitleMenuScene(Scene):
 
 def run(fps_num=fps):
     global fps
-    global clock_counter
     fps = fps_num
     running = True
     scene_manager = SceneManager()

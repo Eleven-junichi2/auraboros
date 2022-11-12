@@ -1,8 +1,9 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Union
 if TYPE_CHECKING:
     from .eightrail import Enemy
 
+from dataclasses import dataclass
 from random import randint
 
 import pygame
@@ -16,16 +17,39 @@ class Level:
 
     def __init__(self, level_filepath, scene=None):
         self.scene: Scene = scene
-        self.stage_data = open_json_file(level_filepath)
+        self.level = open_json_file(level_filepath)
+        self.enemy_factory: dict[Any, Enemy] = {}
         self.enemies: list[Enemy] = []
         self.bg_surf = pygame.surface.Surface(
             (w_size[0], w_size[1] * 2))
+        self.scroll_speed = 0.5
+        self.density_of_stars_on_bg = randint(100, 500)
+        self.reset_level()
+
+    def run_level(self):
+        for data in self.level:
+            if self.elapsed_time_in_level == data["timing"]:
+                enemy = self.enemy_factory[data["enemy"]]()
+                pos: list[int, int] = [None, None]
+                for i in range(2):
+                    if isinstance(data["pos"][i], str):
+                        if data["pos"][i] == "random":
+                            pos[i] = randint(0, w_size[i])
+                    else:
+                        pos[i] = data["pos"][i]
+                enemy.x, enemy.y = pos
+                enemy.scene = self.scene
+                self.add_enemy(enemy)
+        self.elapsed_time_in_level += 1
+
+    def reset_level(self):
+        self.elapsed_time_in_level = 0
         self.bg_scroll_y = 0
         self.bg_scroll_x = 0
-        self.density_of_stars_on_bg = randint(100, 500)
 
     def add_enemy(self, enemy: Enemy):
         self.enemies.append(enemy)
+        self.scene.sprites.add(enemy)
 
     def set_background(self):
         [self.bg_surf.fill(
@@ -48,8 +72,15 @@ class Level:
 
     def scroll(self):
         for enemy in self.enemies:
-            enemy.y += 1
-        self.bg_scroll_y += 1
+            enemy.y += self.scroll_speed * 1.25
+        self.bg_scroll_y += self.scroll_speed
         if self.bg_scroll_y > w_size[1]:
             self.bg_scroll_y = 0
             self.set_background_for_scroll()
+
+
+@dataclass
+class LevelData:
+    timing: int
+    enemy: str
+    pos: list[Union[str, int], Union[str, int]]

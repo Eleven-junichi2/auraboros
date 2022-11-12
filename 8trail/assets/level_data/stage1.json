@@ -1,21 +1,18 @@
-{
-    "sound_type": "reverb",
-    "stage": [
-        {
-            "timing": 20,
-            "enemy": "scoutdisk",
-            "pos": [
-                0,
-                0
-            ]
-        },
-        {
-            "timing": 40,
-            "enemy": "scoutdisk",
-            "pos": [
-                0,
-                0
-            ]
-        }
-    ]
-}
+[
+    {
+        "timing": 20,
+        "enemy": "scoutdisk",
+        "pos": [
+            "random",
+            0
+        ]
+    },
+    {
+        "timing": 40,
+        "enemy": "scoutdisk",
+        "pos": [
+            "random",
+            0
+        ]
+    }
+]
