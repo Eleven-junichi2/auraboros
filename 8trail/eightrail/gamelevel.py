@@ -12,6 +12,8 @@ from .gamescene import Scene
 from .utilities import open_json_file
 from .__init__ import w_size
 
+# TODO: destroy garbage enemy
+
 
 class Level:
 

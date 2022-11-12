@@ -14,5 +14,21 @@
             "random",
             0
         ]
+    },
+    {
+        "timing": 60,
+        "enemy": "scoutdisk",
+        "pos": [
+            "random",
+            0
+        ]
+    },
+    {
+        "timing": 80,
+        "enemy": "scoutdisk",
+        "pos": [
+            "random",
+            0
+        ]
     }
 ]

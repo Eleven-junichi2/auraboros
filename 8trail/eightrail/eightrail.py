@@ -111,7 +111,6 @@ class PlayerShot(Sprite):
         self.movement_speed = 4
         self.adjust_movement_speed = 1
         self.is_launching = False
-        self.allow_to_destruct = False
         self.kill()
 
     def reset_pos(self):
@@ -139,12 +138,13 @@ class PlayerShot(Sprite):
                 self.is_launching = False
                 self.reset_pos()
                 self.allow_shooter_to_fire()
-                self.allow_to_destruct = True
+                self._destruct()
 
     def _destruct(self):
         """Remove sprite from group and que of shooter."""
-        self.shooter.shot_que.pop()
+        self.shooter.shot_que.remove(self)
         self.kill()
+        self.is_launching = False
 
     def allow_shooter_to_fire(self):
         self.shooter.is_shot_allowed = True
@@ -156,9 +156,10 @@ class PlayerShot(Sprite):
         if not self.is_launching:
             self.reset_pos()
         self._fire(dt)
-        if self.allow_to_destruct:
+    
+    def collide(self, sprite):
+        if pygame.sprite.collide_rect(self, sprite):
             self._destruct()
-            self.allow_to_destruct = False
 
 
 class Player(ShooterSprite):
@@ -175,7 +176,7 @@ class Player(ShooterSprite):
         self.shot_max_num = 3
         self.shot_interval = 3
         self.shot_current_interval = self.shot_interval
-        self.shot_que: deque = deque()
+        self.shot_que: list = []
         self.ignore_shot_interval = True
         self.is_shot_triggered = False
         self.is_moving = True
@@ -245,18 +246,6 @@ class GameScene(Scene):
         super().__init__()
         self.gamelevel.set_background()
         self.gamelevel.enemy_factory["scoutdisk"] = Enemy
-        # self.enemy_a.center_x_on_screen()
-        # self.enemy_a.y = w_size[1] / 4 - self.enemy_a.rect.height
-        # self.enemy_a.scene = self
-        # self.enemy_b = Enemy()
-        # self.enemy_b.center_x_on_screen()
-        # self.enemy_b.x += 20
-        # self.enemy_b.y = w_size[1] / 4 - self.enemy_b.rect.height
-        # self.enemy_b.scene = self
-        # self.gamelevel.add_enemy(self.enemy_a)
-        # self.gamelevel.add_enemy(self.enemy_b)
-        # self.sprites.add(self.gamelevel.enemies)
-        # print(self.gamelevel.stage_data)
 
     def event(self, event):
         if event.type == pygame.KEYDOWN:
@@ -291,8 +280,10 @@ class GameScene(Scene):
         for shot in self.player.shot_que:
             for enemy in self.gamelevel.enemies:
                 enemy.collide_with_shot(shot)
+                shot.collide(enemy)
         self.gamelevel.run_level()
         self.gamelevel.scroll()
+
 
     def draw(self, screen):
         self.debugtext2 = self.gamefont.render(
