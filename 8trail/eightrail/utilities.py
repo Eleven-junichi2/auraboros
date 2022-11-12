@@ -56,8 +56,8 @@ class ArrowToTurnToward:
 class AssetFilePath:
     root = Path(sys.argv[0]).parent / "assets"
     img_dirname = "imgs"
-    sound_dirname = "sounds"
     font_dirname = "fonts"
+    sound_dirname = "sounds"
 
     @ classmethod
     def img(cls, filename):
@@ -66,6 +66,10 @@ class AssetFilePath:
     @ classmethod
     def font(cls, filename):
         return cls.root / cls.font_dirname / filename
+
+    @ classmethod
+    def sound(cls, filename):
+        return cls.root / cls.sound_dirname / filename
 
 
 class TextToDebug:

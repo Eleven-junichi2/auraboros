@@ -184,6 +184,7 @@ class GameScene(Scene):
     bg_scroll_y = 0
     density_of_stars_on_bg = randint(100, 500)
     debugtext1 = gamefont.render("", True, (255, 255, 255))
+    laser_sound = pygame.mixer.Sound(AssetFilePath.sound("laser.wav"))
 
     def __init__(self):
         super().__init__()
