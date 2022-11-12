@@ -1,8 +1,15 @@
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
+import json
 import sys
 
+
 import pygame
+
+
+def open_json_file(filepath):
+    with open(filepath, "r") as f:
+        return json.load(f)
 
 
 @dataclass

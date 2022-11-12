@@ -77,9 +77,9 @@ class ShooterSprite(Sprite):
         self.is_shot_allowed = True
 
 
-class SpriteGroupInScene(pygame.sprite.Group):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+# class SpriteGroupInScene(pygame.sprite.Group):
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
 
-    def add(self, *sprites):
-        super().add(*sprites)
+#     def add(self, *sprites):
+#         super().add(*sprites)

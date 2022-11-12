@@ -1,11 +1,10 @@
 from .utilities import Arrow, AssetFilePath, TextToDebug
 from .schedule import IntervalCounter, schedule_instance_method_interval
+from .gamelevel import Level
 from .gamescene import Scene, SceneManager
 from .entity import Sprite, ShooterSprite
 from collections import deque
-from random import randint
 from typing import Iterator
-import json
 
 import pygame
 
@@ -234,53 +233,6 @@ class Player(ShooterSprite):
         self.image = self.animation[self.action].image
 
 
-def open_json_file(filepath):
-    with open(filepath, "r") as f:
-        return json.load(f)
-
-
-class GameStage:
-
-    def __init__(self, level_filepath):
-        self.stage_data = open_json_file(level_filepath)
-        self.enemies: list[Enemy] = []
-        self.bg_surf = pygame.surface.Surface(
-            (w_size[0], w_size[1] * 2))
-        self.bg_scroll_y = 0
-        self.bg_scroll_x = 0
-        self.density_of_stars_on_bg = randint(100, 500)
-
-    def add_enemy(self, enemy: Enemy):
-        self.enemies.append(enemy)
-
-    def set_background(self):
-        [self.bg_surf.fill(
-            (randint(0, 255), randint(0, 255), randint(0, 255)),
-            ((randint(0, w_size[0]), randint(0, w_size[1] * 2)), (1, 1)))
-         for i in range(self.density_of_stars_on_bg)]
-
-    def set_background_for_scroll(self):
-        new_background = pygame.surface.Surface((w_size[0], w_size[1] * 2))
-        new_background.blit(
-            self.bg_surf, (0, w_size[1], w_size[0], w_size[1]))
-        randomize_density = randint(-self.density_of_stars_on_bg // 2,
-                                    self.density_of_stars_on_bg // 2)
-        [new_background.fill(
-            (randint(0, 255), randint(0, 255), randint(0, 255)),
-            ((randint(0, w_size[0]), randint(0, w_size[1])),
-             (1, 1)))
-         for i in range(self.density_of_stars_on_bg + randomize_density)]
-        self.bg_surf = new_background
-
-    def scroll(self):
-        for enemy in self.enemies:
-            enemy.y += 1
-        self.bg_scroll_y += 1
-        if self.bg_scroll_y > w_size[1]:
-            self.bg_scroll_y = 0
-            self.set_background_for_scroll()
-
-
 class GameScene(Scene):
     player = Player()
     player.center_x_on_screen()
@@ -290,8 +242,8 @@ class GameScene(Scene):
 
     def __init__(self):
         super().__init__()
-        self.game_stage = GameStage(AssetFilePath.level("stage1.json"))
-        self.game_stage.set_background()
+        self.gamelevel = Level(AssetFilePath.level("stage1.json"))
+        self.gamelevel.set_background()
         self.enemy_a = Enemy()
         self.enemy_a.center_x_on_screen()
         self.enemy_a.y = w_size[1] / 4 - self.enemy_a.rect.height
@@ -301,10 +253,10 @@ class GameScene(Scene):
         self.enemy_b.x += 20
         self.enemy_b.y = w_size[1] / 4 - self.enemy_b.rect.height
         self.enemy_b.scene = self
-        self.game_stage.add_enemy(self.enemy_a)
-        self.game_stage.add_enemy(self.enemy_b)
-        self.sprites.add(self.game_stage.enemies)
-        print(self.game_stage.stage_data)
+        self.gamelevel.add_enemy(self.enemy_a)
+        self.gamelevel.add_enemy(self.enemy_b)
+        self.sprites.add(self.gamelevel.enemies)
+        print(self.gamelevel.stage_data)
 
     def event(self, event):
         if event.type == pygame.KEYDOWN:
@@ -337,9 +289,9 @@ class GameScene(Scene):
 
     def update(self, dt):
         for shot in self.player.shot_que:
-            for enemy in self.game_stage.enemies:
+            for enemy in self.gamelevel.enemies:
                 enemy.collide_with_shot(shot)
-        # self.game_stage.scroll()
+        # self.gamelevel.scroll()
 
     def draw(self, screen):
         self.debugtext2 = self.gamefont.render(
@@ -350,8 +302,8 @@ class GameScene(Scene):
         self.debugtext5 = self.gamefont.render(
             f"X:{self.player.x} Y:{self.player.y}",
             True, (255, 255, 255))
-        screen.blit(self.game_stage.bg_surf,
-                    (0, self.game_stage.bg_scroll_y - w_size[1]))
+        screen.blit(self.gamelevel.bg_surf,
+                    (0, self.gamelevel.bg_scroll_y - w_size[1]))
         screen.blit(self.debugtext1, (0, 0))
         screen.blit(self.debugtext2, (0, 16))
         screen.blit(self.debugtext4, (0, 48))

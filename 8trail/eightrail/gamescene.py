@@ -10,6 +10,7 @@ class Scene(object):
 
     def __init__(self):
         from .entity import Sprite
+        from .gamelevel import Level
         self._sprites: pygame.sprite.Group = pygame.sprite.Group()
         self.visual_effects: list[AnimationImage] = []
 
@@ -19,8 +20,11 @@ class Scene(object):
             attrs_of_object = set(
                 getattr(self, attr_name).__class__.__mro__) - {object, }
             is_sprite = Sprite in attrs_of_object
+            is_game_stage = Level in attrs_of_object
             if is_sprite:
                 self.sprites.add(getattr(self, attr_name))
+                getattr(self, attr_name).scene = self
+            if is_game_stage:
                 getattr(self, attr_name).scene = self
 
     @property
