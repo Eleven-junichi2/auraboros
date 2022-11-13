@@ -1,5 +1,6 @@
 from .utilities import Arrow, AssetFilePath, TextToDebug  # noqa
 from .schedule import IntervalCounter, schedule_instance_method_interval
+from .sound import SoundDict
 from .gamelevel import Level
 from .gamescene import Scene, SceneManager
 from .entity import Sprite, ShooterSprite
@@ -18,6 +19,12 @@ pygame.init()
 
 clock = pygame.time.Clock()
 fps = 60
+
+sound_dict = SoundDict()
+sound_dict["explosion"] = pygame.mixer.Sound(
+    AssetFilePath.sound("explosion1.wav"))
+sound_dict["shot"] = pygame.mixer.Sound(
+    AssetFilePath.sound("shot1.wav"))
 
 
 class Explosion(AnimationImage):
@@ -152,8 +159,7 @@ class PlayerShot(Sprite):
 class Enemy(Sprite):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.explosion_sound = pygame.mixer.Sound(
-            AssetFilePath.sound("explosion1.wav"))
+        self.explosion_sound = sound_dict["explosion"]
         self.image = pygame.image.load(AssetFilePath.img("enemy_a.png"))
         self.rect = self.image.get_rect()
         self.animation = AnimationFactory()
@@ -185,8 +191,7 @@ class Player(ShooterSprite):
         self.animation["roll_right"] = FighterRollRight()
         self.visual_effects = AnimationFactory()
         self.visual_effects["explosion"] = PlayerExplosion
-        self.explosion_sound = pygame.mixer.Sound(
-            AssetFilePath.sound("explosion1.wav"))
+        self.explosion_sound = sound_dict["explosion"]
         self.action = "idle"
         self.image = self.animation[self.action].image
         self.rect = self.image.get_rect()
@@ -198,7 +203,7 @@ class Player(ShooterSprite):
         self.ignore_shot_interval = True
         self.is_shot_triggered = False
         self.is_moving = True
-        self.shot_sound = pygame.mixer.Sound(AssetFilePath.sound("shot1.wav"))
+        self.shot_sound = sound_dict["shot"]
 
     def trigger_shot(self):
         self.is_shot_triggered = True
