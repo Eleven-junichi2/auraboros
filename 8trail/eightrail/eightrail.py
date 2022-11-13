@@ -234,7 +234,8 @@ class Enemy(Sprite):
 class GameScene(Scene):
 
     gamefont = pygame.font.Font(AssetFilePath.font("misaki_gothic.ttf"), 16)
-    debugtext1 = gamefont.render("", True, (255, 255, 255))
+    instruction_text = gamefont.render(
+        "z: ショット x: 敵を再召喚", True, (255, 255, 255))
 
     def __init__(self):
         super().__init__()
@@ -284,6 +285,7 @@ class GameScene(Scene):
     def draw(self, screen):
         screen.blit(self.gameworld.bg_surf,
                     (0, self.gameworld.bg_scroll_y - w_size[1]))
+        screen.blit(self.instruction_text, (0, 0))
 
 
 class TitleMenuScene(Scene):
