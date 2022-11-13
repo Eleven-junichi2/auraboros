@@ -105,7 +105,6 @@ class PlayerShot(Sprite):
         self.movement_speed = 4
         self.adjust_movement_speed = 1
         self.is_launching = False
-        self.kill()
 
     def reset_pos(self):
         self.x = self.shooter.x + \
@@ -154,6 +153,8 @@ class PlayerShot(Sprite):
     def collide(self, sprite):
         if pygame.sprite.collide_rect(self, sprite):
             self._destruct()
+
+
 
 
 class Enemy(Sprite):
