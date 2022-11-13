@@ -131,6 +131,32 @@ class PlayerShot(Sprite):
             self._destruct()
 
 
+class Enemy(Sprite):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.explosion_sound = pygame.mixer.Sound(
+            AssetFilePath.sound("explosion1.wav"))
+        self.image = pygame.image.load(AssetFilePath.img("enemy_a.png"))
+        self.rect = self.image.get_rect()
+        self.animation = AnimationFactory()
+        self.animation["death"] = Explosion
+
+    def draw(self, screen: pygame.surface.Surface):
+        screen.blit(self.image, self.rect)
+
+    def death(self):
+        animation = self.animation["death"]
+        animation.rect = self.rect
+        animation.let_play_animation()
+        self.gameworld.scene.visual_effects.append(animation)
+        self.entity_container.kill_living_entity(self)
+        self.explosion_sound.play()
+
+    def collide_with_shot(self, shot):
+        if pygame.sprite.collide_rect(shot, self):
+            self.death()
+
+
 class Player(ShooterSprite):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -138,6 +164,10 @@ class Player(ShooterSprite):
         self.animation["idle"] = FighterIdle()
         self.animation["roll_left"] = FighterRollLeft()
         self.animation["roll_right"] = FighterRollRight()
+        self.visual_effects = AnimationFactory()
+        self.visual_effects["explosion"] = Explosion
+        self.explosion_sound = pygame.mixer.Sound(
+            AssetFilePath.sound("explosion1.wav"))
         self.action = "idle"
         self.image = self.animation[self.action].image
         self.rect = self.image.get_rect()
@@ -203,31 +233,19 @@ class Player(ShooterSprite):
         self.animation[self.action].update(dt)
         self.image = self.animation[self.action].image
 
-
-class Enemy(Sprite):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.explosion_sound = pygame.mixer.Sound(
-            AssetFilePath.sound("explosion1.wav"))
-        self.image = pygame.image.load(AssetFilePath.img("enemy_a.png"))
-        self.rect = self.image.get_rect()
-        self.animation = AnimationFactory()
-        self.animation["death"] = Explosion
-
-    def draw(self, screen: pygame.surface.Surface):
-        screen.blit(self.image, self.rect)
-
     def death(self):
-        # if self.alive():
-        animation = self.animation["death"]
-        animation.rect = self.rect
-        animation.let_play_animation()
-        self.gameworld.scene.visual_effects.append(animation)
-        self.entity_container.kill_living_entity(self)
-        self.explosion_sound.play()
+        if self in self.entity_container:
+            explosion_effect = self.visual_effects["explosion"]
+            explosion_effect.rect = self.rect
+            explosion_effect.let_play_animation()
+            self.gameworld.scene.visual_effects.append(explosion_effect)
+            self.entity_container.kill_living_entity(self)
+            self.explosion_sound.play()
 
-    def collide_with_shot(self, shot):
-        if pygame.sprite.collide_rect(shot, self):
+    def collide_with_enemy(self, enemy: Enemy):
+        if not isinstance(enemy, Enemy):
+            raise TypeError("Given entity is not Enemy.")
+        if pygame.sprite.collide_rect(enemy, self):
             self.death()
 
 
@@ -235,7 +253,7 @@ class GameScene(Scene):
 
     gamefont = pygame.font.Font(AssetFilePath.font("misaki_gothic.ttf"), 16)
     instruction_text = gamefont.render(
-        "z: ショット x: 敵を再召喚", True, (255, 255, 255))
+        "z: ショット x: 敵を再召喚 c:自機を復活させる", True, (255, 255, 255))
 
     def __init__(self):
         super().__init__()
@@ -262,6 +280,9 @@ class GameScene(Scene):
                 self.player.trigger_shot()
             if event.key == pygame.K_x:
                 self.gameworld.summon_enemies_with_timing_resetted()
+            if event.key == pygame.K_c:
+                if self.player not in self.gameworld.entities:
+                    self.gameworld.entities.append(self.player)
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_UP:
                 self.player.stop_moving_to(Arrow.up)
@@ -275,10 +296,11 @@ class GameScene(Scene):
                 self.player.release_trigger()
 
     def update(self, dt):
-        for shot in self.player.shot_que:
-            for enemy in self.gameworld.enemies:
+        for enemy in self.gameworld.enemies:
+            for shot in self.player.shot_que:
                 enemy.collide_with_shot(shot)
                 shot.collide(enemy)
+            self.player.collide_with_enemy(enemy)
         self.gameworld.run_level()
         self.gameworld.scroll()
 

@@ -174,5 +174,6 @@ class SpriteSheet:
         """"""
         image = pygame.Surface((width, height))
         image.blit(self.image, (0, 0), (x, y, width, height))
+        image.set_colorkey((0, 0, 0))
         # image = pg.transform.scale(image, (width // 2, height // 2))
         return image
