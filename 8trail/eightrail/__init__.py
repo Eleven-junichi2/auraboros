@@ -3,7 +3,8 @@ import pygame
 TARGET_FPS = 60
 
 
-def init(window_size=(960, 640), caption="", pixel_scale=2):
+def init(window_size=(960, 640), caption="", icon_filepath=None,
+         pixel_scale=2):
     """This function initialize pygame and game engine.
     Where to configure settings of game system is here."""
     global screen
@@ -15,6 +16,9 @@ def init(window_size=(960, 640), caption="", pixel_scale=2):
     pygame.display.set_mode(w_size_unscaled)
     screen = pygame.Surface(w_size)
     pygame.display.set_caption(caption)
+    if icon_filepath:
+        icon_surf = pygame.image.load(icon_filepath)
+        pygame.display.set_icon(icon_surf)
 
 
 init()
