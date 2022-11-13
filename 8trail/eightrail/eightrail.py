@@ -70,41 +70,12 @@ class FighterRollRight(AnimationImage):
         # self.rect = self.image.get_rect()
 
 
-class Enemy(Sprite):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.explosion_sound = pygame.mixer.Sound(
-            AssetFilePath.sound("explosion1.wav"))
-        self.image = pygame.image.load(AssetFilePath.img("enemy_a.png"))
-        self.rect = self.image.get_rect()
-        self.animation = AnimationFactory()
-        self.animation["death"] = Explosion
-
-    def draw(self, screen: pygame.surface.Surface):
-        screen.blit(self.image, self.rect)
-
-    def death(self):
-        if self.alive():
-            animation = self.animation["death"]
-            animation.rect = self.rect
-            animation.let_play_animation()
-            self.scene.visual_effects.append(animation)
-            self.explosion_sound.play()
-            self.kill()
-
-    def collide_with_shot(self, shot):
-        if pygame.sprite.collide_rect(shot, self):
-            self.death()
-
-
 class PlayerShot(Sprite):
     def __init__(self, shooter_sprite: ShooterSprite,
-                 groups_to_show_bullet: Iterator[pygame.sprite.Group],
                  *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.image = pygame.image.load(AssetFilePath.img("shot1.png"))
         self.shooter = shooter_sprite
-        self.groups_to_show = groups_to_show_bullet
         self.rect = self.image.get_rect()
         self.reset_pos()
         self.movement_speed = 4
@@ -120,7 +91,7 @@ class PlayerShot(Sprite):
 
     def will_launch(self, direction: Arrow):
         self.direction_of_movement.set(direction)
-        [group.add(self) for group in self.groups_to_show]
+        self.entity_container.append(self)
         self.is_launching = True
         # set accelerater if the direction is the same as that of the shooter.
         if (self.direction_of_movement.is_up and
@@ -142,7 +113,7 @@ class PlayerShot(Sprite):
     def _destruct(self):
         """Remove sprite from group and que of shooter."""
         self.shooter.shot_que.remove(self)
-        self.kill()
+        self.entity_container.kill_living_entity(self)
         self.is_launching = False
 
     def allow_shooter_to_fire(self):
@@ -192,7 +163,8 @@ class Player(ShooterSprite):
     def _shooting(self):
         if (self.is_shot_allowed and (len(self.shot_que) < self.shot_max_num)):
             self.shot_sound.play()
-            shot = PlayerShot(self, self.groups())
+            shot = PlayerShot(self)
+            shot.entity_container = self.entity_container
             shot.will_launch(Arrow.up)
             self.shot_que.append(shot)
 
@@ -233,18 +205,48 @@ class Player(ShooterSprite):
         self.image = self.animation[self.action].image
 
 
+class Enemy(Sprite):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.explosion_sound = pygame.mixer.Sound(
+            AssetFilePath.sound("explosion1.wav"))
+        self.image = pygame.image.load(AssetFilePath.img("enemy_a.png"))
+        self.rect = self.image.get_rect()
+        self.animation = AnimationFactory()
+        self.animation["death"] = Explosion
+
+    def draw(self, screen: pygame.surface.Surface):
+        screen.blit(self.image, self.rect)
+
+    def death(self):
+        # if self.alive():
+        # animation = self.animation["death"]
+        # animation.rect = self.rect
+        # animation.let_play_animation()
+        # self.scene.visual_effects.append(animation)
+        self.entity_container.kill_living_entity(self)
+        self.explosion_sound.play()
+
+    def collide_with_shot(self, shot):
+        if pygame.sprite.collide_rect(shot, self):
+            self.death()
+
+
 class GameScene(Scene):
-    gamelevel = Level(AssetFilePath.level("stage1.json"))
-    player = Player()
-    player.center_x_on_screen()
-    player.y = w_size[1] - player.rect.height
+
     gamefont = pygame.font.Font(AssetFilePath.font("misaki_gothic.ttf"), 16)
     debugtext1 = gamefont.render("", True, (255, 255, 255))
 
     def __init__(self):
         super().__init__()
-        self.gamelevel.set_background()
-        self.gamelevel.enemy_factory["scoutdisk"] = Enemy
+        self.gameworld = Level(AssetFilePath.level("stage1.json"), self)
+        self.gameworld.set_background()
+        self.gameworld.enemy_factory["scoutdisk"] = Enemy
+        self.player = Player(self.gameworld.entities)
+        self.player.center_x_on_screen()
+        self.player.y = w_size[1] - self.player.rect.height
+        # self.player.entity_container = self.gameworld.entities
+        self.gameworld.entities.append(self.player)
 
     def event(self, event):
         if event.type == pygame.KEYDOWN:
@@ -259,7 +261,7 @@ class GameScene(Scene):
             if event.key == pygame.K_z:
                 self.player.trigger_shot()
             if event.key == pygame.K_x:
-                self.gamelevel.reset_level()
+                self.gameworld.reset_level()
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_UP:
                 self.player.stop_moving_to(Arrow.up)
@@ -274,15 +276,15 @@ class GameScene(Scene):
 
     def update(self, dt):
         for shot in self.player.shot_que:
-            for enemy in self.gamelevel.enemies:
+            for enemy in self.gameworld.enemies:
                 enemy.collide_with_shot(shot)
                 shot.collide(enemy)
-        self.gamelevel.run_level()
-        self.gamelevel.scroll()
+        self.gameworld.run_level()
+        self.gameworld.scroll()
 
     def draw(self, screen):
-        screen.blit(self.gamelevel.bg_surf,
-                    (0, self.gamelevel.bg_scroll_y - w_size[1]))
+        screen.blit(self.gameworld.bg_surf,
+                    (0, self.gameworld.bg_scroll_y - w_size[1]))
 
 
 class TitleMenuScene(Scene):

@@ -1,9 +1,10 @@
 from collections import deque
 from math import sqrt
+from typing import Iterator
 
 import pygame
 
-from .gamescene import Scene
+# from .gamescene import Scene
 from .utilities import ArrowToTurnToward
 from .__init__ import TARGET_FPS, w_size
 
@@ -11,11 +12,20 @@ from .__init__ import TARGET_FPS, w_size
 class Sprite(pygame.sprite.Sprite):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.scene: Scene
+        # self.scene: Scene
+        self.entity_container: EntityList = None
         self.direction_of_movement = ArrowToTurnToward()
         self.movement_speed = 1
         self._x = 0
         self._y = 0
+
+    # @property
+    # def entity_container(self):
+    #     return self._entity_container
+
+    # @entity_container.setter
+    # def entity_container(self, value):
+    #     self._entity_container = value
 
     @ property
     def x(self):
@@ -76,6 +86,21 @@ class ShooterSprite(Sprite):
         self.shot_interval = 1
         self.is_shot_allowed = True
 
+
+class EntityList(list):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def kill_living_entity(self, entity: Sprite):
+        """Do list.remove(entity) if list has it."""
+        if entity in self:
+            self.remove(entity)
+
+    def append(self, item):
+        if not isinstance(item, Sprite):
+            raise TypeError("item is not Entity")
+        # append the item to itself (the list)
+        super().append(item)
 
 # class SpriteGroupInScene(pygame.sprite.Group):
 #     def __init__(self, *args, **kwargs):

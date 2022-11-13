@@ -8,6 +8,7 @@ from random import randint
 
 import pygame
 
+from .entity import Sprite, EntityList
 from .gamescene import Scene
 from .utilities import open_json_file
 from .__init__ import w_size
@@ -15,18 +16,58 @@ from .__init__ import w_size
 # TODO: destroy garbage enemy
 
 
+class EntityListOfGameWorld(EntityList):
+    def __init__(self, gameworld: Level, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.gameworld = gameworld
+
+    def append(self, item: Sprite):
+        item.entity_container = self
+        super().append(item)
+
+
+class EnemyList(EntityListOfGameWorld):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def append(self, item):
+        self.gameworld.entities.append(item)
+        super().append(item)
+
+    def remove(self, item):
+        self.gameworld.entities.remove(item)
+        super().remove(item)
+
+
 class Level:
 
     def __init__(self, level_filepath, scene=None):
         self.scene: Scene = scene
         self.level = open_json_file(level_filepath)
+        self._entities = EntityListOfGameWorld(self)
         self.enemy_factory: dict[Any, Enemy] = {}
-        self.enemies: list[Enemy] = []
+        self._enemies: EnemyList[Enemy] = EnemyList(self)
         self.bg_surf = pygame.surface.Surface(
             (w_size[0], w_size[1] * 2))
         self.scroll_speed = 0.5
         self.density_of_stars_on_bg = randint(100, 500)
         self.reset_level()
+
+    @property
+    def entities(self):
+        return self._entities
+
+    @entities.setter
+    def entities(self, value):
+        self._entities = value
+
+    @property
+    def enemies(self):
+        return self._enemies
+
+    @enemies.setter
+    def enemies(self, value):
+        self._enemies = value
 
     def run_level(self):
         for data in self.level:
@@ -41,7 +82,8 @@ class Level:
                         pos[i] = data["pos"][i]
                 enemy.x, enemy.y = pos
                 enemy.scene = self.scene
-                self.add_enemy(enemy)
+                # enemy.entity_container = self.entities
+                self.enemies.append(enemy)
         self.elapsed_time_in_level += 1
 
     def reset_level(self):
@@ -49,9 +91,9 @@ class Level:
         self.bg_scroll_y = 0
         self.bg_scroll_x = 0
 
-    def add_enemy(self, enemy: Enemy):
-        self.enemies.append(enemy)
-        self.scene.sprites.add(enemy)
+    # def add_enemy(self, enemy: Enemy):
+    #     self.enemies.append(enemy)
+        # self.scene.sprites.add(enemy)
 
     def set_background(self):
         [self.bg_surf.fill(
