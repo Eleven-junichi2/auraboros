@@ -23,6 +23,7 @@ class Sprite(pygame.sprite.Sprite):
         self.movement_speed = 1
         self._x = 0
         self._y = 0
+        self.angle = 0
 
     # @property
     # def entity_container(self):

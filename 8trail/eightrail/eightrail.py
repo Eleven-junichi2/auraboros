@@ -158,6 +158,7 @@ class Enemy(Sprite):
         self.rect = self.image.get_rect()
         self.animation = AnimationFactory()
         self.animation["death"] = Explosion
+        self.image = pygame.transform.rotate(self.image, self.angle)
 
     def draw(self, screen: pygame.surface.Surface):
         screen.blit(self.image, self.rect)
@@ -170,8 +171,8 @@ class Enemy(Sprite):
         self.entity_container.kill_living_entity(self)
         self.explosion_sound.play()
 
-    def collide_with_shot(self, shot):
-        if pygame.sprite.collide_rect(shot, self):
+    def collide(self, entity):
+        if pygame.sprite.collide_rect(entity, self):
             self.death()
 
 
@@ -326,9 +327,10 @@ class GameScene(Scene):
     def update(self, dt):
         for enemy in self.gameworld.enemies:
             for shot in self.player.shot_que:
-                enemy.collide_with_shot(shot)
+                enemy.collide(shot)
                 shot.collide(enemy)
             self.player.collide_with_enemy(enemy)
+            enemy.collide(self.player)
         self.stop_move_of_player_on_wall()
         self.gameworld.run_level()
         self.gameworld.scroll()
