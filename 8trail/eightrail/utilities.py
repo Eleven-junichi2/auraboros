@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
 import json
+import os
 import sys
 
 
@@ -64,28 +65,39 @@ class ArrowToTurnToward:
 
 
 class AssetFilePath:
-    root = Path(sys.argv[0]).parent / "assets"
+    root_dirname = "assets"
+    root = Path(sys.argv[0]).parent / root_dirname
     img_dirname = "imgs"
-    # img_dict = {} # {"key": "file path"}
     font_dirname = "fonts"
     sound_dirname = "sounds"
     level_dirname = "level_data"
 
     @ classmethod
+    def _pyinstaller_path(cls, filepath):
+        try:
+            # PyInstaller creates a temp folder and stores path in _MEIPASS
+            path = Path(sys._MEIPASS) / cls.root_dirname / filepath
+            print(path)
+        except Exception:
+            path = cls.root / filepath
+            # print("exeception")
+        return path
+
+    @ classmethod
     def img(cls, filename):
-        return cls.root / cls.img_dirname / filename
+        return cls._pyinstaller_path(Path(cls.img_dirname) / filename)
 
     @ classmethod
     def font(cls, filename):
-        return cls.root / cls.font_dirname / filename
+        return cls._pyinstaller_path(Path(cls.font_dirname) / filename)
 
     @ classmethod
     def sound(cls, filename):
-        return cls.root / cls.sound_dirname / filename
+        return cls._pyinstaller_path(Path(cls.sound_dirname) / filename)
 
     @ classmethod
     def level(cls, filename):
-        return cls.root / cls.level_dirname / filename
+        return cls._pyinstaller_path(Path(cls.level_dirname) / filename)
 
 
 class TextToDebug:
