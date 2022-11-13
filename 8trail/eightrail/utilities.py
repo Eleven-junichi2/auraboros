@@ -77,10 +77,9 @@ class AssetFilePath:
         try:
             # PyInstaller creates a temp folder and stores path in _MEIPASS
             path = Path(sys._MEIPASS) / cls.root_dirname / filepath
-            print(path)
-        except Exception:
+            # path will be such as: "sys._MEIPASS/assets/imgs/example.png"
+        except AttributeError:
             path = cls.root / filepath
-            # print("exeception")
         return path
 
     @ classmethod
