@@ -161,7 +161,8 @@ class PlayerShot(Sprite):
     def _fire(self, dt):
         if self.is_launching:
             self.move_on(dt)
-            if self.y < 0:
+            if (self.y < 0 or w_size[1] < self.y or
+                    self.x < 0 or w_size[0] < self.x):
                 self.direction_of_movement.unset(Arrow.up)
                 self.is_launching = False
                 self.reset_pos_x()
@@ -208,6 +209,80 @@ class PlayerLaser(PlayerShot):
         super().move_on(dt)
 
 
+class PlayerMissile(PlayerShot):
+    def __init__(self, shooter_sprite: ShooterSprite,
+                 *args, **kwargs):
+        super().__init__(shooter_sprite=shooter_sprite, *args, **kwargs)
+        self.image = pygame.image.load(AssetFilePath.img("shot2.png"))
+        self.shooter = shooter_sprite
+        self.rect = self.image.get_rect()
+        self.reset_pos_x()
+        self.reset_pos_y()
+        self.movement_speed = 2.5
+
+    def move_on(self, dt):
+        # if self.move_target_x and self.move_target_y:
+        self.move_aim_to_enemy()
+        super().move_on(dt)
+
+    def _destruct(self):
+        """Remove sprite from group and que of shooter."""
+        self.shooter.missile_que.remove(self)
+        self.entity_container.kill_living_entity(self)
+        self.is_launching = False
+
+    def allow_shooter_to_fire(self):
+        self.shooter.is_missile_allowed = True
+
+    def move_aim_to_enemy(self):
+        is_exist_destination = self.set_destination_to_enemy()
+        if not is_exist_destination:
+            return
+        if (self.move_target_x - self.movement_speed
+            <= self.x <=
+                self.move_target_x + self.movement_speed):
+            self.direction_of_movement.unset(Arrow.right)
+            self.direction_of_movement.unset(Arrow.left)
+            self.set_destination_to_enemy()
+        elif self.x < self.move_target_x:
+            self.direction_of_movement.set(Arrow.right)
+            self.direction_of_movement.unset(Arrow.left)
+        elif self.move_target_x < self.x:
+            self.direction_of_movement.set(Arrow.left)
+            self.direction_of_movement.unset(Arrow.right)
+        if (self.move_target_y - self.movement_speed
+            <= self.y <=
+                self.move_target_y + self.movement_speed):
+            self.direction_of_movement.unset(Arrow.up)
+            self.direction_of_movement.unset(Arrow.down)
+            self.set_destination_to_enemy()
+        elif self.y < self.move_target_y:
+            self.direction_of_movement.set(Arrow.down)
+            self.direction_of_movement.unset(Arrow.up)
+        elif self.move_target_y < self.y:
+            self.direction_of_movement.set(Arrow.up)
+            self.direction_of_movement.unset(Arrow.down)
+
+    def set_destination_to_enemy(self) -> bool:
+        enemy_list = [entity for entity in self.gameworld.entities
+                      if isinstance(entity, Enemy)]
+        # if len(enemy_list) == 1:
+        #     enemy = enemy_list[0]
+        #     self.move_target_x = enemy.x
+        #     self.move_target_y = enemy.y
+        #     return True
+        if len(enemy_list) >= len(self.shooter.missile_que):
+            for i, missile in enumerate(self.shooter.missile_que):
+                enemy = enemy_list[i]
+                missile.move_target_x = enemy.x
+                missile.move_target_y = enemy.y
+            return True
+        else:
+            self.move_target_x = None
+            self.move_target_y = None
+            return False
+
+
 class Enemy(Sprite):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -225,7 +300,8 @@ class Enemy(Sprite):
         self.move_target_y = None
         self.behavior_pattern = None
         self.behavior_pattern_dict = {
-            "random_horizontal": self.move_random_horizontal}
+            "random_vertical": self.move_random_vertical,
+            "strike_to_player": self.move_strike_to_player}
 
     def update(self, dt):
         self.do_pattern(dt)
@@ -244,7 +320,7 @@ class Enemy(Sprite):
         if self.behavior_pattern is not None:
             self.behavior_pattern_dict[self.behavior_pattern](dt)
 
-    def move_random_horizontal(self, dt):
+    def move_random_vertical(self, dt):
         if not self.move_target_x:
             self.random_destination_x()
         if not self.move_target_y:
@@ -269,13 +345,51 @@ class Enemy(Sprite):
     def random_destination_y(self):
         self.move_target_y = random.randint(0, w_size[1])
 
+    def move_strike_to_player(self, dt):
+        if not (self.move_target_x and self.move_target_y):
+            self.set_destination_to_player()
+        if (self.move_target_x - self.movement_speed
+            <= self.x <=
+                self.move_target_x + self.movement_speed):
+            self.direction_of_movement.unset(Arrow.right)
+            self.direction_of_movement.unset(Arrow.left)
+            self.set_destination_to_player()
+        elif self.x < self.move_target_x:
+            self.direction_of_movement.set(Arrow.right)
+            self.direction_of_movement.unset(Arrow.left)
+        elif self.move_target_x < self.x:
+            self.direction_of_movement.set(Arrow.left)
+            self.direction_of_movement.unset(Arrow.right)
+        if (self.move_target_y - self.movement_speed
+            <= self.y <=
+                self.move_target_y + self.movement_speed):
+            self.direction_of_movement.unset(Arrow.up)
+            self.direction_of_movement.unset(Arrow.down)
+
+        elif self.y < self.move_target_y:
+            self.direction_of_movement.set(Arrow.down)
+            self.direction_of_movement.unset(Arrow.up)
+        elif self.move_target_y < self.y:
+            self.direction_of_movement.set(Arrow.up)
+            self.direction_of_movement.unset(Arrow.down)
+        self.move_on(dt)
+
+    def set_destination_to_player(self):
+        player = [entity for entity in self.gameworld.entities if isinstance(
+            entity, Player)][0]
+        self.move_target_x = player.x
+        self.move_target_y = player.y
+
     def death(self):
         visual_effect = self.visual_effects["death"]
         visual_effect.rect = self.rect
         visual_effect.let_play_animation()
         self.gameworld.scene.visual_effects.append(visual_effect)
-        self.entity_container.kill_living_entity(self)
+        self.remove_from_container()
         self.explosion_sound.play()
+
+    def remove_from_container(self):
+        self.entity_container.kill_living_entity(self)
 
     def collide(self, entity) -> bool:
         """"""
@@ -322,22 +436,39 @@ class Player(ShooterSprite):
         self.weapon["laser"]["max_num"] = 6
         self.weapon["laser"]["interval"] = 4
         self.change_weapon("normal")
+
+        self.second_weapon = WeaponBulletFactory()
+        self.second_weapon["normal"] = PlayerMissile
+        self.second_weapon["normal"]["max_num"] = 2
+        self.second_weapon["normal"]["interval"] = 3
+
         self.animation = AnimationDict()
         self.animation["idle"] = FighterIdle()
         self.animation["roll_left"] = FighterRollLeft()
         self.animation["roll_right"] = FighterRollRight()
+        self.change_second_weapon("normal")
+
         self.visual_effects = AnimationFactory()
         self.visual_effects["explosion"] = PlayerExplosion
+
         self.explosion_sound = sound_dict["player_death"]
         self.normal_shot_sound = sound_dict["shot"]
         self.laser_shot_sound = sound_dict["laser"]
+
         self.action = "idle"
         self.image = self.animation[self.action].image
         self.rect = self.image.get_rect()
-        self.movement_speed = 2
+        self.movement_speed = 3
+
         self.shot_que: list = []
         self.ignore_shot_interval = True
         self.is_shot_triggered = False
+        self.is_shot_allowed = True
+
+        self.missile_que: list = []
+        self.ignore_missile_interval = True
+        self.is_missile_triggered = False
+        self.is_missile_allowed = True
 
     def trigger_shot(self):
         self.is_shot_triggered = True
@@ -347,9 +478,20 @@ class Player(ShooterSprite):
             self.laser_shot_sound.stop()
         self.is_shot_triggered = False
 
+    def trigger_missile(self):
+        self.is_missile_triggered = True
+
+    def release_trigger_missile(self):
+        self.is_missile_triggered = False
+
     def change_weapon(self, weapon):
         self.current_weapon = weapon
         self.shot_interval = self.weapon[self.current_weapon]["interval"]
+
+    def change_second_weapon(self, weapon):
+        self.current_second_weapon = weapon
+        self.missile_interval = self.second_weapon[
+            self.current_second_weapon]["interval"]
 
     @ schedule_instance_method_interval(
         "shot_interval", interval_ignorerer="ignore_shot_interval")
@@ -366,6 +508,20 @@ class Player(ShooterSprite):
             shot.entity_container = self.entity_container
             shot.will_launch(Arrow.up)
             self.shot_que.append(shot)
+
+    @ schedule_instance_method_interval(
+        "missile_interval", interval_ignorerer="ignore_missile_interval")
+    def _shooting_missile(self):
+        if (self.is_missile_allowed and
+                (len(self.missile_que) <
+                 self.second_weapon[self.current_second_weapon]["max_num"])):
+            if self.current_second_weapon == "normal":
+                self.normal_shot_sound.play()
+            missile = self.second_weapon[self.current_second_weapon]["entity"](
+                self)
+            missile.entity_container = self.entity_container
+            missile.will_launch(Arrow.up)
+            self.missile_que.append(missile)
 
     def will_move_to(self, direction: Arrow):
         self.direction_of_movement.set(direction)
@@ -393,14 +549,21 @@ class Player(ShooterSprite):
                     self.laser_shot_sound.stop()
         if self.is_moving:
             self.move_on(dt)
+
         if self.shot_que:
-            self.is_shooting = True
             self.ignore_shot_interval = False
         else:
-            self.is_shooting = False
             self.ignore_shot_interval = True
         if self.is_shot_triggered:
             self._shooting()
+
+        if self.missile_que:
+            self.ignore_missile_interval = False
+        else:
+            self.ignore_missile_interval = True
+        if self.is_missile_triggered:
+            self._shooting_missile()
+
         self.do_animation(dt)
 
     def do_animation(self, dt):
@@ -428,7 +591,7 @@ class GameScene(Scene):
 
     gamefont = pygame.font.Font(AssetFilePath.font("misaki_gothic.ttf"), 16)
     instruction_text = gamefont.render(
-        "z: ショット x: 武装切り替え c: ゲームリセット", True, (255, 255, 255))
+        "z:主砲 x:ミサイル c:主砲切り替え v:やり直す", True, (255, 255, 255))
 
     def __init__(self):
         super().__init__()
@@ -445,6 +608,7 @@ class GameScene(Scene):
         self.scoreboard = []
         self.scoreboard_surflist = []
         self.scoreboard_textlist = []
+        self.num_of_remaining_enemies = len(self.gameworld.level)
 
     def event(self, event):
         if event.type == pygame.KEYDOWN:
@@ -458,9 +622,11 @@ class GameScene(Scene):
                 self.player.will_move_to(Arrow.left)
             if event.key == pygame.K_z:
                 self.player.trigger_shot()
-            if event.key == pygame.K_c:
-                self.reset_game()
             if event.key == pygame.K_x:
+                self.player.trigger_missile()
+            if event.key == pygame.K_v:
+                self.reset_game()
+            if event.key == pygame.K_c:
                 if self.player.current_weapon == "normal":
                     self.player.change_weapon("laser")
                 else:
@@ -476,6 +642,8 @@ class GameScene(Scene):
                 self.player.stop_moving_to(Arrow.left)
             if event.key == pygame.K_z:
                 self.player.release_trigger()
+            if event.key == pygame.K_x:
+                self.player.release_trigger_missile()
 
     def stop_move_of_player_on_wall(self):
         if self.player.y < 0:
@@ -487,20 +655,28 @@ class GameScene(Scene):
         if self.player.x < 0:
             self.player.stop_moving_to(Arrow.left)
 
+    def collide_player_weapon_with_enemy(self, enemy, weapon: PlayerShot):
+        if enemy.collide(weapon):
+            self.gameworld.gamescore += 10
+            self.num_of_remaining_enemies -= 1
+        weapon.collide(enemy)
+
     def update(self, dt):
         self.elapsed_time_text = self.gamefont.render(
             str(self.gameworld.elapsed_time_in_level), True, (255, 255, 255))
         self.gamescore_text = self.gamefont.render(
-            "スコア: " + str(self.gameworld.gamescore), True, (255, 200, 255))
+            "スコア:" + str(self.gameworld.gamescore), True, (255, 200, 255))
+        num_of_remaining_enemies = self.num_of_remaining_enemies
         self.enemycounter_text = self.gamefont.render(
-            "敵機: " + str(len(self.gameworld.enemies)), True, (255, 255, 200))
+            f"敵機:{len(self.gameworld.enemies)}/{num_of_remaining_enemies}",
+            True, (255, 255, 200))
         self.scoreboard_headline_text = self.gamefont.render(
             "-スコアボード-", True, (255, 200, 255))
         for enemy in self.gameworld.enemies:
             for shot in self.player.shot_que:
-                if enemy.collide(shot):
-                    self.gameworld.gamescore += 10
-                shot.collide(enemy)
+                self.collide_player_weapon_with_enemy(enemy, shot)
+            for missile in self.player.missile_que:
+                self.collide_player_weapon_with_enemy(enemy, missile)
             if self.player.collide_with_enemy(enemy):
                 self.stop_game_and_show_result()
                 self.gameworld.clear_enemies()
@@ -508,7 +684,7 @@ class GameScene(Scene):
             if enemy.y > w_size[1]:
                 enemy.death()
         self.stop_move_of_player_on_wall()
-        if self.gameworld.elapsed_time_in_level >= 100:
+        if self.gameworld.all_enemy_on_level_was_summoned:
             if len(self.gameworld.enemies) == 0 and self.gamelevel_running:
                 self.stop_game_and_show_result()
         if self.gamelevel_running:
@@ -523,6 +699,7 @@ class GameScene(Scene):
         self.player.y = w_size[1] - self.player.rect.height
         if self.player not in self.gameworld.entities:
             self.gameworld.entities.append(self.player)
+        self.num_of_remaining_enemies = len(self.gameworld.level)
 
     def stop_game_and_show_result(self):
         self.gamelevel_running = False

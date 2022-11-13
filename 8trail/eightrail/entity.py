@@ -25,6 +25,8 @@ class Sprite(pygame.sprite.Sprite):
         self._y = 0
         self.angle = 0
         self.is_moving = False  # this is True when move_on called
+        self.move_target_x = None
+        self.move_target_y = None
 
     # @property
     # def entity_container(self):
@@ -84,6 +86,9 @@ class Sprite(pygame.sprite.Sprite):
     def center_y_on_screen(self):
         """Center the posistion on the screen"""
         self.y = w_size[1] / 2 - self.rect.height
+
+    def remove_from_container(self):
+        self.entity_container.kill_living_entity(self)
 
 
 class ShooterSprite(Sprite):

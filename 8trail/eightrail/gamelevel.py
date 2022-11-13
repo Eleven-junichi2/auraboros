@@ -3,7 +3,9 @@ from typing import TYPE_CHECKING, Any, Union
 if TYPE_CHECKING:
     from .eightrail import Enemy
 
+import copy
 from dataclasses import dataclass
+# import itertools
 from random import randint
 
 import pygame
@@ -12,6 +14,7 @@ from .entity import Sprite, EntityList
 from .gamescene import Scene
 from .utilities import open_json_file
 from .__init__ import w_size
+
 
 # TODO: destroy garbage enemy
 
@@ -44,7 +47,11 @@ class Level:
 
     def __init__(self, level_filepath, scene=None):
         self.scene: Scene = scene
-        self.level = open_json_file(level_filepath)
+        self.level_raw_data = open_json_file(level_filepath)
+        self._set_level_data_with_tag_decompressed(
+            self.read_tagged_level_data())
+        self.how_many_enemy_appended = 0
+        self.all_enemy_on_level_was_summoned = False
         self._entities = EntityListOfGameWorld(self)
         self.enemy_factory: dict[Any, Enemy] = {}
         self._enemies: EnemyList[Enemy] = EnemyList(self)
@@ -72,9 +79,7 @@ class Level:
         self._enemies = value
 
     def run_level(self):
-        data_dict_by_tag = self.read_tagged_level_data()
-        level = self.level_data_with_tag_decompressed(data_dict_by_tag)
-        for data in level:
+        for data in self.level:
             if self.elapsed_time_in_level == data["timing"]:
                 enemy = self.enemy_factory[data["enemy"]]()
                 pos: list[int, int] = [None, None]
@@ -87,23 +92,36 @@ class Level:
                 enemy.x, enemy.y = pos
                 enemy.behavior_pattern = data["pattern"]
                 self.enemies.append(enemy)
+                self.how_many_enemy_appended += 1
+        if self.how_many_enemy_appended == len(self.level):
+            self.all_enemy_on_level_was_summoned = True
         self.elapsed_time_in_level += 1
 
     def read_tagged_level_data(self):
         data_dict_by_tag = {}
-        for data in self.level:
-            if isinstance(data, str):
-                without_str = filter(
-                    lambda item: not isinstance(item, str), self.level)
-                data_dict_by_tag[data] = [
-                    item for item in without_str if item["tag"] == data]
+        for data in self.level_raw_data:
+            if isinstance(data, list):
+                without_str = list(filter(
+                    lambda item: not isinstance(item, list),
+                    self.level_raw_data))
+                data_dict_by_tag[data[0]] = [
+                    item for item in without_str if item["tag"] == data[0]]
         return data_dict_by_tag
 
-    def level_data_with_tag_decompressed(self, data_dict_by_tag):
+    def _set_level_data_with_tag_decompressed(self, data_dict_by_tag):
         level = []
-        [level.extend(data_dict_by_tag[data])
-         for data in self.level if isinstance(data, str)]
-        return level
+        timing_list = []
+        for data in self.level_raw_data:
+            if isinstance(data, list):
+                level.append(data_dict_by_tag[data[0]])
+                timing_list.append(data[1])
+        new_level = []
+        for data_list, timing in zip(level, timing_list):
+            for data in data_list:
+                data_ = copy.copy(data)
+                data_["timing"] += timing
+                new_level.append(data_)
+        self.level = new_level
 
     def reset_elapsed_time_counter(self):
         self.elapsed_time_in_level = 0
@@ -111,7 +129,7 @@ class Level:
     def clear_enemies(self):
         for i in range(len(self.enemies)):
             # i dont know why this run better when this code in loop
-            [enemy.death() for enemy in self.enemies]
+            [enemy.remove_from_container() for enemy in self.enemies]
 
     def reset_scroll(self):
         self.bg_scroll_y = 0
@@ -120,6 +138,8 @@ class Level:
     def summon_enemies_with_timing_resetted(self):
         self.clear_enemies()
         self.reset_elapsed_time_counter()
+        self.all_enemy_on_level_was_summoned = False
+        self.how_many_enemy_appended = 0
 
     def initialize_level(self):
         self.summon_enemies_with_timing_resetted()
