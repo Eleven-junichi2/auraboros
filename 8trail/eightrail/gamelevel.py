@@ -22,6 +22,7 @@ class EntityListOfGameWorld(EntityList):
         self.gameworld = gameworld
 
     def append(self, item: Sprite):
+        item.gameworld = self.gameworld
         item.entity_container = self
         super().append(item)
 
@@ -51,7 +52,7 @@ class Level:
             (w_size[0], w_size[1] * 2))
         self.scroll_speed = 0.5
         self.density_of_stars_on_bg = randint(100, 500)
-        self.reset_level()
+        self.initialize_level()
 
     @property
     def entities(self):
@@ -81,19 +82,26 @@ class Level:
                     else:
                         pos[i] = data["pos"][i]
                 enemy.x, enemy.y = pos
-                enemy.scene = self.scene
-                # enemy.entity_container = self.entities
                 self.enemies.append(enemy)
         self.elapsed_time_in_level += 1
 
-    def reset_level(self):
+    def reset_elapsed_time_counter(self):
         self.elapsed_time_in_level = 0
+
+    def clear_enemies(self):
+        [enemy.death() for enemy in self.enemies]
+
+    def reset_scroll(self):
         self.bg_scroll_y = 0
         self.bg_scroll_x = 0
 
-    # def add_enemy(self, enemy: Enemy):
-    #     self.enemies.append(enemy)
-        # self.scene.sprites.add(enemy)
+    def summon_enemies_with_timing_resetted(self):
+        self.reset_elapsed_time_counter()
+        self.clear_enemies()
+
+    def initialize_level(self):
+        self.summon_enemies_with_timing_resetted()
+        self.reset_scroll()
 
     def set_background(self):
         [self.bg_surf.fill(

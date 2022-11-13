@@ -1,9 +1,8 @@
-from .utilities import Arrow, AssetFilePath, TextToDebug
+from .utilities import Arrow, AssetFilePath, TextToDebug  # noqa
 from .schedule import IntervalCounter, schedule_instance_method_interval
 from .gamelevel import Level
 from .gamescene import Scene, SceneManager
 from .entity import Sprite, ShooterSprite
-from typing import Iterator
 
 import pygame
 
@@ -220,10 +219,10 @@ class Enemy(Sprite):
 
     def death(self):
         # if self.alive():
-        # animation = self.animation["death"]
-        # animation.rect = self.rect
-        # animation.let_play_animation()
-        # self.scene.visual_effects.append(animation)
+        animation = self.animation["death"]
+        animation.rect = self.rect
+        animation.let_play_animation()
+        self.gameworld.scene.visual_effects.append(animation)
         self.entity_container.kill_living_entity(self)
         self.explosion_sound.play()
 
@@ -261,7 +260,7 @@ class GameScene(Scene):
             if event.key == pygame.K_z:
                 self.player.trigger_shot()
             if event.key == pygame.K_x:
-                self.gameworld.reset_level()
+                self.gameworld.summon_enemies_with_timing_resetted()
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_UP:
                 self.player.stop_moving_to(Arrow.up)

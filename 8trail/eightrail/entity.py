@@ -1,6 +1,10 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .gamelevel import Level
+
 from collections import deque
 from math import sqrt
-from typing import Iterator
 
 import pygame
 
@@ -13,6 +17,7 @@ class Sprite(pygame.sprite.Sprite):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # self.scene: Scene
+        self.gameworld: Level = None
         self.entity_container: EntityList = None
         self.direction_of_movement = ArrowToTurnToward()
         self.movement_speed = 1
