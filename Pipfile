@@ -11,6 +11,7 @@ pygame-gui = "*"
 flake8 = "*"
 autopep8 = "*"
 sphinx = "*"
+pyinstaller = "*"
 
 [requires]
 python_version = "3.9"
