@@ -1,3 +1,5 @@
+from inspect import isclass
+from typing import Any
 from .utilities import Arrow, AssetFilePath, TextToDebug  # noqa
 from .schedule import IntervalCounter, schedule_instance_method_interval
 from .sound import SoundDict
@@ -16,6 +18,8 @@ from .__init__ import init, w_size, screen, w_size_unscaled  # noqa
 # TODO: Game Level
 
 pygame.init()
+pygame.mixer.init()
+# pygame.mixer.set_num_channels(8)
 
 clock = pygame.time.Clock()
 fps = 60
@@ -23,8 +27,12 @@ fps = 60
 sound_dict = SoundDict()
 sound_dict["explosion"] = pygame.mixer.Sound(
     AssetFilePath.sound("explosion1.wav"))
+sound_dict["player_death"] = pygame.mixer.Sound(
+    AssetFilePath.sound("explosion2.wav"))
 sound_dict["shot"] = pygame.mixer.Sound(
     AssetFilePath.sound("shot1.wav"))
+sound_dict["laser"] = pygame.mixer.Sound(
+    AssetFilePath.sound("laser2.wav"))
 
 
 class Explosion(AnimationImage):
@@ -101,14 +109,17 @@ class PlayerShot(Sprite):
         self.image = pygame.image.load(AssetFilePath.img("shot1.png"))
         self.shooter = shooter_sprite
         self.rect = self.image.get_rect()
-        self.reset_pos()
+        self.reset_pos_x()
+        self.reset_pos_y()
         self.movement_speed = 4
         self.adjust_movement_speed = 1
         self.is_launching = False
 
-    def reset_pos(self):
+    def reset_pos_x(self):
         self.x = self.shooter.x + \
             self.shooter.rect.width / 2 - self.rect.width / 2
+
+    def reset_pos_y(self):
         self.y = self.shooter.y + \
             self.shooter.rect.height / 2 - self.rect.height
 
@@ -129,7 +140,8 @@ class PlayerShot(Sprite):
             if self.y < 0:
                 self.direction_of_movement.unset(Arrow.up)
                 self.is_launching = False
-                self.reset_pos()
+                self.reset_pos_x()
+                self.reset_pos_y()
                 self.allow_shooter_to_fire()
                 self._destruct()
 
@@ -147,7 +159,8 @@ class PlayerShot(Sprite):
 
     def update(self, dt):
         if not self.is_launching:
-            self.reset_pos()
+            self.reset_pos_x()
+            self.reset_pos_y()
         self._fire(dt)
 
     def collide(self, sprite):
@@ -155,6 +168,20 @@ class PlayerShot(Sprite):
             self._destruct()
 
 
+class PlayerLaser(PlayerShot):
+    def __init__(self, shooter_sprite: ShooterSprite,
+                 *args, **kwargs):
+        super().__init__(shooter_sprite=shooter_sprite, *args, **kwargs)
+        self.image = pygame.image.load(AssetFilePath.img("laser1.png"))
+        self.shooter = shooter_sprite
+        self.rect = self.image.get_rect()
+        self.reset_pos_x()
+        self.reset_pos_y()
+        self.movement_speed = 6
+
+    def move_on(self, dt):
+        self.reset_pos_x()
+        super().move_on(dt)
 
 
 class Enemy(Sprite):
@@ -183,41 +210,86 @@ class Enemy(Sprite):
             self.death()
 
 
+class WeaponBulletFactory:
+    def __init__(self, *args, **kwargs):
+        self.__dict__: dict[Any, pygame.mixer.PlayerShot]
+        self.__dict__.update(*args, **kwargs)
+
+    def __getitem__(self, key) -> pygame.mixer.Sound:
+        return self.__dict__[key]
+
+    def __setitem__(self, key, value: pygame.mixer.Sound):
+        if isclass(value):
+            self.__dict__[key] = {}
+            self.__dict__[key]["entity"] = value
+            self.__dict__[key]["max_num"] = 1
+            self.__dict__[key]["interval"] = 1
+        else:
+            raise ValueError("The value must not be instance.")
+
+    def __delitem__(self, key):
+        del self.__dict__[key]
+
+    def __iter__(self):
+        return iter(self.__dict__)
+
+    def __len__(self):
+        return len(self.__dict__)
+
+
 class Player(ShooterSprite):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.weapon = WeaponBulletFactory()
+        self.weapon["normal"] = PlayerShot
+        self.weapon["normal"]["max_num"] = 3
+        self.weapon["normal"]["interval"] = 3
+        self.weapon["laser"] = PlayerLaser
+        self.weapon["laser"]["max_num"] = 6
+        self.weapon["laser"]["interval"] = 4
+        self.change_weapon("normal")
         self.animation = AnimationDict()
         self.animation["idle"] = FighterIdle()
         self.animation["roll_left"] = FighterRollLeft()
         self.animation["roll_right"] = FighterRollRight()
         self.visual_effects = AnimationFactory()
         self.visual_effects["explosion"] = PlayerExplosion
-        self.explosion_sound = sound_dict["explosion"]
+        self.explosion_sound = sound_dict["player_death"]
+        self.normal_shot_sound = sound_dict["shot"]
+        self.laser_shot_sound = sound_dict["laser"]
         self.action = "idle"
         self.image = self.animation[self.action].image
         self.rect = self.image.get_rect()
         self.movement_speed = 2
-        self.shot_max_num = 3
-        self.shot_interval = 3
-        self.shot_current_interval = self.shot_interval
         self.shot_que: list = []
         self.ignore_shot_interval = True
         self.is_shot_triggered = False
         self.is_moving = True
-        self.shot_sound = sound_dict["shot"]
 
     def trigger_shot(self):
         self.is_shot_triggered = True
 
     def release_trigger(self):
+        if self.current_weapon == "laser":
+            self.laser_shot_sound.stop()
         self.is_shot_triggered = False
 
+    def change_weapon(self, weapon):
+        self.current_weapon = weapon
+        self.shot_interval = self.weapon[self.current_weapon]["interval"]
+
     @ schedule_instance_method_interval(
-        "shot_current_interval", interval_ignorerer="ignore_shot_interval")
+        "shot_interval", interval_ignorerer="ignore_shot_interval")
     def _shooting(self):
-        if (self.is_shot_allowed and (len(self.shot_que) < self.shot_max_num)):
-            self.shot_sound.play()
-            shot = PlayerShot(self)
+        if (self.is_shot_allowed and
+                (len(self.shot_que) <
+                 self.weapon[self.current_weapon]["max_num"])):
+            if self.current_weapon == "normal":
+                self.normal_shot_sound.play()
+            elif self.current_weapon == "laser":
+                if not pygame.mixer.get_busy():
+                    self.laser_shot_sound.play()
+            shot = self.weapon[self.current_weapon]["entity"](self)
             shot.entity_container = self.entity_container
             shot.will_launch(Arrow.up)
             self.shot_que.append(shot)
@@ -242,6 +314,10 @@ class Player(ShooterSprite):
         screen.blit(self.image, self.rect)
 
     def update(self, dt):
+        if self.current_weapon == "laser":
+            if pygame.mixer.get_busy():
+                if len(self.shot_que) == 0:
+                    self.laser_shot_sound.stop()
         if self.is_moving:
             self.move_on(dt)
         if self.shot_que:
@@ -278,7 +354,7 @@ class GameScene(Scene):
 
     gamefont = pygame.font.Font(AssetFilePath.font("misaki_gothic.ttf"), 16)
     instruction_text = gamefont.render(
-        "z: ショット x: 敵を再召喚 c:自機を復活させる", True, (255, 255, 255))
+        "z: ショット x: 敵を再召喚 c:武装切り替え v:自機を復活させる ", True, (255, 255, 255))
 
     def __init__(self):
         super().__init__()
@@ -306,6 +382,11 @@ class GameScene(Scene):
             if event.key == pygame.K_x:
                 self.gameworld.summon_enemies_with_timing_resetted()
             if event.key == pygame.K_c:
+                if self.player.current_weapon == "normal":
+                    self.player.change_weapon("laser")
+                else:
+                    self.player.change_weapon("normal")
+            if event.key == pygame.K_v:
                 if self.player not in self.gameworld.entities:
                     self.gameworld.entities.append(self.player)
         if event.type == pygame.KEYUP:
