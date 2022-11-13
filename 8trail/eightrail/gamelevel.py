@@ -53,6 +53,7 @@ class Level:
         self.scroll_speed = 0.5
         self.density_of_stars_on_bg = randint(100, 500)
         self.initialize_level()
+        self.gamescore = 0
 
     @property
     def entities(self):
@@ -71,7 +72,9 @@ class Level:
         self._enemies = value
 
     def run_level(self):
-        for data in self.level:
+        data_dict_by_tag = self.read_tagged_level_data()
+        level = self.level_data_with_tag_decompressed(data_dict_by_tag)
+        for data in level:
             if self.elapsed_time_in_level == data["timing"]:
                 enemy = self.enemy_factory[data["enemy"]]()
                 pos: list[int, int] = [None, None]
@@ -82,26 +85,49 @@ class Level:
                     else:
                         pos[i] = data["pos"][i]
                 enemy.x, enemy.y = pos
+                enemy.behavior_pattern = data["pattern"]
                 self.enemies.append(enemy)
         self.elapsed_time_in_level += 1
+
+    def read_tagged_level_data(self):
+        data_dict_by_tag = {}
+        for data in self.level:
+            if isinstance(data, str):
+                without_str = filter(
+                    lambda item: not isinstance(item, str), self.level)
+                data_dict_by_tag[data] = [
+                    item for item in without_str if item["tag"] == data]
+        return data_dict_by_tag
+
+    def level_data_with_tag_decompressed(self, data_dict_by_tag):
+        level = []
+        [level.extend(data_dict_by_tag[data])
+         for data in self.level if isinstance(data, str)]
+        return level
 
     def reset_elapsed_time_counter(self):
         self.elapsed_time_in_level = 0
 
     def clear_enemies(self):
-        [enemy.death() for enemy in self.enemies]
+        for i in range(len(self.enemies)):
+            # i dont know why this run better when this code in loop
+            [enemy.death() for enemy in self.enemies]
 
     def reset_scroll(self):
         self.bg_scroll_y = 0
         self.bg_scroll_x = 0
 
     def summon_enemies_with_timing_resetted(self):
-        self.reset_elapsed_time_counter()
         self.clear_enemies()
+        self.reset_elapsed_time_counter()
 
     def initialize_level(self):
         self.summon_enemies_with_timing_resetted()
         self.reset_scroll()
+        self.gamescore = 0
+
+    def reset_score(self):
+        self.gamescore = 0
 
     def set_background(self):
         [self.bg_surf.fill(

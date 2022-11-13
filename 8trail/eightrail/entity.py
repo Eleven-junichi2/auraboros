@@ -24,6 +24,7 @@ class Sprite(pygame.sprite.Sprite):
         self._x = 0
         self._y = 0
         self.angle = 0
+        self.is_moving = False  # this is True when move_on called
 
     # @property
     # def entity_container(self):
@@ -52,6 +53,7 @@ class Sprite(pygame.sprite.Sprite):
         self.rect.y = self._y
 
     def move_on(self, dt):
+        self.is_moving = True
         # diagonal movement
         if ((self.direction_of_movement.is_up and
             self.direction_of_movement.is_right) or

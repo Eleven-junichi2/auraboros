@@ -1,4 +1,5 @@
 from inspect import isclass
+import random
 from typing import Any
 from .utilities import Arrow, AssetFilePath, TextToDebug  # noqa
 from .schedule import IntervalCounter, schedule_instance_method_interval
@@ -99,7 +100,30 @@ class FighterRollRight(AnimationImage):
             self.sprite_sheet.image_by_area(0, 22 * 4, 22, 22), ]
         self.anim_interval = 15
         self.is_loop = False
-        # self.rect = self.image.get_rect()
+
+
+class ScoutDiskIdle(AnimationImage):
+    def __init__(self):
+        super().__init__()
+        self.sprite_sheet = SpriteSheet(AssetFilePath.img("enemy_a.png"))
+        self.anim_frames: list[pygame.surface.Surface] = [
+            self.sprite_sheet.image_by_area(0, 0, 16, 16),
+            self.sprite_sheet.image_by_area(0, 16, 16, 16),
+            self.sprite_sheet.image_by_area(0, 16 * 2, 16, 16),
+            self.sprite_sheet.image_by_area(0, 16 * 3, 16, 16), ]
+        self.anim_interval = 5
+
+
+class ScoutDiskMove(AnimationImage):
+    def __init__(self):
+        super().__init__()
+        self.sprite_sheet = SpriteSheet(AssetFilePath.img("enemy_a.png"))
+        self.anim_frames: list[pygame.surface.Surface] = [
+            self.sprite_sheet.image_by_area(0, 16 * 4, 16, 16),
+            self.sprite_sheet.image_by_area(0, 16 * 5, 16, 16),
+            self.sprite_sheet.image_by_area(0, 16 * 6, 16, 16),
+            self.sprite_sheet.image_by_area(0, 16 * 7, 16, 16), ]
+        self.anim_interval = 5
 
 
 class PlayerShot(Sprite):
@@ -188,26 +212,76 @@ class Enemy(Sprite):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.explosion_sound = sound_dict["explosion"]
-        self.image = pygame.image.load(AssetFilePath.img("enemy_a.png"))
+        self.visual_effects = AnimationFactory()
+        self.visual_effects["death"] = Explosion
+        self.animation = AnimationDict()
+        self.action = "idle"
+        self.animation["idle"] = ScoutDiskIdle()
+        self.animation["move"] = ScoutDiskMove()
+        self.image = self.animation[self.action].image
         self.rect = self.image.get_rect()
-        self.animation = AnimationFactory()
-        self.animation["death"] = Explosion
-        self.image = pygame.transform.rotate(self.image, self.angle)
+        self.movement_speed = 2
+        self.move_target_x = None
+        self.move_target_y = None
+        self.behavior_pattern = None
+        self.behavior_pattern_dict = {
+            "random_horizontal": self.move_random_horizontal}
+
+    def update(self, dt):
+        self.do_pattern(dt)
+        if self.is_moving:
+            self.action = "move"
+        else:
+            self.action = "idle"
+        self.animation[self.action].let_continue_animation()
+        self.image = self.animation[self.action].image
+        self.animation[self.action].update(dt)
 
     def draw(self, screen: pygame.surface.Surface):
         screen.blit(self.image, self.rect)
 
+    def do_pattern(self, dt):
+        if self.behavior_pattern is not None:
+            self.behavior_pattern_dict[self.behavior_pattern](dt)
+
+    def move_random_horizontal(self, dt):
+        if not self.move_target_x:
+            self.random_destination_x()
+        if not self.move_target_y:
+            self.random_destination_y()
+        if (self.move_target_x - self.movement_speed
+            <= self.x <=
+                self.move_target_x + self.movement_speed):
+            self.direction_of_movement.unset(Arrow.right)
+            self.direction_of_movement.unset(Arrow.left)
+            self.random_destination_x()
+        elif self.x < self.move_target_x:
+            self.direction_of_movement.set(Arrow.right)
+            self.direction_of_movement.unset(Arrow.left)
+        elif self.move_target_x < self.x:
+            self.direction_of_movement.set(Arrow.left)
+            self.direction_of_movement.unset(Arrow.right)
+        self.move_on(dt)
+
+    def random_destination_x(self):
+        self.move_target_x = random.randint(0, w_size[0])
+
+    def random_destination_y(self):
+        self.move_target_y = random.randint(0, w_size[1])
+
     def death(self):
-        animation = self.animation["death"]
-        animation.rect = self.rect
-        animation.let_play_animation()
-        self.gameworld.scene.visual_effects.append(animation)
+        visual_effect = self.visual_effects["death"]
+        visual_effect.rect = self.rect
+        visual_effect.let_play_animation()
+        self.gameworld.scene.visual_effects.append(visual_effect)
         self.entity_container.kill_living_entity(self)
         self.explosion_sound.play()
 
-    def collide(self, entity):
+    def collide(self, entity) -> bool:
+        """"""
         if pygame.sprite.collide_rect(entity, self):
             self.death()
+            return True
 
 
 class WeaponBulletFactory:
@@ -264,7 +338,6 @@ class Player(ShooterSprite):
         self.shot_que: list = []
         self.ignore_shot_interval = True
         self.is_shot_triggered = False
-        self.is_moving = True
 
     def trigger_shot(self):
         self.is_shot_triggered = True
@@ -343,18 +416,19 @@ class Player(ShooterSprite):
             self.entity_container.kill_living_entity(self)
             self.explosion_sound.play()
 
-    def collide_with_enemy(self, enemy: Enemy):
+    def collide_with_enemy(self, enemy: Enemy) -> bool:
         if not isinstance(enemy, Enemy):
             raise TypeError("Given entity is not Enemy.")
         if pygame.sprite.collide_rect(enemy, self):
             self.death()
+            return True
 
 
 class GameScene(Scene):
 
     gamefont = pygame.font.Font(AssetFilePath.font("misaki_gothic.ttf"), 16)
     instruction_text = gamefont.render(
-        "z: ショット x: 敵を再召喚 c:武装切り替え v:自機を復活させる ", True, (255, 255, 255))
+        "z: ショット x: 武装切り替え c: ゲームリセット", True, (255, 255, 255))
 
     def __init__(self):
         super().__init__()
@@ -366,6 +440,11 @@ class GameScene(Scene):
         self.player.y = w_size[1] - self.player.rect.height
         # self.player.entity_container = self.gameworld.entities
         self.gameworld.entities.append(self.player)
+        self.gamelevel_running = True
+        self.gamescore_pos = (0, 16)
+        self.scoreboard = []
+        self.scoreboard_surflist = []
+        self.scoreboard_textlist = []
 
     def event(self, event):
         if event.type == pygame.KEYDOWN:
@@ -379,16 +458,13 @@ class GameScene(Scene):
                 self.player.will_move_to(Arrow.left)
             if event.key == pygame.K_z:
                 self.player.trigger_shot()
-            if event.key == pygame.K_x:
-                self.gameworld.summon_enemies_with_timing_resetted()
             if event.key == pygame.K_c:
+                self.reset_game()
+            if event.key == pygame.K_x:
                 if self.player.current_weapon == "normal":
                     self.player.change_weapon("laser")
                 else:
                     self.player.change_weapon("normal")
-            if event.key == pygame.K_v:
-                if self.player not in self.gameworld.entities:
-                    self.gameworld.entities.append(self.player)
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_UP:
                 self.player.stop_moving_to(Arrow.up)
@@ -412,20 +488,72 @@ class GameScene(Scene):
             self.player.stop_moving_to(Arrow.left)
 
     def update(self, dt):
+        self.elapsed_time_text = self.gamefont.render(
+            str(self.gameworld.elapsed_time_in_level), True, (255, 255, 255))
+        self.gamescore_text = self.gamefont.render(
+            "スコア: " + str(self.gameworld.gamescore), True, (255, 200, 255))
+        self.enemycounter_text = self.gamefont.render(
+            "敵機: " + str(len(self.gameworld.enemies)), True, (255, 255, 200))
+        self.scoreboard_headline_text = self.gamefont.render(
+            "-スコアボード-", True, (255, 200, 255))
         for enemy in self.gameworld.enemies:
             for shot in self.player.shot_que:
-                enemy.collide(shot)
+                if enemy.collide(shot):
+                    self.gameworld.gamescore += 10
                 shot.collide(enemy)
-            self.player.collide_with_enemy(enemy)
+            if self.player.collide_with_enemy(enemy):
+                self.stop_game_and_show_result()
+                self.gameworld.clear_enemies()
             enemy.collide(self.player)
+            if enemy.y > w_size[1]:
+                enemy.death()
         self.stop_move_of_player_on_wall()
-        self.gameworld.run_level()
-        self.gameworld.scroll()
+        if self.gameworld.elapsed_time_in_level >= 100:
+            if len(self.gameworld.enemies) == 0 and self.gamelevel_running:
+                self.stop_game_and_show_result()
+        if self.gamelevel_running:
+            self.gameworld.run_level()
+            self.gameworld.scroll()
+
+    def reset_game(self):
+        self.gamelevel_running = True
+        self.gameworld.initialize_level()
+        self.gamescore_pos = (0, 16)
+        self.player.center_x_on_screen()
+        self.player.y = w_size[1] - self.player.rect.height
+        if self.player not in self.gameworld.entities:
+            self.gameworld.entities.append(self.player)
+
+    def stop_game_and_show_result(self):
+        self.gamelevel_running = False
+        self.gamescore_pos = (w_size[0] / 2, w_size[1] / 2)
+        self.scoreboard.append(self.gameworld.gamescore)
+        self.scoreboard.sort(reverse=True)
+        if len(self.scoreboard) > 10:
+            self.scoreboard.pop()
+        self.scoreboard_surflist = []
+        self.scoreboard_textlist = []
+        for rank, score in enumerate(self.scoreboard):
+            scoreboard_text = f"{rank+1}:{score}"
+            score_surf = self.gamefont.render(
+                scoreboard_text, True, (255, 200, 255))
+            self.scoreboard_textlist.append(scoreboard_text)
+            self.scoreboard_surflist.append(score_surf)
 
     def draw(self, screen):
         screen.blit(self.gameworld.bg_surf,
                     (0, self.gameworld.bg_scroll_y - w_size[1]))
         screen.blit(self.instruction_text, (0, 0))
+        # screen.blit(self.elapsed_time_text, (0, 16))
+        screen.blit(self.gamescore_text, self.gamescore_pos)
+        screen.blit(self.enemycounter_text, (0, 16 * 2))
+        screen.blit(self.scoreboard_headline_text,
+                    (w_size[0] - self.gamefont.size("-スコアボード-")[0], 0))
+        for i, text_surf in enumerate(self.scoreboard_surflist):
+            screen.blit(
+                text_surf,
+                (w_size[0] - self.gamefont.size(
+                    str(self.scoreboard_textlist[i]))[0], 16 + 16 * i))
 
 
 class TitleMenuScene(Scene):
