@@ -9,32 +9,16 @@ from .animation import AnimationImage
 class Scene(object):
 
     def __init__(self):
-        # from .entity import Sprite
         from .gamelevel import Level
-        # self._sprites: pygame.sprite.Group = pygame.sprite.Group()
         self.gameworld: Level = None
         self.visual_effects: list[AnimationImage] = []
-
-        # --- Add attributes of Sprite defined in subclass to self.sprites ---
         attrs_of_class = set(dir(self.__class__)) - set(dir(Scene))
         for attr_name in attrs_of_class:
             attrs_of_object = set(
                 getattr(self, attr_name).__class__.__mro__) - {object, }
-            # is_sprite = Sprite in attrs_of_object
-            # if is_sprite:
-            #     self.sprites.add(getattr(self, attr_name))
-            #     getattr(self, attr_name).scene = self
             is_gameworld = Level in attrs_of_object
             if is_gameworld:
                 getattr(self, attr_name).scene = self
-
-    # @property
-    # def sprites(self):
-    #     return self._sprites
-
-    # @sprites.setter
-    # def sprites(self, value):
-    #     self._sprites = value
 
     def event(self, event: pygame.event):
         pass

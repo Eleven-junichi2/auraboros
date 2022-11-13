@@ -38,6 +38,24 @@ class Explosion(AnimationImage):
         self.anim_interval = 2
 
 
+class PlayerExplosion(AnimationImage):
+    def __init__(self):
+        super().__init__()
+        self.sprite_sheet = SpriteSheet(AssetFilePath.img("explosion_b.png"))
+        self.anim_frames: list[pygame.surface.Surface] = [
+            self.sprite_sheet.image_by_area(0, 0, 22, 22),
+            self.sprite_sheet.image_by_area(
+                0, 22, 22, 22),
+            self.sprite_sheet.image_by_area(
+                0, 22*2, 22, 22),
+            self.sprite_sheet.image_by_area(
+                0, 22*3, 22, 22),
+            self.sprite_sheet.image_by_area(
+                0, 22*4, 22, 22),
+            self.sprite_sheet.image_by_area(0, 22*5, 22, 22)]
+        self.anim_interval = 2
+
+
 class FighterIdle(AnimationImage):
     def __init__(self):
         super().__init__()
@@ -165,7 +183,7 @@ class Player(ShooterSprite):
         self.animation["roll_left"] = FighterRollLeft()
         self.animation["roll_right"] = FighterRollRight()
         self.visual_effects = AnimationFactory()
-        self.visual_effects["explosion"] = Explosion
+        self.visual_effects["explosion"] = PlayerExplosion
         self.explosion_sound = pygame.mixer.Sound(
             AssetFilePath.sound("explosion1.wav"))
         self.action = "idle"
@@ -295,12 +313,23 @@ class GameScene(Scene):
             if event.key == pygame.K_z:
                 self.player.release_trigger()
 
+    def stop_move_of_player_on_wall(self):
+        if self.player.y < 0:
+            self.player.stop_moving_to(Arrow.up)
+        if w_size[1] - self.player.rect.height < self.player.y:
+            self.player.stop_moving_to(Arrow.down)
+        if w_size[0] - self.player.rect.width < self.player.x:
+            self.player.stop_moving_to(Arrow.right)
+        if self.player.x < 0:
+            self.player.stop_moving_to(Arrow.left)
+
     def update(self, dt):
         for enemy in self.gameworld.enemies:
             for shot in self.player.shot_que:
                 enemy.collide_with_shot(shot)
                 shot.collide(enemy)
             self.player.collide_with_enemy(enemy)
+        self.stop_move_of_player_on_wall()
         self.gameworld.run_level()
         self.gameworld.scroll()
 
