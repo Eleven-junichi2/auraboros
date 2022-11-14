@@ -33,7 +33,7 @@
         "tag": "debug1",
         "timing": 80,
         "enemy": "scoutdisk",
-        "pattern": "random_vertical",
+        "pattern": "random_horizontal",
         "pos": [
             "random",
             0

@@ -25,6 +25,11 @@ pygame.mixer.init()
 clock = pygame.time.Clock()
 fps = 60
 
+textfactory = TextSurfaceFactory()
+textfactory.register_font(
+    "misaki_gothic",
+    pygame.font.Font(AssetFilePath.font("misaki_gothic.ttf"), 16))
+
 sound_dict = SoundDict()
 sound_dict["explosion"] = pygame.mixer.Sound(
     AssetFilePath.sound("explosion1.wav"))
@@ -509,8 +514,6 @@ class Player(ShooterSprite):
 class GameScene(Scene):
 
     gamefont = pygame.font.Font(AssetFilePath.font("misaki_gothic.ttf"), 16)
-    instruction_text = gamefont.render(
-        "z:主砲 x:ミサイル c:主砲切り替え v:やり直す", True, (255, 255, 255))
 
     def __init__(self):
         super().__init__()
@@ -528,6 +531,8 @@ class GameScene(Scene):
         self.scoreboard_surflist = []
         self.scoreboard_textlist = []
         self.num_of_remaining_enemies = len(self.gameworld.level)
+        textfactory.register_text(
+            "tutorial", "z:主砲 x:ミサイル c:主砲切り替え v:やり直す")
 
     def event(self, event):
         if event.type == pygame.KEYDOWN:
@@ -581,16 +586,14 @@ class GameScene(Scene):
         weapon.collide(enemy)
 
     def update(self, dt):
-        self.elapsed_time_text = self.gamefont.render(
-            str(self.gameworld.elapsed_time_in_level), True, (255, 255, 255))
-        self.gamescore_text = self.gamefont.render(
-            "スコア:" + str(self.gameworld.gamescore), True, (255, 200, 255))
-        num_of_remaining_enemies = self.num_of_remaining_enemies
-        self.enemycounter_text = self.gamefont.render(
-            f"敵機:{len(self.gameworld.enemies)}/{num_of_remaining_enemies}",
-            True, (255, 255, 200))
-        self.scoreboard_headline_text = self.gamefont.render(
-            "-スコアボード-", True, (255, 200, 255))
+        textfactory.register_text(
+            "score_header", f"スコア:{self.gameworld.gamescore}")
+        textfactory.register_text(
+            "enemy_count",
+            f"敵機:{len(self.gameworld.enemies)}/{self.num_of_remaining_enemies}"
+        )
+        textfactory.register_text(
+            "scoreboard_header", "-スコアボード-")
         for enemy in self.gameworld.enemies:
             for shot in self.player.shot_que:
                 self.collide_player_weapon_with_enemy(enemy, shot)
@@ -639,12 +642,14 @@ class GameScene(Scene):
     def draw(self, screen):
         screen.blit(self.gameworld.bg_surf,
                     (0, self.gameworld.bg_scroll_y - w_size[1]))
-        screen.blit(self.instruction_text, (0, 0))
-        # screen.blit(self.elapsed_time_text, (0, 16))
-        screen.blit(self.gamescore_text, self.gamescore_pos)
-        screen.blit(self.enemycounter_text, (0, 16 * 2))
-        screen.blit(self.scoreboard_headline_text,
-                    (w_size[0] - self.gamefont.size("-スコアボード-")[0], 0))
+        textfactory.render("tutorial", screen, (0, 0))
+        textfactory.render("score_header", screen, self.gamescore_pos)
+        textfactory.render("enemy_count", screen, (0, 16 * 2))
+        textfactory.render("enemy_count", screen, (0, 16 * 2))
+        textfactory.render(
+            "scoreboard_header", screen,
+            (w_size[0] - textfactory.font().size(
+                textfactory.text_by_key("scoreboard_header"))[0], 0))
         for i, text_surf in enumerate(self.scoreboard_surflist):
             screen.blit(
                 text_surf,
