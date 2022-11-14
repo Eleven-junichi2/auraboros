@@ -1,4 +1,5 @@
 from __future__ import annotations
+import random
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .gamelevel import Level
@@ -9,7 +10,7 @@ from math import sqrt
 import pygame
 
 # from .gamescene import Scene
-from .utilities import ArrowToTurnToward
+from .utilities import Arrow, ArrowToTurnToward
 from .__init__ import TARGET_FPS, w_size
 
 
@@ -115,9 +116,118 @@ class EntityList(list):
         # append the item to itself (the list)
         super().append(item)
 
-# class SpriteGroupInScene(pygame.sprite.Group):
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
 
-#     def add(self, *sprites):
-#         super().add(*sprites)
+class Enemy(Sprite):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.action = "idle"
+        self.behavior_pattern = None
+        self.behavior_pattern_dict = {}
+        self.behavior_pattern_dict[
+            "random_vertical"] = self.move_random_vertical
+        self.behavior_pattern_dict[
+            "random_horizontal"] = self.move_random_horizontal
+
+    def update(self, dt):
+        self.do_pattern(dt)
+        if self.is_moving:
+            self.action = "move"
+        else:
+            self.action = "idle"
+
+    def draw(self, screen: pygame.surface.Surface):
+        screen.blit(self.image, self.rect)
+
+    def do_pattern(self, dt):
+        if self.behavior_pattern is not None:
+            self.behavior_pattern_dict[self.behavior_pattern](dt)
+
+    def move_random_vertical(self, dt):
+        if not self.move_target_x:
+            self.random_destination_x()
+        if (self.move_target_x - self.movement_speed
+            <= self.x <=
+                self.move_target_x + self.movement_speed):
+            self.direction_of_movement.unset(Arrow.right)
+            self.direction_of_movement.unset(Arrow.left)
+            self.random_destination_x()
+        elif self.x < self.move_target_x:
+            self.direction_of_movement.set(Arrow.right)
+            self.direction_of_movement.unset(Arrow.left)
+        elif self.move_target_x < self.x:
+            self.direction_of_movement.set(Arrow.left)
+            self.direction_of_movement.unset(Arrow.right)
+        self.move_on(dt)
+
+    def move_random_horizontal(self, dt):
+        if not self.move_target_y:
+            self.random_destination_y()
+        if (self.move_target_y - self.movement_speed
+            <= self.y <=
+                self.move_target_y + self.movement_speed):
+            self.direction_of_movement.unset(Arrow.up)
+            self.direction_of_movement.unset(Arrow.down)
+            self.random_destination_x()
+        elif self.y < self.move_target_y:
+            self.direction_of_movement.set(Arrow.down)
+            self.direction_of_movement.unset(Arrow.up)
+        elif self.move_target_y < self.y:
+            self.direction_of_movement.set(Arrow.down)
+            self.direction_of_movement.unset(Arrow.up)
+        self.move_on(dt)
+
+    def random_destination_x(self):
+        self.move_target_x = random.randint(0, w_size[0])
+
+    def random_destination_y(self):
+        self.move_target_y = random.randint(0, w_size[1])
+
+    def move_strike_to_entity(self, dt, entity: Sprite):
+        if not (self.move_target_x and self.move_target_y):
+            self.set_destination_to_entity(entity)
+        if (self.move_target_x - self.movement_speed
+            <= self.x <=
+                self.move_target_x + self.movement_speed):
+            self.direction_of_movement.unset(Arrow.right)
+            self.direction_of_movement.unset(Arrow.left)
+            self.set_destination_to_entity(entity)
+        elif self.x < self.move_target_x:
+            self.direction_of_movement.set(Arrow.right)
+            self.direction_of_movement.unset(Arrow.left)
+        elif self.move_target_x < self.x:
+            self.direction_of_movement.set(Arrow.left)
+            self.direction_of_movement.unset(Arrow.right)
+        if (self.move_target_y - self.movement_speed
+            <= self.y <=
+                self.move_target_y + self.movement_speed):
+            self.direction_of_movement.unset(Arrow.up)
+            self.direction_of_movement.unset(Arrow.down)
+
+        elif self.y < self.move_target_y:
+            self.direction_of_movement.set(Arrow.down)
+            self.direction_of_movement.unset(Arrow.up)
+        elif self.move_target_y < self.y:
+            self.direction_of_movement.set(Arrow.up)
+            self.direction_of_movement.unset(Arrow.down)
+        self.move_on(dt)
+
+    def set_destination_to_entity(self, entity_type: Sprite):
+        entity_list = [
+            entity for entity in self.gameworld.entities
+            if isinstance(entity, entity_type)]
+        self.move_target_x = entity_list[0].x
+        self.move_target_y = entity_list[0].y
+
+    def death(self):
+        self.remove_from_container()
+
+    def remove_from_container(self):
+        self.entity_container.kill_living_entity(self)
+
+    def collide(self, entity: Sprite) -> bool:
+        """Return true if a collison occur."""
+        if pygame.sprite.collide_rect(entity, self):
+            self.death()
+            return True
+        else:
+            return False

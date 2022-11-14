@@ -1,7 +1,8 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Union
 if TYPE_CHECKING:
-    from .eightrail import Enemy
+    pass
+    # from .eightrail import Enemy
 
 import copy
 from dataclasses import dataclass
@@ -10,7 +11,7 @@ from random import randint
 
 import pygame
 
-from .entity import Sprite, EntityList
+from .entity import Sprite, EntityList, Enemy
 from .gamescene import Scene
 from .utilities import open_json_file
 from .__init__ import w_size

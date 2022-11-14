@@ -49,15 +49,15 @@ class ArrowToTurnToward:
         elif direction is Arrow.left:
             self.is_left = False
 
-    def switch(self, direction: Arrow):
-        if direction is Arrow.up:
-            self.is_up = not self.is_up
-        elif direction is Arrow.down:
-            self.is_down = not self.is_down
-        elif direction is Arrow.right:
-            self.is_right = self.is_right
-        elif direction is Arrow.left:
-            self.is_left = self.is_left
+    # def switch(self, direction: Arrow):
+    #     if direction is Arrow.up:
+    #         self.is_down = False
+    #     elif direction is Arrow.down:
+    #         self.is_down = not self.is_down
+    #     elif direction is Arrow.right:
+    #         self.is_right = self.is_right
+    #     elif direction is Arrow.left:
+    #         self.is_left = self.is_left
 
     def is_set_any(self):
         return True in set(asdict(self).values())

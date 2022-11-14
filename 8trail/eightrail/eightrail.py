@@ -1,12 +1,12 @@
 from inspect import isclass
-import random
 from typing import Any
 from .utilities import Arrow, AssetFilePath, TextToDebug  # noqa
 from .schedule import IntervalCounter, schedule_instance_method_interval
 from .sound import SoundDict
 from .gamelevel import Level
 from .gamescene import Scene, SceneManager
-from .entity import Sprite, ShooterSprite
+from .gametext import TextSurfaceFactory
+from .entity import Sprite, ShooterSprite, Enemy
 
 import pygame
 
@@ -283,119 +283,38 @@ class PlayerMissile(PlayerShot):
             return False
 
 
-class Enemy(Sprite):
+class ScoutDiskEnemy(Enemy):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.explosion_sound = sound_dict["explosion"]
         self.visual_effects = AnimationFactory()
         self.visual_effects["death"] = Explosion
         self.animation = AnimationDict()
-        self.action = "idle"
         self.animation["idle"] = ScoutDiskIdle()
         self.animation["move"] = ScoutDiskMove()
         self.image = self.animation[self.action].image
         self.rect = self.image.get_rect()
         self.movement_speed = 2
-        self.move_target_x = None
-        self.move_target_y = None
         self.behavior_pattern = None
-        self.behavior_pattern_dict = {
-            "random_vertical": self.move_random_vertical,
-            "strike_to_player": self.move_strike_to_player}
+        self.behavior_pattern_dict[
+            "strike_to_player"] = self.move_strike_to_player
 
     def update(self, dt):
-        self.do_pattern(dt)
-        if self.is_moving:
-            self.action = "move"
-        else:
-            self.action = "idle"
+        super().update(dt)
         self.animation[self.action].let_continue_animation()
         self.image = self.animation[self.action].image
         self.animation[self.action].update(dt)
 
-    def draw(self, screen: pygame.surface.Surface):
-        screen.blit(self.image, self.rect)
-
-    def do_pattern(self, dt):
-        if self.behavior_pattern is not None:
-            self.behavior_pattern_dict[self.behavior_pattern](dt)
-
-    def move_random_vertical(self, dt):
-        if not self.move_target_x:
-            self.random_destination_x()
-        if not self.move_target_y:
-            self.random_destination_y()
-        if (self.move_target_x - self.movement_speed
-            <= self.x <=
-                self.move_target_x + self.movement_speed):
-            self.direction_of_movement.unset(Arrow.right)
-            self.direction_of_movement.unset(Arrow.left)
-            self.random_destination_x()
-        elif self.x < self.move_target_x:
-            self.direction_of_movement.set(Arrow.right)
-            self.direction_of_movement.unset(Arrow.left)
-        elif self.move_target_x < self.x:
-            self.direction_of_movement.set(Arrow.left)
-            self.direction_of_movement.unset(Arrow.right)
-        self.move_on(dt)
-
-    def random_destination_x(self):
-        self.move_target_x = random.randint(0, w_size[0])
-
-    def random_destination_y(self):
-        self.move_target_y = random.randint(0, w_size[1])
-
     def move_strike_to_player(self, dt):
-        if not (self.move_target_x and self.move_target_y):
-            self.set_destination_to_player()
-        if (self.move_target_x - self.movement_speed
-            <= self.x <=
-                self.move_target_x + self.movement_speed):
-            self.direction_of_movement.unset(Arrow.right)
-            self.direction_of_movement.unset(Arrow.left)
-            self.set_destination_to_player()
-        elif self.x < self.move_target_x:
-            self.direction_of_movement.set(Arrow.right)
-            self.direction_of_movement.unset(Arrow.left)
-        elif self.move_target_x < self.x:
-            self.direction_of_movement.set(Arrow.left)
-            self.direction_of_movement.unset(Arrow.right)
-        if (self.move_target_y - self.movement_speed
-            <= self.y <=
-                self.move_target_y + self.movement_speed):
-            self.direction_of_movement.unset(Arrow.up)
-            self.direction_of_movement.unset(Arrow.down)
-
-        elif self.y < self.move_target_y:
-            self.direction_of_movement.set(Arrow.down)
-            self.direction_of_movement.unset(Arrow.up)
-        elif self.move_target_y < self.y:
-            self.direction_of_movement.set(Arrow.up)
-            self.direction_of_movement.unset(Arrow.down)
-        self.move_on(dt)
-
-    def set_destination_to_player(self):
-        player = [entity for entity in self.gameworld.entities if isinstance(
-            entity, Player)][0]
-        self.move_target_x = player.x
-        self.move_target_y = player.y
+        self.move_strike_to_entity(dt, Player)
 
     def death(self):
         visual_effect = self.visual_effects["death"]
         visual_effect.rect = self.rect
         visual_effect.let_play_animation()
         self.gameworld.scene.visual_effects.append(visual_effect)
-        self.remove_from_container()
         self.explosion_sound.play()
-
-    def remove_from_container(self):
-        self.entity_container.kill_living_entity(self)
-
-    def collide(self, entity) -> bool:
-        """"""
-        if pygame.sprite.collide_rect(entity, self):
-            self.death()
-            return True
+        super().death()
 
 
 class WeaponBulletFactory:
@@ -597,7 +516,7 @@ class GameScene(Scene):
         super().__init__()
         self.gameworld = Level(AssetFilePath.level("stage1.json"), self)
         self.gameworld.set_background()
-        self.gameworld.enemy_factory["scoutdisk"] = Enemy
+        self.gameworld.enemy_factory["scoutdisk"] = ScoutDiskEnemy
         self.player = Player(self.gameworld.entities)
         self.player.center_x_on_screen()
         self.player.y = w_size[1] - self.player.rect.height
