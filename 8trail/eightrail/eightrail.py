@@ -523,7 +523,6 @@ class GameScene(Scene):
         self.player = Player(self.gameworld.entities)
         self.player.center_x_on_screen()
         self.player.y = w_size[1] - self.player.rect.height
-        # self.player.entity_container = self.gameworld.entities
         self.gameworld.entities.append(self.player)
         self.gamelevel_running = True
         self.gamescore_pos = (0, 16)
@@ -605,6 +604,7 @@ class GameScene(Scene):
             enemy.collide(self.player)
             if enemy.y > w_size[1]:
                 enemy.death()
+                self.num_of_remaining_enemies -= 1
         self.stop_move_of_player_on_wall()
         if self.gameworld.all_enemy_on_level_was_summoned:
             if len(self.gameworld.enemies) == 0 and self.gamelevel_running:
