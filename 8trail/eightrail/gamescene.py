@@ -40,12 +40,11 @@ class SceneManager:
 
     def update(self, dt):
         self.scenes[self.current].update(dt)
-        # self.scenes[self.current].sprites.update(dt)
-        [entity.update(dt)
-         for entity in self.scenes[self.current].gameworld.entities]
+        if not self.scenes[self.current].gameworld.pause:
+            [entity.update(dt)
+             for entity in self.scenes[self.current].gameworld.entities]
         [visual_effect.update(dt)
          for visual_effect in self.scenes[self.current].visual_effects]
-        # print(self.scenes[self.current].gameworld.entities)
 
     def draw(self, screen: pygame.surface.Surface):
         # Delete finished animations
@@ -54,10 +53,9 @@ class SceneManager:
             self.scenes[self.current].visual_effects)
          if visual_effect.was_played_once]
         self.scenes[self.current].draw(screen)
-        [entity.draw(screen)
-         for entity in self.scenes[self.current].gameworld.entities]
-        # [sprite.draw(screen)
-        #  for sprite in self.scenes[self.current].sprites.sprites()]
+        if not self.scenes[self.current].gameworld.pause:
+            [entity.draw(screen)
+             for entity in self.scenes[self.current].gameworld.entities]
         [visual_effect.draw(screen)
          for visual_effect in self.scenes[self.current].visual_effects]
 

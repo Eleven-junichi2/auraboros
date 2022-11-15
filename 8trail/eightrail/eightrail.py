@@ -1,4 +1,5 @@
 from inspect import isclass
+# import math
 from typing import Any
 from .utilities import Arrow, AssetFilePath, TextToDebug  # noqa
 from .schedule import IntervalCounter, schedule_instance_method_interval
@@ -173,13 +174,14 @@ class PlayerShot(Sprite):
                 self.reset_pos_x()
                 self.reset_pos_y()
                 self.allow_shooter_to_fire()
-                self._destruct()
+                self.death()
 
-    def _destruct(self):
+    def death(self):
         """Remove sprite from group and que of shooter."""
-        self.shooter.shot_que.remove(self)
-        self.entity_container.kill_living_entity(self)
-        self.is_launching = False
+        if self in self.shooter.shot_que:
+            self.shooter.shot_que.remove(self)
+            self.remove_from_container()
+            self.is_launching = False
 
     def allow_shooter_to_fire(self):
         self.shooter.is_shot_allowed = True
@@ -192,10 +194,6 @@ class PlayerShot(Sprite):
             self.reset_pos_x()
             self.reset_pos_y()
         self._fire(dt)
-
-    def collide(self, sprite):
-        if pygame.sprite.collide_rect(self, sprite):
-            self._destruct()
 
 
 class PlayerLaser(PlayerShot):
@@ -230,11 +228,12 @@ class PlayerMissile(PlayerShot):
         self.move_aim_to_enemy()
         super().move_on(dt)
 
-    def _destruct(self):
+    def death(self):
         """Remove sprite from group and que of shooter."""
-        self.shooter.missile_que.remove(self)
-        self.entity_container.kill_living_entity(self)
-        self.is_launching = False
+        if self in self.shooter.missile_que:
+            self.shooter.missile_que.remove(self)
+            self.entity_container.kill_living_entity(self)
+            self.is_launching = False
 
     def allow_shooter_to_fire(self):
         self.shooter.is_missile_allowed = True
@@ -303,6 +302,8 @@ class ScoutDiskEnemy(Enemy):
         self.behavior_pattern = None
         self.behavior_pattern_dict[
             "strike_to_player"] = self.move_strike_to_player
+        self.gamescore = 10
+        self.radian_for_behavior_pattern = 0
 
     def update(self, dt):
         super().update(dt)
@@ -384,12 +385,12 @@ class Player(ShooterSprite):
         self.rect = self.image.get_rect()
         self.movement_speed = 3
 
-        self.shot_que: list = []
+        self.shot_que: list[PlayerShot] = []
         self.ignore_shot_interval = True
         self.is_shot_triggered = False
         self.is_shot_allowed = True
 
-        self.missile_que: list = []
+        self.missile_que: list[PlayerShot] = []
         self.ignore_missile_interval = True
         self.is_missile_triggered = False
         self.is_missile_allowed = True
@@ -503,13 +504,6 @@ class Player(ShooterSprite):
             self.entity_container.kill_living_entity(self)
             self.explosion_sound.play()
 
-    def collide_with_enemy(self, enemy: Enemy) -> bool:
-        if not isinstance(enemy, Enemy):
-            raise TypeError("Given entity is not Enemy.")
-        if pygame.sprite.collide_rect(enemy, self):
-            self.death()
-            return True
-
 
 class GameScene(Scene):
 
@@ -520,16 +514,11 @@ class GameScene(Scene):
         self.gameworld = Level(AssetFilePath.level("stage1.json"), self)
         self.gameworld.set_background()
         self.gameworld.enemy_factory["scoutdisk"] = ScoutDiskEnemy
-        self.player = Player(self.gameworld.entities)
+        self.player = Player()
         self.player.center_x_on_screen()
         self.player.y = w_size[1] - self.player.rect.height
         self.gameworld.entities.append(self.player)
         self.gamelevel_running = True
-        self.gamescore_pos = (0, 16)
-        self.scoreboard = []
-        self.scoreboard_surflist = []
-        self.scoreboard_textlist = []
-        self.num_of_remaining_enemies = len(self.gameworld.level)
         textfactory.register_text(
             "tutorial", "z:主砲 x:ミサイル c:主砲切り替え v:やり直す")
 
@@ -578,83 +567,39 @@ class GameScene(Scene):
         if self.player.x < 0:
             self.player.stop_moving_to(Arrow.left)
 
-    def collide_player_weapon_with_enemy(self, enemy, weapon: PlayerShot):
-        if enemy.collide(weapon):
-            self.gameworld.gamescore += 10
-            self.num_of_remaining_enemies -= 1
-        weapon.collide(enemy)
-
     def update(self, dt):
         textfactory.register_text(
-            "score_header", f"スコア:{self.gameworld.gamescore}")
+            "gamescore", f"スコア:{self.gameworld.gamescore}")
         textfactory.register_text(
-            "enemy_count",
-            f"敵機:{len(self.gameworld.enemies)}/{self.num_of_remaining_enemies}"
-        )
-        textfactory.register_text(
-            "scoreboard_header", "-スコアボード-")
-        for enemy in self.gameworld.enemies:
-            for shot in self.player.shot_que:
-                self.collide_player_weapon_with_enemy(enemy, shot)
-            for missile in self.player.missile_que:
-                self.collide_player_weapon_with_enemy(enemy, missile)
-            if self.player.collide_with_enemy(enemy):
-                self.stop_game_and_show_result()
-                self.gameworld.clear_enemies()
-            enemy.collide(self.player)
-            if enemy.y > w_size[1]:
-                enemy.death()
-                self.num_of_remaining_enemies -= 1
-        self.stop_move_of_player_on_wall()
-        if self.gameworld.all_enemy_on_level_was_summoned:
-            if len(self.gameworld.enemies) == 0 and self.gamelevel_running:
-                self.stop_game_and_show_result()
-        if self.gamelevel_running:
+            "highscore", f"ハイスコア:{self.gameworld.highscore()}")
+        if not self.gameworld.pause:
+            self.gameworld.stop_entity_from_moving_off_screen(self.player)
             self.gameworld.run_level()
+            weapon_que = self.player.shot_que+self.player.missile_que
+            self.gameworld.process_collision((self.player, ), weapon_que)
+            if not (self.player in self.gameworld.entities):
+                self.stop_game_and_show_result()
+            self.gameworld.clear_enemies_off_screen()
             self.gameworld.scroll()
 
     def reset_game(self):
-        self.gamelevel_running = True
+        self.gameworld.pause = False
         self.gameworld.initialize_level()
-        self.gamescore_pos = (0, 16)
         self.player.center_x_on_screen()
         self.player.y = w_size[1] - self.player.rect.height
         if self.player not in self.gameworld.entities:
             self.gameworld.entities.append(self.player)
-        self.num_of_remaining_enemies = len(self.gameworld.level)
 
     def stop_game_and_show_result(self):
-        self.gamelevel_running = False
-        self.gamescore_pos = (w_size[0] / 2, w_size[1] / 2)
-        self.scoreboard.append(self.gameworld.gamescore)
-        self.scoreboard.sort(reverse=True)
-        if len(self.scoreboard) > 10:
-            self.scoreboard.pop()
-        self.scoreboard_surflist = []
-        self.scoreboard_textlist = []
-        for rank, score in enumerate(self.scoreboard):
-            scoreboard_text = f"{rank+1}:{score}"
-            score_surf = self.gamefont.render(
-                scoreboard_text, True, (255, 200, 255))
-            self.scoreboard_textlist.append(scoreboard_text)
-            self.scoreboard_surflist.append(score_surf)
+        self.gameworld.pause = True
+        self.gameworld.register_gamescore()
 
     def draw(self, screen):
         screen.blit(self.gameworld.bg_surf,
                     (0, self.gameworld.bg_scroll_y - w_size[1]))
         textfactory.render("tutorial", screen, (0, 0))
-        textfactory.render("score_header", screen, self.gamescore_pos)
-        textfactory.render("enemy_count", screen, (0, 16 * 2))
-        textfactory.render("enemy_count", screen, (0, 16 * 2))
-        textfactory.render(
-            "scoreboard_header", screen,
-            (w_size[0] - textfactory.font().size(
-                textfactory.text_by_key("scoreboard_header"))[0], 0))
-        for i, text_surf in enumerate(self.scoreboard_surflist):
-            screen.blit(
-                text_surf,
-                (w_size[0] - self.gamefont.size(
-                    str(self.scoreboard_textlist[i]))[0], 16 + 16 * i))
+        textfactory.render("highscore", screen, (0, 16))
+        textfactory.render("gamescore", screen, (0, 32))
 
 
 class TitleMenuScene(Scene):

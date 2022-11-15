@@ -1,10 +1,11 @@
 from __future__ import annotations
+from inspect import isclass
 import random
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Type
 if TYPE_CHECKING:
     from .gamelevel import Level
 
-from collections import deque
+from collections import UserDict
 from math import sqrt
 
 import pygame
@@ -91,12 +92,28 @@ class Sprite(pygame.sprite.Sprite):
     def remove_from_container(self):
         self.entity_container.kill_living_entity(self)
 
+    def death(self):
+        self.remove_from_container()
+
+    @staticmethod
+    def collide(entity_a: Sprite, entity_b: Sprite,
+                collided=pygame.sprite.collide_rect) -> bool:
+        """Each entity executes death() when a collision occurs."""
+        is_entity_a_alive = entity_a in entity_a.gameworld.entities
+        is_entity_b_alive = entity_a in entity_b.gameworld.entities
+        if (collided(entity_a, entity_b)
+                and is_entity_a_alive and is_entity_b_alive):
+            entity_a.death()
+            entity_b.death()
+            return True
+        else:
+            return False
+
 
 class ShooterSprite(Sprite):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.shot_max_num = 1
-        self.shot_que: deque = deque()
         self.shot_interval = 1
         self.is_shot_allowed = True
 
@@ -110,10 +127,9 @@ class EntityList(list):
         if entity in self:
             self.remove(entity)
 
-    def append(self, item):
+    def append(self, item: Sprite):
         if not isinstance(item, Sprite):
             raise TypeError("item is not Entity")
-        # append the item to itself (the list)
         super().append(item)
 
 
@@ -127,6 +143,9 @@ class Enemy(Sprite):
             "random_vertical"] = self.move_random_vertical
         self.behavior_pattern_dict[
             "random_horizontal"] = self.move_random_horizontal
+        self.behavior_pattern_dict[
+            "random"] = self.move_random
+        self.gamescore = 0
 
     def update(self, dt):
         self.do_pattern(dt)
@@ -176,58 +195,71 @@ class Enemy(Sprite):
             self.direction_of_movement.unset(Arrow.up)
         self.move_on(dt)
 
+    def move_random(self, dt):
+        v_or_h = random.randint(0, 1)
+        if v_or_h == 0:
+            self.move_random_vertical(dt)
+        elif v_or_h == 1:
+            self.move_random_horizontal(dt)
+
     def random_destination_x(self):
         self.move_target_x = random.randint(0, w_size[0])
 
     def random_destination_y(self):
         self.move_target_y = random.randint(0, w_size[1])
 
-    def move_strike_to_entity(self, dt, entity: Sprite):
-        if not (self.move_target_x and self.move_target_y):
-            self.set_destination_to_entity(entity)
-        if (self.move_target_x - self.movement_speed
-            <= self.x <=
-                self.move_target_x + self.movement_speed):
-            self.direction_of_movement.unset(Arrow.right)
-            self.direction_of_movement.unset(Arrow.left)
-            self.set_destination_to_entity(entity)
-        elif self.x < self.move_target_x:
-            self.direction_of_movement.set(Arrow.right)
-            self.direction_of_movement.unset(Arrow.left)
-        elif self.move_target_x < self.x:
-            self.direction_of_movement.set(Arrow.left)
-            self.direction_of_movement.unset(Arrow.right)
-        if (self.move_target_y - self.movement_speed
-            <= self.y <=
-                self.move_target_y + self.movement_speed):
-            self.direction_of_movement.unset(Arrow.up)
-            self.direction_of_movement.unset(Arrow.down)
+    def move_strike_to_entity(self, dt, entity_type: Sprite):
+        if self.set_destination_to_entity(entity_type):
+            self.move_to_destination(dt)
 
-        elif self.y < self.move_target_y:
-            self.direction_of_movement.set(Arrow.down)
-            self.direction_of_movement.unset(Arrow.up)
-        elif self.move_target_y < self.y:
-            self.direction_of_movement.set(Arrow.up)
-            self.direction_of_movement.unset(Arrow.down)
+    def move_to_destination(self, dt):
+        if self.move_target_x:
+            if (self.move_target_x - self.movement_speed
+                <= self.x <=
+                    self.move_target_x + self.movement_speed):
+                self.direction_of_movement.unset(Arrow.right)
+                self.direction_of_movement.unset(Arrow.left)
+            elif self.x < self.move_target_x:
+                self.direction_of_movement.set(Arrow.right)
+                self.direction_of_movement.unset(Arrow.left)
+            elif self.move_target_x < self.x:
+                self.direction_of_movement.set(Arrow.left)
+                self.direction_of_movement.unset(Arrow.right)
+        if self.move_target_y:
+            if (self.move_target_y - self.movement_speed
+                <= self.y <=
+                    self.move_target_y + self.movement_speed):
+                self.direction_of_movement.unset(Arrow.up)
+                self.direction_of_movement.unset(Arrow.down)
+            elif self.y < self.move_target_y:
+                self.direction_of_movement.set(Arrow.down)
+                self.direction_of_movement.unset(Arrow.up)
+            elif self.move_target_y < self.y:
+                self.direction_of_movement.set(Arrow.up)
+                self.direction_of_movement.unset(Arrow.down)
         self.move_on(dt)
 
-    def set_destination_to_entity(self, entity_type: Sprite):
+    def set_destination_to_entity(self, entity_type: Sprite) -> bool:
         entity_list = [
             entity for entity in self.gameworld.entities
             if isinstance(entity, entity_type)]
-        self.move_target_x = entity_list[0].x
-        self.move_target_y = entity_list[0].y
-
-    def death(self):
-        self.remove_from_container()
-
-    def remove_from_container(self):
-        self.entity_container.kill_living_entity(self)
-
-    def collide(self, entity: Sprite) -> bool:
-        """Return true if a collison occur."""
-        if pygame.sprite.collide_rect(entity, self):
-            self.death()
+        if entity_list:
+            self.move_target_x = entity_list[0].x
+            self.move_target_y = entity_list[0].y
             return True
         else:
             return False
+
+
+class EnemyFactory(UserDict):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def __setitem__(self, key, item: Enemy):
+        if isclass(item):
+            self.data[key] = item
+        else:
+            raise TypeError("The value must not be instance.")
+
+    def __getitem__(self, key) -> Type[Enemy]:
+        return super().__getitem__(key)

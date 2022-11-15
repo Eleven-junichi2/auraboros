@@ -1,19 +1,21 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, Union
+# from collections import UserList
+# from dataclasses import dataclass
+from typing import TYPE_CHECKING, Iterable
 if TYPE_CHECKING:
     pass
     # from .eightrail import Enemy
 
 import copy
-from dataclasses import dataclass
+# from dataclasses import dataclass
 # import itertools
 from random import randint
 
 import pygame
 
-from .entity import Sprite, EntityList, Enemy
+from .entity import Sprite, EntityList, Enemy, EnemyFactory
 from .gamescene import Scene
-from .utilities import open_json_file
+from .utilities import Arrow, open_json_file
 from .__init__ import w_size
 
 
@@ -31,37 +33,29 @@ class EntityListOfGameWorld(EntityList):
         super().append(item)
 
 
-class EnemyList(EntityListOfGameWorld):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def append(self, item):
-        self.gameworld.entities.append(item)
-        super().append(item)
-
-    def remove(self, item):
-        self.gameworld.entities.remove(item)
-        super().remove(item)
-
-
 class Level:
 
     def __init__(self, level_filepath, scene=None):
         self.scene: Scene = scene
+
         self.level_raw_data = open_json_file(level_filepath)
         self._set_level_data_with_tag_decompressed(
             self.read_tagged_level_data())
-        self.how_many_enemy_appended = 0
-        self.all_enemy_on_level_was_summoned = False
+
         self._entities = EntityListOfGameWorld(self)
-        self.enemy_factory: dict[Any, Enemy] = {}
-        self._enemies: EnemyList[Enemy] = EnemyList(self)
+        self.enemy_factory = EnemyFactory()
+
         self.bg_surf = pygame.surface.Surface(
             (w_size[0], w_size[1] * 2))
         self.scroll_speed = 0.5
         self.density_of_stars_on_bg = randint(100, 500)
+
+        self.pause = False
+
+        self.gamescore: int
+        self.scoreboard = [0, ]
+
         self.initialize_level()
-        self.gamescore = 0
 
     @property
     def entities(self):
@@ -71,15 +65,19 @@ class Level:
     def entities(self, value):
         self._entities = value
 
-    @property
-    def enemies(self):
-        return self._enemies
+    def highscore(self):
+        self.scoreboard.sort(reverse=True)
+        return self.scoreboard[0]
 
-    @enemies.setter
-    def enemies(self, value):
-        self._enemies = value
+    def enemies(self) -> list[Enemy]:
+        enemy_list = [
+            enemy for enemy in self.entities if isinstance(enemy, Enemy)]
+        return enemy_list
 
     def run_level(self):
+        if self.pause:
+            return
+
         for data in self.level:
             if self.elapsed_time_in_level == data["timing"]:
                 enemy = self.enemy_factory[data["enemy"]]()
@@ -92,11 +90,23 @@ class Level:
                         pos[i] = data["pos"][i]
                 enemy.x, enemy.y = pos
                 enemy.behavior_pattern = data["pattern"]
-                self.enemies.append(enemy)
-                self.how_many_enemy_appended += 1
-        if self.how_many_enemy_appended == len(self.level):
-            self.all_enemy_on_level_was_summoned = True
+                self.entities.append(enemy)
         self.elapsed_time_in_level += 1
+
+    def process_collision(
+            self,
+            player_entities: Iterable[Sprite],
+            weapon_entities: Iterable[Sprite]) -> bool:
+        """Return True if a player hit a enemy."""
+        for enemy in self.enemies():
+            for weapon in weapon_entities:
+                if Sprite.collide(weapon, enemy):
+                    self.gamescore += enemy.gamescore
+            for player in player_entities:
+                Sprite.collide(player, enemy)
+
+    def register_gamescore(self):
+        self.scoreboard.append(self.gamescore)
 
     def read_tagged_level_data(self):
         data_dict_by_tag = {}
@@ -128,9 +138,10 @@ class Level:
         self.elapsed_time_in_level = 0
 
     def clear_enemies(self):
-        for i in range(len(self.enemies)):
-            # i dont know why this run better when this code in loop
-            [enemy.remove_from_container() for enemy in self.enemies]
+        [enemy.remove_from_container() for enemy in self.enemies()]
+
+    def clear_entities(self):
+        [entity.remove_from_container() for entity in self.enemies()]
 
     def reset_scroll(self):
         self.bg_scroll_y = 0
@@ -139,16 +150,30 @@ class Level:
     def summon_enemies_with_timing_resetted(self):
         self.clear_enemies()
         self.reset_elapsed_time_counter()
-        self.all_enemy_on_level_was_summoned = False
-        self.how_many_enemy_appended = 0
-
-    def initialize_level(self):
-        self.summon_enemies_with_timing_resetted()
-        self.reset_scroll()
-        self.gamescore = 0
 
     def reset_score(self):
         self.gamescore = 0
+
+    def initialize_level(self):
+        self.clear_entities()
+        self.reset_elapsed_time_counter()
+        self.reset_scroll()
+        self.reset_score()
+
+    def clear_enemies_off_screen(self):
+        [entity.remove_from_container() for entity in self.enemies()
+         if w_size[1] < entity.y or w_size[0] < entity.x
+            or entity.x < 0 or entity.y < 0]
+
+    def stop_entity_from_moving_off_screen(self, entity: Sprite):
+        if w_size[1] < entity.y + entity.rect.height:
+            entity.direction_of_movement.unset(Arrow.down)
+        if w_size[0] < entity.x + entity.rect.width:
+            entity.direction_of_movement.unset(Arrow.right)
+        if entity.x < 0:
+            entity.direction_of_movement.unset(Arrow.left)
+        if entity.y < 0:
+            entity.direction_of_movement.unset(Arrow.up)
 
     def set_background(self):
         [self.bg_surf.fill(
@@ -170,7 +195,7 @@ class Level:
         self.bg_surf = new_background
 
     def scroll(self):
-        for enemy in self.enemies:
+        for enemy in self.enemies():
             enemy.y += self.scroll_speed * 1.25
         self.bg_scroll_y += self.scroll_speed
         if self.bg_scroll_y > w_size[1]:
@@ -178,8 +203,8 @@ class Level:
             self.set_background_for_scroll()
 
 
-@dataclass
-class LevelData:
-    timing: int
-    enemy: str
-    pos: list[Union[str, int], Union[str, int]]
+# @dataclass
+# class LevelData:
+#     timing: int
+#     enemy: str
+#     pos: list[Union[str, int], Union[str, int]]
