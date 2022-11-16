@@ -2,6 +2,8 @@ from collections import UserDict
 
 import pygame
 
+pygame.font.init()
+
 
 class TextSurfaceFactory:
     def __init__(self):

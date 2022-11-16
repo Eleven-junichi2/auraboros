@@ -270,11 +270,6 @@ class PlayerMissile(PlayerShot):
     def set_destination_to_enemy(self) -> bool:
         enemy_list = [entity for entity in self.gameworld.entities
                       if isinstance(entity, Enemy)]
-        # if len(enemy_list) == 1:
-        #     enemy = enemy_list[0]
-        #     self.move_target_x = enemy.x
-        #     self.move_target_y = enemy.y
-        #     return True
         if len(enemy_list) >= len(self.shooter.missile_que):
             for i, missile in enumerate(self.shooter.missile_que):
                 enemy = enemy_list[i]
@@ -572,15 +567,18 @@ class GameScene(Scene):
             "gamescore", f"スコア:{self.gameworld.gamescore}")
         textfactory.register_text(
             "highscore", f"ハイスコア:{self.gameworld.highscore()}")
+        textfactory.register_text(
+            "elapsed_time_in_level",
+            f"経過時間:{self.gameworld.elapsed_time_in_level}")
         if not self.gameworld.pause:
             self.gameworld.stop_entity_from_moving_off_screen(self.player)
-            self.gameworld.run_level()
+            self.gameworld.run_level(dt)
             weapon_que = self.player.shot_que+self.player.missile_que
             self.gameworld.process_collision((self.player, ), weapon_que)
             if not (self.player in self.gameworld.entities):
                 self.stop_game_and_show_result()
             self.gameworld.clear_enemies_off_screen()
-            self.gameworld.scroll()
+            self.gameworld.scroll(dt)
 
     def reset_game(self):
         self.gameworld.pause = False
@@ -600,6 +598,7 @@ class GameScene(Scene):
         textfactory.render("tutorial", screen, (0, 0))
         textfactory.render("highscore", screen, (0, 16))
         textfactory.render("gamescore", screen, (0, 32))
+        # textfactory.render("elapsed_time_in_level", screen, (0, 48))
 
 
 class TitleMenuScene(Scene):

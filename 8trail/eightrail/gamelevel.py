@@ -16,7 +16,7 @@ import pygame
 from .entity import Sprite, EntityList, Enemy, EnemyFactory
 from .gamescene import Scene
 from .utilities import Arrow, open_json_file
-from .__init__ import w_size
+from .__init__ import w_size, TARGET_FPS
 
 
 # TODO: destroy garbage enemy
@@ -51,6 +51,7 @@ class Level:
         self.density_of_stars_on_bg = randint(100, 500)
 
         self.pause = False
+        self.elapsed_time_in_level = 0
 
         self.gamescore: int
         self.scoreboard = [0, ]
@@ -74,12 +75,12 @@ class Level:
             enemy for enemy in self.entities if isinstance(enemy, Enemy)]
         return enemy_list
 
-    def run_level(self):
+    def run_level(self, dt):
         if self.pause:
             return
 
         for data in self.level:
-            if self.elapsed_time_in_level == data["timing"]:
+            if round(self.elapsed_time_in_level) == data["timing"]:
                 enemy = self.enemy_factory[data["enemy"]]()
                 pos: list[int, int] = [None, None]
                 for i in range(2):
@@ -91,7 +92,7 @@ class Level:
                 enemy.x, enemy.y = pos
                 enemy.behavior_pattern = data["pattern"]
                 self.entities.append(enemy)
-        self.elapsed_time_in_level += 1
+        self.elapsed_time_in_level += 1 * dt * TARGET_FPS
 
     def process_collision(
             self,
@@ -194,10 +195,10 @@ class Level:
          for i in range(self.density_of_stars_on_bg + randomize_density)]
         self.bg_surf = new_background
 
-    def scroll(self):
+    def scroll(self, dt):
         for enemy in self.enemies():
-            enemy.y += self.scroll_speed * 1.25
-        self.bg_scroll_y += self.scroll_speed
+            enemy.y += self.scroll_speed * 1.25 * dt * TARGET_FPS
+        self.bg_scroll_y += self.scroll_speed  * dt * TARGET_FPS
         if self.bg_scroll_y > w_size[1]:
             self.bg_scroll_y = 0
             self.set_background_for_scroll()
