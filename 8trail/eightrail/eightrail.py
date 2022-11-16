@@ -134,14 +134,14 @@ class ScoutDiskMove(AnimationImage):
 
 
 class PlayerShot(Sprite):
-    shot_que = []
-
-    def __init__(self, shooter_sprite: ShooterSprite,
+    def __init__(self, shooter_sprite: ShooterSprite, shot_que: list,
                  *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.shot_que = shot_que
         self.image = pygame.image.load(AssetFilePath.img("shot1.png"))
         self.shooter = shooter_sprite
         self.rect = self.image.get_rect()
+        self.hitbox = self.image.get_rect()
         self.reset_pos_x()
         self.reset_pos_y()
         self.movement_speed = 4
@@ -189,9 +189,6 @@ class PlayerShot(Sprite):
     def allow_shooter_to_fire(self):
         self.shooter.is_shot_allowed = True
 
-    def draw(self, screen: pygame.surface.Surface):
-        screen.blit(self.image, self.rect)
-
     def update(self, dt):
         if not self.is_launching:
             self.reset_pos_x()
@@ -200,15 +197,14 @@ class PlayerShot(Sprite):
 
 
 class PlayerLaser(PlayerShot):
-    def __init__(self, shooter_sprite: ShooterSprite,
-                 *args, **kwargs):
-        super().__init__(shooter_sprite=shooter_sprite, *args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.image = pygame.image.load(AssetFilePath.img("laser1.png"))
-        self.shooter = shooter_sprite
         self.rect = self.image.get_rect()
+        self.hitbox = self.image.get_rect()
+        self.movement_speed = 6
         self.reset_pos_x()
         self.reset_pos_y()
-        self.movement_speed = 6
 
     def move_on(self, dt):
         self.reset_pos_x()
@@ -216,59 +212,25 @@ class PlayerLaser(PlayerShot):
 
 
 class PlayerMissile(PlayerShot):
-    def __init__(self, shooter_sprite: ShooterSprite,
-                 *args, **kwargs):
-        super().__init__(shooter_sprite=shooter_sprite, *args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.image = pygame.image.load(AssetFilePath.img("shot2.png"))
-        self.shooter = shooter_sprite
         self.rect = self.image.get_rect()
+        self.hitbox = self.image.get_rect()
+        self.movement_speed = 2.75
         self.reset_pos_x()
         self.reset_pos_y()
-        self.movement_speed = 2.5
 
     def move_on(self, dt):
         # if self.move_target_x and self.move_target_y:
-        self.move_aim_to_enemy()
+        # self.move_aim_to_enemy()
+        # self.move_strike_to_entity(dt, Enemy)
+        self.set_destination_to_enemy()
+        self.move_to_destination(dt)
         super().move_on(dt)
-
-    # def death(self):
-    #     """Remove sprite from group and que of shooter."""
-    #     if self in self.shot_que:
-    #         self.shot_que.remove(self)
-    #         self.entity_container.kill_living_entity(self)
-    #         self.is_launching = False
 
     def allow_shooter_to_fire(self):
         self.shooter.is_missile_allowed = True
-
-    def move_aim_to_enemy(self):
-        is_exist_destination = self.set_destination_to_enemy()
-        if not is_exist_destination:
-            return
-        if (self.move_target_x - self.movement_speed
-            <= self.x <=
-                self.move_target_x + self.movement_speed):
-            self.direction_of_movement.unset(Arrow.right)
-            self.direction_of_movement.unset(Arrow.left)
-            self.set_destination_to_enemy()
-        elif self.x < self.move_target_x:
-            self.direction_of_movement.set(Arrow.right)
-            self.direction_of_movement.unset(Arrow.left)
-        elif self.move_target_x < self.x:
-            self.direction_of_movement.set(Arrow.left)
-            self.direction_of_movement.unset(Arrow.right)
-        if (self.move_target_y - self.movement_speed
-            <= self.y <=
-                self.move_target_y + self.movement_speed):
-            self.direction_of_movement.unset(Arrow.up)
-            self.direction_of_movement.unset(Arrow.down)
-            self.set_destination_to_enemy()
-        elif self.y < self.move_target_y:
-            self.direction_of_movement.set(Arrow.down)
-            self.direction_of_movement.unset(Arrow.up)
-        elif self.move_target_y < self.y:
-            self.direction_of_movement.set(Arrow.up)
-            self.direction_of_movement.unset(Arrow.down)
 
     def set_destination_to_enemy(self) -> bool:
         enemy_list = [entity for entity in self.gameworld.entities
@@ -276,8 +238,9 @@ class PlayerMissile(PlayerShot):
         if len(enemy_list) >= len(self.shot_que):
             for i, missile in enumerate(self.shot_que):
                 enemy = enemy_list[i]
-                missile.move_target_x = enemy.x
-                missile.move_target_y = enemy.y
+                self.shot_que[i].move_target_x = enemy.hitbox.x
+                self.shot_que[i].move_target_y = enemy.hitbox.y
+                print(self.move_target_x)
             return True
         else:
             self.move_target_x = None
@@ -296,6 +259,9 @@ class ScoutDiskEnemy(Enemy):
         self.animation["move"] = ScoutDiskMove()
         self.image = self.animation[self.action].image
         self.rect = self.image.get_rect()
+        self.hitbox = self.image.get_rect()
+        self.hitbox.width = 10
+        self.hitbox.height = 10
         self.movement_speed = 2
         self.behavior_pattern = None
         self.behavior_pattern_dict[
@@ -339,6 +305,7 @@ class WeaponBulletFactory(UserDict):
 class Player(ShooterSprite):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.shot_que = []
         self.weapon = WeaponBulletFactory()
         self.weapon["normal"] = PlayerShot
         self.weapon["normal"]["max_num"] = 3
@@ -348,6 +315,7 @@ class Player(ShooterSprite):
         self.weapon["laser"]["interval"] = 4
         self.change_weapon("normal")
 
+        self.missile_que = []
         self.second_weapon = WeaponBulletFactory()
         self.second_weapon["normal"] = PlayerMissile
         self.second_weapon["normal"]["max_num"] = 2
@@ -369,6 +337,9 @@ class Player(ShooterSprite):
         self.action = "idle"
         self.image = self.animation[self.action].image
         self.rect = self.image.get_rect()
+        self.hitbox = self.image.get_rect()
+        self.hitbox.width = 8
+        self.hitbox.height = self.rect.height * 0.8
         self.movement_speed = 3
 
         self.ignore_shot_interval = True
@@ -406,32 +377,32 @@ class Player(ShooterSprite):
         "shot_interval", interval_ignorerer="ignore_shot_interval")
     def _shooting(self):
         if (self.is_shot_allowed and
-                (len(self.weapon[self.current_weapon]["entity"].shot_que) <
+                (len(self.shot_que) <
                  self.weapon[self.current_weapon]["max_num"])):
             if self.current_weapon == "normal":
                 self.normal_shot_sound.play()
             elif self.current_weapon == "laser":
                 if not pygame.mixer.get_busy():
                     self.laser_shot_sound.play()
-            shot = self.weapon[self.current_weapon]["entity"](self)
+            shot = self.weapon[self.current_weapon]["entity"](
+                self, self.shot_que)
             shot.entity_container = self.entity_container
             shot.will_launch(Arrow.up)
-            self.weapon[self.current_weapon]["entity"].shot_que.append(shot)
+            self.shot_que.append(shot)
 
     @ schedule_instance_method_interval(
         "missile_interval", interval_ignorerer="ignore_missile_interval")
     def _shooting_missile(self):
         if (self.is_missile_allowed and
-                (len(self.second_weapon[self.current_second_weapon]["entity"].shot_que) <
+                (len(self.missile_que) <
                  self.second_weapon[self.current_second_weapon]["max_num"])):
             if self.current_second_weapon == "normal":
                 self.normal_shot_sound.play()
             missile = self.second_weapon[self.current_second_weapon]["entity"](
-                self)
+                self, self.missile_que)
             missile.entity_container = self.entity_container
             missile.will_launch(Arrow.up)
-            self.second_weapon[self.current_second_weapon]["entity"].shot_que.append(
-                missile)
+            self.missile_que.append(missile)
 
     def will_move_to(self, direction: Arrow):
         self.direction_of_movement.set(direction)
@@ -449,25 +420,22 @@ class Player(ShooterSprite):
             self.action = "idle"
             self.is_moving = False
 
-    def draw(self, screen: pygame.surface.Surface):
-        screen.blit(self.image, self.rect)
-
     def update(self, dt):
         if self.current_weapon == "laser":
             if pygame.mixer.get_busy():
-                if len(self.weapon[self.current_weapon]["entity"].shot_que) == 0:
+                if len(self.shot_que) == 0:
                     self.laser_shot_sound.stop()
         if self.is_moving:
             self.move_on(dt)
 
-        if self.weapon[self.current_weapon]["entity"].shot_que:
+        if self.shot_que:
             self.ignore_shot_interval = False
         else:
             self.ignore_shot_interval = True
         if self.is_shot_triggered:
             self._shooting()
 
-        if self.second_weapon[self.current_second_weapon]["entity"].shot_que:
+        if self.missile_que:
             self.ignore_missile_interval = False
         else:
             self.ignore_missile_interval = True
@@ -506,6 +474,7 @@ class GameScene(Scene):
         self.gamelevel_running = True
         textfactory.register_text(
             "tutorial", "z:主砲 x:ミサイル c:主砲切り替え v:やり直す")
+        # self.gameworld.show_hitbox()
 
     def event(self, event):
         if event.type == pygame.KEYDOWN:
@@ -563,10 +532,7 @@ class GameScene(Scene):
         if not self.gameworld.pause:
             self.gameworld.stop_entity_from_moving_off_screen(self.player)
             self.gameworld.run_level(dt)
-            weapon_que = self.player.second_weapon[
-                self.player.current_second_weapon]["entity"].shot_que + \
-                self.player.weapon[
-                self.player.current_weapon]["entity"].shot_que
+            weapon_que = self.player.shot_que + self.player.missile_que
             self.gameworld.process_collision((self.player, ), weapon_que)
             if not (self.player in self.gameworld.entities):
                 self.stop_game_and_show_result()
