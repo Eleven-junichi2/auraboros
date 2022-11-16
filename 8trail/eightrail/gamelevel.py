@@ -198,7 +198,7 @@ class Level:
     def scroll(self, dt):
         for enemy in self.enemies():
             enemy.y += self.scroll_speed * 1.25 * dt * TARGET_FPS
-        self.bg_scroll_y += self.scroll_speed  * dt * TARGET_FPS
+        self.bg_scroll_y += self.scroll_speed * dt * TARGET_FPS
         if self.bg_scroll_y > w_size[1]:
             self.bg_scroll_y = 0
             self.set_background_for_scroll()

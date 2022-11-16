@@ -7,6 +7,7 @@ from .gametext import TextSurfaceFactory
 
 import pygame
 
+
 def open_json_file(filepath):
     with open(filepath, "r") as f:
         return json.load(f)
@@ -129,10 +130,6 @@ class TextToDebug:
         cls._debug_text_factory.register_text(
             "arrow_keys_from_event", key_text)
 
-    @classmethod
-    def fps(cls, clock: pygame.time.Clock):
-        cls._debug_text_factory.register_text("fps", f"FPS:{clock.get_fps()}")
-    
     @classmethod
     def fps(cls, clock: pygame.time.Clock):
         cls._debug_text_factory.register_text("fps", f"FPS:{clock.get_fps()}")
