@@ -66,6 +66,12 @@ class Level:
     def entities(self, value):
         self._entities = value
 
+    def show_hitbox(self):
+        self.do_showing_hitbox = True
+
+    def _visible_hitbox(self):
+        [entity.visible_hitbox() for entity in self.entities]
+
     def highscore(self):
         self.scoreboard.sort(reverse=True)
         return self.scoreboard[0]
@@ -92,6 +98,10 @@ class Level:
                 enemy.x, enemy.y = pos
                 enemy.behavior_pattern = data["pattern"]
                 self.entities.append(enemy)
+
+        if self.do_showing_hitbox:
+            self._visible_hitbox()
+
         self.elapsed_time_in_level += 1 * dt * TARGET_FPS
 
     def process_collision(
@@ -142,7 +152,7 @@ class Level:
         [enemy.remove_from_container() for enemy in self.enemies()]
 
     def clear_entities(self):
-        [entity.remove_from_container() for entity in self.enemies()]
+        [entity.remove_from_container() for entity in self.entities]
 
     def reset_scroll(self):
         self.bg_scroll_y = 0
