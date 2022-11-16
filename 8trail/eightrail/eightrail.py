@@ -1,3 +1,4 @@
+from collections import UserDict
 from inspect import isclass
 # import math
 from typing import Any
@@ -133,6 +134,8 @@ class ScoutDiskMove(AnimationImage):
 
 
 class PlayerShot(Sprite):
+    shot_que = []
+
     def __init__(self, shooter_sprite: ShooterSprite,
                  *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -178,8 +181,8 @@ class PlayerShot(Sprite):
 
     def death(self):
         """Remove sprite from group and que of shooter."""
-        if self in self.shooter.shot_que:
-            self.shooter.shot_que.remove(self)
+        if self in self.shot_que:
+            self.shot_que.remove(self)
             self.remove_from_container()
             self.is_launching = False
 
@@ -228,12 +231,12 @@ class PlayerMissile(PlayerShot):
         self.move_aim_to_enemy()
         super().move_on(dt)
 
-    def death(self):
-        """Remove sprite from group and que of shooter."""
-        if self in self.shooter.missile_que:
-            self.shooter.missile_que.remove(self)
-            self.entity_container.kill_living_entity(self)
-            self.is_launching = False
+    # def death(self):
+    #     """Remove sprite from group and que of shooter."""
+    #     if self in self.shot_que:
+    #         self.shot_que.remove(self)
+    #         self.entity_container.kill_living_entity(self)
+    #         self.is_launching = False
 
     def allow_shooter_to_fire(self):
         self.shooter.is_missile_allowed = True
@@ -270,8 +273,8 @@ class PlayerMissile(PlayerShot):
     def set_destination_to_enemy(self) -> bool:
         enemy_list = [entity for entity in self.gameworld.entities
                       if isinstance(entity, Enemy)]
-        if len(enemy_list) >= len(self.shooter.missile_que):
-            for i, missile in enumerate(self.shooter.missile_que):
+        if len(enemy_list) >= len(self.shot_que):
+            for i, missile in enumerate(self.shot_que):
                 enemy = enemy_list[i]
                 missile.move_target_x = enemy.x
                 missile.move_target_y = enemy.y
@@ -318,31 +321,19 @@ class ScoutDiskEnemy(Enemy):
         super().death()
 
 
-class WeaponBulletFactory:
+class WeaponBulletFactory(UserDict):
     def __init__(self, *args, **kwargs):
-        self.__dict__: dict[Any, pygame.mixer.PlayerShot]
-        self.__dict__.update(*args, **kwargs)
+        super().__init__(*args, **kwargs)
+        self.data: dict[Any, PlayerShot]
 
-    def __getitem__(self, key) -> pygame.mixer.Sound:
-        return self.__dict__[key]
-
-    def __setitem__(self, key, value: pygame.mixer.Sound):
+    def __setitem__(self, key, value):
         if isclass(value):
-            self.__dict__[key] = {}
-            self.__dict__[key]["entity"] = value
-            self.__dict__[key]["max_num"] = 1
-            self.__dict__[key]["interval"] = 1
+            self.data[key] = {}
+            self.data[key]["entity"] = value
+            self.data[key]["max_num"] = 1
+            self.data[key]["interval"] = 1
         else:
             raise ValueError("The value must not be instance.")
-
-    def __delitem__(self, key):
-        del self.__dict__[key]
-
-    def __iter__(self):
-        return iter(self.__dict__)
-
-    def __len__(self):
-        return len(self.__dict__)
 
 
 class Player(ShooterSprite):
@@ -380,12 +371,10 @@ class Player(ShooterSprite):
         self.rect = self.image.get_rect()
         self.movement_speed = 3
 
-        self.shot_que: list[PlayerShot] = []
         self.ignore_shot_interval = True
         self.is_shot_triggered = False
         self.is_shot_allowed = True
 
-        self.missile_que: list[PlayerShot] = []
         self.ignore_missile_interval = True
         self.is_missile_triggered = False
         self.is_missile_allowed = True
@@ -417,7 +406,7 @@ class Player(ShooterSprite):
         "shot_interval", interval_ignorerer="ignore_shot_interval")
     def _shooting(self):
         if (self.is_shot_allowed and
-                (len(self.shot_que) <
+                (len(self.weapon[self.current_weapon]["entity"].shot_que) <
                  self.weapon[self.current_weapon]["max_num"])):
             if self.current_weapon == "normal":
                 self.normal_shot_sound.play()
@@ -427,13 +416,13 @@ class Player(ShooterSprite):
             shot = self.weapon[self.current_weapon]["entity"](self)
             shot.entity_container = self.entity_container
             shot.will_launch(Arrow.up)
-            self.shot_que.append(shot)
+            self.weapon[self.current_weapon]["entity"].shot_que.append(shot)
 
     @ schedule_instance_method_interval(
         "missile_interval", interval_ignorerer="ignore_missile_interval")
     def _shooting_missile(self):
         if (self.is_missile_allowed and
-                (len(self.missile_que) <
+                (len(self.second_weapon[self.current_second_weapon]["entity"].shot_que) <
                  self.second_weapon[self.current_second_weapon]["max_num"])):
             if self.current_second_weapon == "normal":
                 self.normal_shot_sound.play()
@@ -441,7 +430,8 @@ class Player(ShooterSprite):
                 self)
             missile.entity_container = self.entity_container
             missile.will_launch(Arrow.up)
-            self.missile_que.append(missile)
+            self.second_weapon[self.current_second_weapon]["entity"].shot_que.append(
+                missile)
 
     def will_move_to(self, direction: Arrow):
         self.direction_of_movement.set(direction)
@@ -465,19 +455,19 @@ class Player(ShooterSprite):
     def update(self, dt):
         if self.current_weapon == "laser":
             if pygame.mixer.get_busy():
-                if len(self.shot_que) == 0:
+                if len(self.weapon[self.current_weapon]["entity"].shot_que) == 0:
                     self.laser_shot_sound.stop()
         if self.is_moving:
             self.move_on(dt)
 
-        if self.shot_que:
+        if self.weapon[self.current_weapon]["entity"].shot_que:
             self.ignore_shot_interval = False
         else:
             self.ignore_shot_interval = True
         if self.is_shot_triggered:
             self._shooting()
 
-        if self.missile_que:
+        if self.second_weapon[self.current_second_weapon]["entity"].shot_que:
             self.ignore_missile_interval = False
         else:
             self.ignore_missile_interval = True
@@ -573,7 +563,10 @@ class GameScene(Scene):
         if not self.gameworld.pause:
             self.gameworld.stop_entity_from_moving_off_screen(self.player)
             self.gameworld.run_level(dt)
-            weapon_que = self.player.shot_que+self.player.missile_que
+            weapon_que = self.player.second_weapon[
+                self.player.current_second_weapon]["entity"].shot_que + \
+                self.player.weapon[
+                self.player.current_weapon]["entity"].shot_que
             self.gameworld.process_collision((self.player, ), weapon_que)
             if not (self.player in self.gameworld.entities):
                 self.stop_game_and_show_result()
