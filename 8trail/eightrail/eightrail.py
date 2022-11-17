@@ -1,14 +1,14 @@
 from collections import UserDict
 from inspect import isclass
 # import math
-from typing import Any
+# from typing import Any
 from .utilities import Arrow, AssetFilePath, TextToDebug  # noqa
 from .schedule import IntervalCounter, schedule_instance_method_interval
 from .sound import SoundDict
 from .gamelevel import Level
 from .gamescene import Scene, SceneManager
 from .gametext import TextSurfaceFactory
-from .entity import Sprite, ShooterSprite, Enemy
+from .entity import EntityList, Sprite, ShooterSprite, Enemy
 
 import pygame
 
@@ -222,9 +222,6 @@ class PlayerMissile(PlayerShot):
         self.reset_pos_y()
 
     def move_on(self, dt):
-        # if self.move_target_x and self.move_target_y:
-        # self.move_aim_to_enemy()
-        # self.move_strike_to_entity(dt, Enemy)
         self.set_destination_to_enemy()
         self.move_to_destination(dt)
         super().move_on(dt)
@@ -240,7 +237,6 @@ class PlayerMissile(PlayerShot):
                 enemy = enemy_list[i]
                 self.shot_que[i].move_target_x = enemy.hitbox.x
                 self.shot_que[i].move_target_y = enemy.hitbox.y
-                print(self.move_target_x)
             return True
         else:
             self.move_target_x = None
@@ -290,12 +286,11 @@ class ScoutDiskEnemy(Enemy):
 class WeaponBulletFactory(UserDict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.data: dict[Any, PlayerShot]
 
     def __setitem__(self, key, value):
         if isclass(value):
             self.data[key] = {}
-            self.data[key]["entity"] = value
+            self.data[key]["entity"]: PlayerShot(value) = value
             self.data[key]["max_num"] = 1
             self.data[key]["interval"] = 1
         else:
@@ -305,7 +300,7 @@ class WeaponBulletFactory(UserDict):
 class Player(ShooterSprite):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.shot_que = []
+        self.shot_que = EntityList()
         self.weapon = WeaponBulletFactory()
         self.weapon["normal"] = PlayerShot
         self.weapon["normal"]["max_num"] = 3
@@ -315,7 +310,7 @@ class Player(ShooterSprite):
         self.weapon["laser"]["interval"] = 4
         self.change_weapon("normal")
 
-        self.missile_que = []
+        self.missile_que = EntityList()
         self.second_weapon = WeaponBulletFactory()
         self.second_weapon["normal"] = PlayerMissile
         self.second_weapon["normal"]["max_num"] = 2
@@ -540,6 +535,12 @@ class GameScene(Scene):
             self.gameworld.scroll(dt)
 
     def reset_game(self):
+        [shot.death()
+         for shot in self.player.shot_que]
+        [missile.death()
+         for missile in self.player.missile_que]
+        # print(self.player.shot_que)
+        # print(self.player.missile_que)
         self.gameworld.pause = False
         self.gameworld.initialize_level()
         self.player.center_x_on_screen()
@@ -570,7 +571,7 @@ def run(fps_num=fps):
     fps = fps_num
     running = True
     scene_manager = SceneManager()
-    # scene_manager.push(TitleMenuScene())
+    scene_manager.push(TitleMenuScene())
     scene_manager.push(GameScene())
     while running:
         dt = clock.tick(fps)/1000  # dt means delta time

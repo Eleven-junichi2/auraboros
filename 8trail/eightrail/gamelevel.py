@@ -57,6 +57,7 @@ class Level:
         self.scoreboard = [0, ]
 
         self.initialize_level()
+        self.do_showing_hitbox = False
 
     @property
     def entities(self):

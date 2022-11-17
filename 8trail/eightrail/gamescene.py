@@ -1,3 +1,7 @@
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .gamelevel import Level
+
 from dataclasses import dataclass
 
 import pygame
@@ -34,15 +38,17 @@ class SceneManager:
     def __init__(self):
         self.scenes: list[Scene] = []
         self.current: int = 0
+        self.gameworld: Level = None
 
     def event(self, event: pygame.event):
         self.scenes[self.current].event(event)
 
     def update(self, dt):
         self.scenes[self.current].update(dt)
-        if not self.scenes[self.current].gameworld.pause:
-            [entity.update(dt)
-             for entity in self.scenes[self.current].gameworld.entities]
+        if self.gameworld is not None:
+            if not self.scenes[self.current].gameworld.pause:
+                [entity.update(dt)
+                 for entity in self.scenes[self.current].gameworld.entities]
         [visual_effect.update(dt)
          for visual_effect in self.scenes[self.current].visual_effects]
 
@@ -53,9 +59,10 @@ class SceneManager:
             self.scenes[self.current].visual_effects)
          if visual_effect.was_played_once]
         self.scenes[self.current].draw(screen)
-        if not self.scenes[self.current].gameworld.pause:
-            [entity.draw(screen)
-             for entity in self.scenes[self.current].gameworld.entities]
+        if self.gameworld is not None:
+            if not self.scenes[self.current].gameworld.pause:
+                [entity.draw(screen)
+                 for entity in self.scenes[self.current].gameworld.entities]
         [visual_effect.draw(screen)
          for visual_effect in self.scenes[self.current].visual_effects]
 
