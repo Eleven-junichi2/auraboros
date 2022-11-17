@@ -564,6 +564,18 @@ class GameScene(Scene):
 class TitleMenuScene(Scene):
     def __init__(self):
         super().__init__()
+        textfactory.set_current_font("misaki_gothic")
+        textfactory.register_text("title_start", "START")
+        textfactory.register_text("title_start", "OPTIONS")
+        textfactory.register_text("title_exit", "EXIT")
+
+    def update(self, dt):
+        pass
+
+    def draw(self, screen):
+        textfactory.render("title_start", screen, (0, 0))
+        textfactory.render("title_start", screen, (0, 0))
+        textfactory.render("title_start", screen, (0, 0))
 
 
 def run(fps_num=fps):
