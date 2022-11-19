@@ -48,6 +48,9 @@ class TextSurfaceFactory:
     def font(self) -> pygame.font.Font:
         return self.font_dict[self.current_font_key]
 
+    def set_text_pos(self, key, pos):
+        self.text_dict[key]["pos"] = pos
+
     def set_text_pos_to_right(self, key):
         self.text_dict[key]["pos"][0] = \
             w_size[0] - self.font().size(self.text_dict[key]["text"])[0]
