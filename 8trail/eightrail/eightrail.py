@@ -712,13 +712,11 @@ class OptionsScene(Scene):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         textfactory.set_current_font("misaki_gothic")
-        textfactory.register_text("title_start", "START")
-        textfactory.register_text("title_options", "OPTIONS")
-        textfactory.register_text("title_exit", "EXIT")
+        textfactory.register_text("return", "RETURN TO THE MENU")
         textfactory.register_text("menu_cursor_>", ">")
         self.menu_cursor_pos = [0, 0]
         self.arrow_for_menu_cursor = ArrowToTurnToward()
-        self.gamemenu = [2, 1, 0]
+        self.gamemenu = [0, ]
         self.index_of_menu_item_selected = 0
         self.keyboard.register_keyaction(
             pygame.K_UP,
@@ -757,9 +755,7 @@ class OptionsScene(Scene):
         self.process_menu_cursor()
 
     def draw(self, screen):
-        textfactory.render("option_switch_debug", screen, (16, 0))
-        textfactory.render("title_options", screen, (16, 16))
-        textfactory.render("return", screen, (16, 32))
+        textfactory.render("return", screen, (16, 0))
         textfactory.render("menu_cursor_>", screen, self.menu_cursor_pos)
 
 
@@ -773,7 +769,7 @@ class TitleMenuScene(Scene):
         textfactory.register_text("menu_cursor_>", ">")
         self.menu_cursor_pos = [0, 0]
         self.arrow_for_menu_cursor = ArrowToTurnToward()
-        self.gamemenu = [2, 1, 0]
+        self.gamemenu = [2, 1, -1]
         self.index_of_menu_item_selected = 0
         self.keyboard.register_keyaction(
             pygame.K_UP,
@@ -833,7 +829,7 @@ def run(fps_num=fps):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            scene_manager.event(event)
+            running = scene_manager.event(event)
         scene_manager.update(dt)
         scene_manager.draw(screen)
         # resize pixel size

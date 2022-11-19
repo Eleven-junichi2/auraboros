@@ -40,11 +40,22 @@ class Scene(object):
 class SceneManager:
     def __init__(self):
         self.scenes: list[Scene] = []
-        self.current: int = 0
+        self._current: int = 0
+
+    @property
+    def current(self):
+        return self._current
+
+    @current.setter
+    def current(self, value):
+        self._current = value
 
     def event(self, event: pygame.event):
+        if self.current == -1:
+            return False
         self.scenes[self.current].event(event)
         self.scenes[self.current].keyboard.event(event)
+        return True
 
     def is_current_scene_has_gameworld(self) -> bool:
         if self.scenes[self.current].gameworld is None:
