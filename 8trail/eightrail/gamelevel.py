@@ -94,21 +94,21 @@ class Level:
         if self.pause:
             return
 
-        for data in self.level:
-            if round(self.elapsed_time_in_level) == data["timing"]:
-                enemy = self.enemy_factory[data["enemy"]]()
-                pos: list[int, int] = [None, None]
-                for i in range(2):
-                    if isinstance(data["pos"][i], str):
-                        if data["pos"][i] == "random":
-                            pos[i] = randint(0, w_size[i])
-                        if data["pos"][i] == "right":
-                            pos[i] = w_size[i] - enemy.rect.width
-                    else:
-                        pos[i] = data["pos"][i]
-                enemy.x, enemy.y = pos
-                enemy.behavior_pattern = data["pattern"]
-                self.entities.append(enemy)
+        # for data in self.level:
+        #     if round(self.elapsed_time_in_level) == data["timing"]:
+        #         enemy = self.enemy_factory[data["enemy"]]()
+        #         pos: list[int, int] = [None, None]
+        #         for i in range(2):
+        #             if isinstance(data["pos"][i], str):
+        #                 if data["pos"][i] == "random":
+        #                     pos[i] = randint(0, w_size[i])
+        #                 if data["pos"][i] == "right":
+        #                     pos[i] = w_size[i] - enemy.rect.width
+        #             else:
+        #                 pos[i] = data["pos"][i]
+        #         enemy.x, enemy.y = pos
+        #         enemy.behavior_pattern = data["pattern"]
+        #         self.entities.append(enemy)
 
         if self.do_showing_hitbox:
             self._visible_hitbox()
