@@ -1,6 +1,9 @@
 from collections import UserDict
+from typing import TypedDict, Any
 
 import pygame
+
+from .__init__ import w_size
 
 pygame.font.init()
 
@@ -8,7 +11,7 @@ pygame.font.init()
 class TextSurfaceFactory:
     def __init__(self):
         self.current_font_key = None
-        self._text_dict = {}
+        self._text_dict: dict[Any, TextDictItem] = {}
         self._font_dict = FontDict()
 
     @property
@@ -19,11 +22,11 @@ class TextSurfaceFactory:
     def font_dict(self):
         return self._font_dict
 
-    def register_text(self, key, text: str):
-        self.text_dict[key] = text
+    def register_text(self, key, text: str, pos=[0, 0]):
+        self.text_dict[key] = TextDictItem({"text": text, "pos": pos})
 
     def text_by_key(self, key) -> str:
-        return self.text_dict[key]
+        return self.text_dict[key]["text"]
 
     def is_text_registered(self, key):
         if self.text_dict.get(key):
@@ -45,12 +48,29 @@ class TextSurfaceFactory:
     def font(self) -> pygame.font.Font:
         return self.font_dict[self.current_font_key]
 
-    def render(self, text_key, surface_to_draw: pygame.surface.Surface, pos,
-               wait_rendering_for_text_to_register=True):
+    def set_text_pos_to_right(self, key):
+        self.text_dict[key]["pos"][0] = \
+            w_size[0] - self.font().size(self.text_dict[key]["text"])[0]
+
+    def set_text_pos_to_bottom(self, key):
+        self.text_dict[key]["pos"][1] = \
+            w_size[1] - self.font().size(self.text_dict[key]["text"])[1]
+
+    def render(self, text_key, surface_to_draw: pygame.surface.Surface,
+               pos=None, wait_rendering_for_text_to_register=True):
         if self.is_text_registered(text_key):
             text_surf = self.font().render(
                 self.text_by_key(text_key), True, (255, 255, 255))
-            surface_to_draw.blit(text_surf, pos)
+            if pos is None:
+                pos_ = self.text_dict[text_key]["pos"]
+            else:
+                pos_ = pos
+            surface_to_draw.blit(text_surf, pos_)
+
+
+class TextDictItem(TypedDict):
+    text: str
+    pos: list
 
 
 class FontDict(UserDict):

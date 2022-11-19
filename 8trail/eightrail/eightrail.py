@@ -639,6 +639,7 @@ class GameScene(Scene):
             "gamescore", f"スコア:{self.gameworld.gamescore}")
         textfactory.register_text(
             "highscore", f"ハイスコア:{self.gameworld.highscore()}")
+        textfactory.set_text_pos_to_right("highscore")
         textfactory.register_text(
             "num_of_enemy",
             f"敵:{self.gameworld.num_of_remaining_enemies}")
@@ -687,7 +688,7 @@ class GameScene(Scene):
         screen.blit(self.gameworld.bg_surf,
                     (0, self.gameworld.bg_scroll_y - w_size[1]))
         textfactory.render("tutorial", screen, (0, 0))
-        textfactory.render("highscore", screen, (0, 16))
+        textfactory.render("highscore", screen)
         textfactory.render("gamescore", screen, (0, 32))
         textfactory.render("num_of_enemy", screen, (0, 48))
         textfactory.render("elapsed_time_in_level", screen, (0, 64))
