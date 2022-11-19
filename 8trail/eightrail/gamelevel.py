@@ -35,12 +35,13 @@ class EntityListOfGameWorld(EntityList):
 
 class Level:
 
-    def __init__(self, level_filepath, scene=None):
+    def __init__(self, levelfile_dir, scene=None):
         self.scene: Scene = scene
 
-        self.level_raw_data = open_json_file(level_filepath)
-        self._set_level_data_with_tag_decompressed(
-            self.read_tagged_level_data())
+        self.level_raw_data = open_json_file(levelfile_dir / "level.json")
+        self.level_raw_pattern_data = open_json_file(
+            levelfile_dir / "patterns.json")
+        self.prepare_level_data()
 
         self._entities = EntityListOfGameWorld(self)
         self.enemy_factory = EnemyFactory()
@@ -90,25 +91,35 @@ class Level:
             enemy for enemy in self.entities if isinstance(enemy, Enemy)]
         return enemy_list
 
+    def prepare_level_data(self):
+        level = []
+        pattern_dict = self.level_raw_pattern_data
+        for data in self.level_raw_data:
+            decompressed = pattern_dict[data[0]]
+            [new_dict.update(timing=new_dict["timing"]+data[1])
+             for new_dict in decompressed]
+            level.extend(decompressed)
+        self.level_data = level
+
     def run_level(self, dt):
         if self.pause:
             return
 
-        # for data in self.level:
-        #     if round(self.elapsed_time_in_level) == data["timing"]:
-        #         enemy = self.enemy_factory[data["enemy"]]()
-        #         pos: list[int, int] = [None, None]
-        #         for i in range(2):
-        #             if isinstance(data["pos"][i], str):
-        #                 if data["pos"][i] == "random":
-        #                     pos[i] = randint(0, w_size[i])
-        #                 if data["pos"][i] == "right":
-        #                     pos[i] = w_size[i] - enemy.rect.width
-        #             else:
-        #                 pos[i] = data["pos"][i]
-        #         enemy.x, enemy.y = pos
-        #         enemy.behavior_pattern = data["pattern"]
-        #         self.entities.append(enemy)
+        for data in self.level_data:
+            if round(self.elapsed_time_in_level) == data["timing"]:
+                enemy = self.enemy_factory[data["enemy"]]()
+                pos: list[int, int] = [None, None]
+                for i in range(2):
+                    if isinstance(data["pos"][i], str):
+                        if data["pos"][i] == "random":
+                            pos[i] = randint(0, w_size[i])
+                        if data["pos"][i] == "right":
+                            pos[i] = w_size[i] - enemy.rect.width
+                    else:
+                        pos[i] = data["pos"][i]
+                enemy.x, enemy.y = pos
+                enemy.behavior_pattern = data["pattern"]
+                self.entities.append(enemy)
 
         if self.do_showing_hitbox:
             self._visible_hitbox()
