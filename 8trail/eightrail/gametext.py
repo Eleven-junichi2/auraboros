@@ -25,6 +25,12 @@ class TextSurfaceFactory:
     def text_by_key(self, key) -> str:
         return self.text_dict[key]
 
+    def is_text_registered(self, key):
+        if self.text_dict.get(key):
+            return True
+        else:
+            return False
+
     def register_font(self, key, font: pygame.font.Font):
         if len(self.font_dict) == 0:
             self.current_font_key = key
@@ -39,10 +45,12 @@ class TextSurfaceFactory:
     def font(self) -> pygame.font.Font:
         return self.font_dict[self.current_font_key]
 
-    def render(self, text_key, surface_to_draw: pygame.surface.Surface, pos):
-        text_surf = self.font().render(
-            self.text_by_key(text_key), True, (255, 255, 255))
-        surface_to_draw.blit(text_surf, pos)
+    def render(self, text_key, surface_to_draw: pygame.surface.Surface, pos,
+               wait_rendering_for_text_to_register=True):
+        if self.is_text_registered(text_key):
+            text_surf = self.font().render(
+                self.text_by_key(text_key), True, (255, 255, 255))
+            surface_to_draw.blit(text_surf, pos)
 
 
 class FontDict(UserDict):

@@ -688,41 +688,19 @@ class TitleMenuScene(Scene):
         self.keyboard = Keyboard()
         self.keyboard.register_keyaction(
             pygame.K_UP,
-            self.arrow_for_menu_cursor.set,
-            self.arrow_for_menu_cursor.unset,
-            0, 0)
+            10, 10, lambda: self.go_up_menu_cursor())
+
+        self.keyboard.register_keyaction(
+            pygame.K_DOWN,
+            10, 10, lambda: self.go_down_menu_cursor())
+
+        self.keyboard.register_keyaction(
+            pygame.K_z,
+            0, 0, lambda: self.command_menu_item()
+        )
 
     def event(self, event):
-        if event.type == pygame.KEYDOWN:
-            print(self.keydown_timecount)
-            # if event.key == pygame.K_UP:
-            self.keyboard.on_press(event.key, Arrow.up)
-                # self.arrow_for_menu_cursor.set(Arrow.up)
-                # self.arrow_for_menu_cursor.set(Arrow.up)
-            if event.key == pygame.K_DOWN:
-                self.arrow_for_menu_cursor.set(Arrow.down)
-            if event.key == pygame.K_RIGHT:
-                self.arrow_for_menu_cursor.set(Arrow.right)
-            if event.key == pygame.K_LEFT:
-                self.arrow_for_menu_cursor.set(Arrow.left)
-            if event.key == pygame.K_z:
-                self.command_menu_item()
-            if event.key == pygame.K_x:
-                pass
-            self.keydown_timecount += 1
-        if event.type == pygame.KEYUP:
-            if event.key == pygame.K_UP:
-                self.arrow_for_menu_cursor.unset(Arrow.up)
-            if event.key == pygame.K_DOWN:
-                self.arrow_for_menu_cursor.unset(Arrow.down)
-            if event.key == pygame.K_RIGHT:
-                self.arrow_for_menu_cursor.unset(Arrow.right)
-            if event.key == pygame.K_LEFT:
-                self.arrow_for_menu_cursor.unset(Arrow.left)
-            if event.key == pygame.K_z:
-                pass
-            if event.key == pygame.K_x:
-                pass
+        self.keyboard.event(event)
 
     def process_menu_cursor(self):
         if self.arrow_for_menu_cursor.is_up:
@@ -745,13 +723,19 @@ class TitleMenuScene(Scene):
             self.gamemenu[self.index_of_menu_item_selected])
 
     def update(self, dt):
+        self.keyboard.action_by_keyinput(pygame.K_UP)
+        self.keyboard.action_by_keyinput(pygame.K_DOWN)
+        self.keyboard.action_by_keyinput(pygame.K_z)
         self.process_menu_cursor()
+        textfactory.register_text(
+            "keyup", f"{self.keyboard[pygame.K_UP]['is_pressed']}")
 
     def draw(self, screen):
         textfactory.render("title_start", screen, (16, 0))
         textfactory.render("title_options", screen, (16, 16))
         textfactory.render("title_exit", screen, (16, 32))
         textfactory.render("menu_cursor_>", screen, self.menu_cursor_pos)
+        textfactory.render("keyup", screen, (64, 64))
 
 
 def run(fps_num=fps):
