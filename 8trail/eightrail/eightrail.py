@@ -568,7 +568,7 @@ class GameScene(Scene):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.gameworld = Level(AssetFilePath.level("debug2.json"), self)
+        self.gameworld = Level(AssetFilePath.level("stage1.json"), self)
         self.gameworld.set_background()
         self.gameworld.enemy_factory["scoutdisk"] = ScoutDiskEnemy
         self.gameworld.enemy_factory["trumpla"] = TrumplaEnemy
@@ -606,46 +606,25 @@ class GameScene(Scene):
         self.keyboard.register_keyaction(
             pygame.K_x,
             4, 4,
-            lambda: self.player.shooting_missile())
+            self.player.shooting_missile)
+        self.keyboard.register_keyaction(
+            pygame.K_c,
+            10, 10,
+            self.switch_weapon)
+        self.keyboard.register_keyaction(
+            pygame.K_v,
+            10, 10,
+            self.reset_game)
         # self.keyboard.register_keyaction(
         #     pygame.K_z,
         #     0, 0, self.command_menu_item)
         # self.gameworld.show_hitbox()
 
-    def event(self, event):
-        if event.type == pygame.KEYDOWN:
-            # if event.key == pygame.K_UP:
-            #     self.player.will_move_to(Arrow.up)
-            # if event.key == pygame.K_DOWN:
-            #     self.player.will_move_to(Arrow.down)
-            # if event.key == pygame.K_RIGHT:
-            #     self.player.will_move_to(Arrow.right)
-            # if event.key == pygame.K_LEFT:
-            #     self.player.will_move_to(Arrow.left)
-            # if event.key == pygame.K_z:
-            #     self.player.trigger_shot()
-            # if event.key == pygame.K_x:
-            #     self.player.trigger_missile()
-            if event.key == pygame.K_v:
-                self.reset_game()
-            if event.key == pygame.K_c:
-                if self.player.current_weapon == "normal":
-                    self.player.change_weapon("laser")
-                else:
-                    self.player.change_weapon("normal")
-        # if event.type == pygame.KEYUP:
-            # if event.key == pygame.K_UP:
-            #     self.player.stop_moving_to(Arrow.up)
-            # if event.key == pygame.K_DOWN:
-            #     self.player.stop_moving_to(Arrow.down)
-            # if event.key == pygame.K_RIGHT:
-            #     self.player.stop_moving_to(Arrow.right)
-            # if event.key == pygame.K_LEFT:
-            #     self.player.stop_moving_to(Arrow.left)
-            # if event.key == pygame.K_z:
-            #     self.player.release_trigger()
-            # if event.key == pygame.K_x:
-            #     self.player.release_trigger_missile()
+    def switch_weapon(self):
+        if self.player.current_weapon == "normal":
+            self.player.change_weapon("laser")
+        else:
+            self.player.change_weapon("normal")
 
     def stop_move_of_player_on_wall(self):
         if self.player.y < 0:
@@ -658,12 +637,6 @@ class GameScene(Scene):
             self.player.stop_moving_to(Arrow.left)
 
     def update(self, dt):
-        self.keyboard.do_action_by_keyinput(pygame.K_UP)
-        self.keyboard.do_action_by_keyinput(pygame.K_DOWN)
-        self.keyboard.do_action_by_keyinput(pygame.K_RIGHT)
-        self.keyboard.do_action_by_keyinput(pygame.K_LEFT)
-        self.keyboard.do_action_by_keyinput(pygame.K_z)
-        self.keyboard.do_action_by_keyinput(pygame.K_x)
         textfactory.register_text(
             "gamescore", f"スコア:{self.gameworld.gamescore}")
         textfactory.register_text(
@@ -671,15 +644,33 @@ class GameScene(Scene):
         textfactory.register_text(
             "elapsed_time_in_level",
             f"経過時間:{self.gameworld.elapsed_time_in_level}")
+        textfactory.register_text(
+            "shot_que", f"shotque:{self.player.shot_que}")
+        textfactory.register_text(
+            "missile_que", f"missileque:{self.player.missile_que}")
+        self.keyboard.do_action_by_keyinput(pygame.K_v)
         if not self.gameworld.pause:
+            self.keyboard.do_action_by_keyinput(pygame.K_UP)
+            self.keyboard.do_action_by_keyinput(pygame.K_DOWN)
+            self.keyboard.do_action_by_keyinput(pygame.K_RIGHT)
+            self.keyboard.do_action_by_keyinput(pygame.K_LEFT)
+            self.keyboard.do_action_by_keyinput(pygame.K_z)
+            self.keyboard.do_action_by_keyinput(pygame.K_x)
+            self.keyboard.do_action_by_keyinput(pygame.K_c)
+
             self.gameworld.stop_entity_from_moving_off_screen(self.player)
-            self.gameworld.run_level(dt)
-            weapon_que = self.player.shot_que + self.player.missile_que
-            self.gameworld.process_collision((self.player, ), weapon_que)
+
             if not (self.player in self.gameworld.entities):
                 self.stop_game_and_show_result()
-            self.gameworld.clear_enemies_off_screen()
-            self.gameworld.scroll(dt)
+                self.gameworld.initialize_level()
+
+            self.gameworld.run_level(dt)
+
+            weapon_que = self.player.shot_que + self.player.missile_que
+            self.gameworld.process_collision((self.player, ), weapon_que)
+
+            # self.gameworld.clear_enemies_off_screen()
+            # self.gameworld.scroll(dt)
 
     def reset_game(self):
         [shot.death()
@@ -705,6 +696,8 @@ class GameScene(Scene):
         textfactory.render("tutorial", screen, (0, 0))
         textfactory.render("highscore", screen, (0, 16))
         textfactory.render("gamescore", screen, (0, 32))
+        textfactory.render("shot_que", screen, (0, 32))
+        textfactory.render("missile_que", screen, (0, 32))
         # textfactory.render("elapsed_time_in_level", screen, (0, 48))
 
 

@@ -3,9 +3,9 @@
         "tag": "debug1",
         "timing": 20,
         "enemy": "scoutdisk",
-        "pattern": "bounce_to_left_from_right",
+        "pattern": "strike_to_player",
         "pos": [
-            "right",
+            0,
             0
         ]
     },
@@ -13,9 +13,9 @@
         "tag": "debug1",
         "timing": 30,
         "enemy": "scoutdisk",
-        "pattern": "bounce_to_left_from_right",
+        "pattern": "strike_to_player",
         "pos": [
-            "right",
+            24,
             0
         ]
     },
@@ -23,9 +23,9 @@
         "tag": "debug1",
         "timing": 40,
         "enemy": "scoutdisk",
-        "pattern": "bounce_to_left_from_right",
+        "pattern": "strike_to_player",
         "pos": [
-            "right",
+            48,
             0
         ]
     },
@@ -33,69 +33,9 @@
         "tag": "debug1",
         "timing": 50,
         "enemy": "scoutdisk",
-        "pattern": "bounce_to_left_from_right",
+        "pattern": "strike_to_player",
         "pos": [
-            "right",
-            0
-        ]
-    },
-    {
-        "tag": "debug1",
-        "timing": 60,
-        "enemy": "scoutdisk",
-        "pattern": "bounce_to_left_from_right",
-        "pos": [
-            "right",
-            0
-        ]
-    },
-    {
-        "tag": "debug2",
-        "timing": 20,
-        "enemy": "scoutdisk",
-        "pattern": "bounce_to_right_from_left",
-        "pos": [
-            0,
-            0
-        ]
-    },
-    {
-        "tag": "debug2",
-        "timing": 30,
-        "enemy": "scoutdisk",
-        "pattern": "bounce_to_right_from_left",
-        "pos": [
-            0,
-            0
-        ]
-    },
-    {
-        "tag": "debug2",
-        "timing": 40,
-        "enemy": "scoutdisk",
-        "pattern": "bounce_to_right_from_left",
-        "pos": [
-            0,
-            0
-        ]
-    },
-    {
-        "tag": "debug2",
-        "timing": 50,
-        "enemy": "scoutdisk",
-        "pattern": "bounce_to_right_from_left",
-        "pos": [
-            0,
-            0
-        ]
-    },
-    {
-        "tag": "debug2",
-        "timing": 60,
-        "enemy": "scoutdisk",
-        "pattern": "bounce_to_right_from_left",
-        "pos": [
-            0,
+            72,
             0
         ]
     },

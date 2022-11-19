@@ -3,7 +3,7 @@
         "tag": "debug1",
         "timing": 20,
         "enemy": "scoutdisk",
-        "pattern": "random",
+        "pattern": "random_vertical",
         "pos": [
             "random",
             0
@@ -23,7 +23,7 @@
         "tag": "debug1",
         "timing": 60,
         "enemy": "scoutdisk",
-        "pattern": "random",
+        "pattern": "random_vertical",
         "pos": [
             "random",
             0
@@ -62,7 +62,7 @@
     {
         "tag": "debug2",
         "timing": 60,
-        "enemy": "scoutdisk",
+        "enemy": "trumpla",
         "pattern": "strike_to_player",
         "pos": [
             "random",
@@ -72,7 +72,7 @@
     {
         "tag": "debug2",
         "timing": 80,
-        "enemy": "scoutdisk",
+        "enemy": "trumpla",
         "pattern": "strike_to_player",
         "pos": [
             "random",

@@ -155,7 +155,7 @@ class Level:
         [enemy.remove_from_container() for enemy in self.enemies()]
 
     def clear_entities(self):
-        [entity.remove_from_container() for entity in self.entities]
+        self.entities.clear()
 
     def reset_scroll(self):
         self.bg_scroll_y = 0

@@ -265,26 +265,6 @@ class Sprite(pygame.sprite.Sprite):
         else:
             return False
 
-    def move_bounce_to_left_from_right(self, dt):
-        if (self.move_target_x != 0) and self.x < w_size[0]:
-            self.move_target_x = w_size[0] - self.rect.width
-            self.direction_of_movement.set(Arrow.right)
-            self.direction_of_movement.unset(Arrow.left)
-        if w_size[0] <= self.x + self.rect.width:
-            self.move_target_x = 0
-            self.direction_of_movement.set(Arrow.left)
-            self.direction_of_movement.unset(Arrow.right)
-
-    def move_bounce_to_right_from_left(self, dt):
-        if (self.move_target_x != w_size[0]) and 0 < self.x:
-            self.move_target_x = 0
-            self.direction_of_movement.set(Arrow.left)
-            self.direction_of_movement.unset(Arrow.right)
-        if self.x <= 0 + self.movement_speed:
-            self.move_target_x = w_size[0]
-            self.direction_of_movement.set(Arrow.right)
-            self.direction_of_movement.unset(Arrow.left)
-
 
 class ShooterSprite(Sprite):
     def __init__(self, *args, **kwargs):
@@ -306,10 +286,6 @@ class Enemy(Sprite):
             "random_horizontal"] = self.move_random_horizontal
         self.behavior_pattern_dict[
             "random"] = self.move_random
-        self.behavior_pattern_dict[
-            "bounce_to_left_from_right"] = self.move_bounce_to_left_from_right
-        self.behavior_pattern_dict[
-            "bounce_to_right_from_left"] = self.move_bounce_to_right_from_left
         self.gamescore = 0
 
     def update(self, dt):
