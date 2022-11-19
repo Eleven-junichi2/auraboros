@@ -688,16 +688,13 @@ class TitleMenuScene(Scene):
         self.keyboard = Keyboard()
         self.keyboard.register_keyaction(
             pygame.K_UP,
-            10, 10, lambda: self.go_up_menu_cursor())
-
+            10, 10, self.go_up_menu_cursor)
         self.keyboard.register_keyaction(
             pygame.K_DOWN,
-            10, 10, lambda: self.go_down_menu_cursor())
-
+            10, 10, self.go_down_menu_cursor)
         self.keyboard.register_keyaction(
             pygame.K_z,
-            0, 0, lambda: self.command_menu_item()
-        )
+            0, 0, self.command_menu_item)
 
     def event(self, event):
         self.keyboard.event(event)
