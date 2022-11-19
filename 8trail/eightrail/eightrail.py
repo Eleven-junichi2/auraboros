@@ -576,15 +576,24 @@ class GameScene(Scene):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.gameworld = Level(AssetFilePath.level("debug1"), self)
+        self.gameworld = Level(AssetFilePath.level("stage1"), self)
         self.gameworld.set_background()
         self.gameworld.enemy_factory["scoutdisk"] = ScoutDiskEnemy
         self.gameworld.enemy_factory["trumpla"] = TrumplaEnemy
         self.init_player()
+        self.init_text()
         self.gamelevel_running = True
+        # self.gameworld.show_hitbox()
+
+    def init_text(self):
         textfactory.register_text(
             "tutorial", "z:主砲 x:ミサイル c:主砲切り替え v:やり直す")
-        # self.gameworld.show_hitbox()
+        textfactory.register_text(
+            "gamescore", pos=[0, 32], color_rgb=[255, 255, 255])
+        textfactory.register_text("highscore")
+        textfactory.register_text("num_of_enemy")
+        textfactory.register_text("elapsed_time_in_level")
+        textfactory.register_text("count_of_enemies_summoned")
 
     def init_player(self):
         self.player = Player()
@@ -635,18 +644,18 @@ class GameScene(Scene):
             self.player.change_weapon("normal")
 
     def update(self, dt):
-        textfactory.register_text(
+        textfactory.rewrite_text(
             "gamescore", f"スコア:{self.gameworld.gamescore}")
-        textfactory.register_text(
+        textfactory.rewrite_text(
             "highscore", f"ハイスコア:{self.gameworld.highscore()}")
         textfactory.set_text_pos_to_right("highscore")
-        textfactory.register_text(
+        textfactory.rewrite_text(
             "num_of_enemy",
             f"敵:{self.gameworld.num_of_remaining_enemies}")
-        textfactory.register_text(
+        textfactory.rewrite_text(
             "elapsed_time_in_level",
             f"経過時間:{round(self.gameworld.elapsed_time_in_level)}")
-        textfactory.register_text(
+        textfactory.rewrite_text(
             "count_of_enemies_summoned",
             f"敵生成数:{self.gameworld.count_of_enemies_summoned}")
 
@@ -679,8 +688,12 @@ class GameScene(Scene):
         self.gameworld.pause = False
         self.gameworld.initialize_level()
         self.init_player()
+        self.init_text()
 
     def stop_game_and_show_result(self):
+        textfactory.set_text_color("gamescore", [255, 200, 255])
+        textfactory.center_text_pos_x("gamescore")
+        textfactory.center_text_pos_y("gamescore")
         self.gameworld.pause = True
         self.gameworld.register_gamescore()
 
@@ -689,7 +702,7 @@ class GameScene(Scene):
                     (0, self.gameworld.bg_scroll_y - w_size[1]))
         textfactory.render("tutorial", screen, (0, 0))
         textfactory.render("highscore", screen)
-        textfactory.render("gamescore", screen, (0, 32))
+        textfactory.render("gamescore", screen)
         textfactory.render("num_of_enemy", screen, (0, 48))
         textfactory.render("elapsed_time_in_level", screen, (0, 64))
         textfactory.render("count_of_enemies_summoned", screen, (0, 80))

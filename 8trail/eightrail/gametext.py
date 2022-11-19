@@ -22,8 +22,13 @@ class TextSurfaceFactory:
     def font_dict(self):
         return self._font_dict
 
-    def register_text(self, key, text: str, pos=[0, 0]):
-        self.text_dict[key] = TextDictItem({"text": text, "pos": pos})
+    def register_text(self, key, text: str = "", pos=[0, 0],
+                      color_rgb=[255, 255, 255]):
+        self.text_dict[key] = TextDictItem(
+            {"text": text, "pos": pos, "rgb": color_rgb})
+
+    def rewrite_text(self, key, text: str):
+        self.text_dict[key]["text"] = text
 
     def text_by_key(self, key) -> str:
         return self.text_dict[key]["text"]
@@ -51,6 +56,9 @@ class TextSurfaceFactory:
     def set_text_pos(self, key, pos):
         self.text_dict[key]["pos"] = pos
 
+    def set_text_color(self, key, color_rgb):
+        self.text_dict[key]["rgb"] = color_rgb
+
     def set_text_pos_to_right(self, key):
         self.text_dict[key]["pos"][0] = \
             w_size[0] - self.font().size(self.text_dict[key]["text"])[0]
@@ -59,11 +67,20 @@ class TextSurfaceFactory:
         self.text_dict[key]["pos"][1] = \
             w_size[1] - self.font().size(self.text_dict[key]["text"])[1]
 
+    def center_text_pos_x(self, key):
+        self.text_dict[key]["pos"][0] = \
+            w_size[0]//2 - self.font().size(self.text_dict[key]["text"])[0]//2
+
+    def center_text_pos_y(self, key):
+        self.text_dict[key]["pos"][1] = \
+            w_size[1]//2 - self.font().size(self.text_dict[key]["text"])[1]//2
+
     def render(self, text_key, surface_to_draw: pygame.surface.Surface,
                pos=None, wait_rendering_for_text_to_register=True):
         if self.is_text_registered(text_key):
             text_surf = self.font().render(
-                self.text_by_key(text_key), True, (255, 255, 255))
+                self.text_by_key(text_key), True,
+                self.text_dict[text_key]["rgb"])
             if pos is None:
                 pos_ = self.text_dict[text_key]["pos"]
             else:
@@ -74,6 +91,7 @@ class TextSurfaceFactory:
 class TextDictItem(TypedDict):
     text: str
     pos: list
+    rgb: list
 
 
 class FontDict(UserDict):
