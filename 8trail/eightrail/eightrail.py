@@ -645,9 +645,9 @@ class GameScene(Scene):
             "elapsed_time_in_level",
             f"経過時間:{self.gameworld.elapsed_time_in_level}")
         textfactory.register_text(
-            "shot_que", f"shotque:{self.player.shot_que}")
+            "shot_que", f"shotque:{len(self.player.shot_que)}")
         textfactory.register_text(
-            "missile_que", f"missileque:{self.player.missile_que}")
+            "missile_que", f"missileque:{len(self.player.missile_que)}")
         self.keyboard.do_action_by_keyinput(pygame.K_v)
         if not self.gameworld.pause:
             self.keyboard.do_action_by_keyinput(pygame.K_UP)
@@ -696,8 +696,8 @@ class GameScene(Scene):
         textfactory.render("tutorial", screen, (0, 0))
         textfactory.render("highscore", screen, (0, 16))
         textfactory.render("gamescore", screen, (0, 32))
-        textfactory.render("shot_que", screen, (0, 32))
-        textfactory.render("missile_que", screen, (0, 32))
+        textfactory.render("shot_que", screen, (0, 48))
+        textfactory.render("missile_que", screen, (0, 64))
         # textfactory.render("elapsed_time_in_level", screen, (0, 48))
 
 
