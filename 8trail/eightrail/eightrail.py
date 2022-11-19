@@ -2,13 +2,14 @@ from collections import UserDict
 from inspect import isclass
 import math
 # from typing import Any
-from .utilities import Arrow, ArrowToTurnToward, AssetFilePath, TextToDebug  # noqa
-from .schedule import IntervalCounter, schedule_instance_method_interval
-from .sound import SoundDict
+from .keyboard import Keyboard
+from .entity import EntityList, Sprite, ShooterSprite, Enemy
 from .gamelevel import Level
 from .gamescene import Scene, SceneManager
 from .gametext import TextSurfaceFactory
-from .entity import EntityList, Sprite, ShooterSprite, Enemy
+from .utilities import Arrow, ArrowToTurnToward, AssetFilePath, TextToDebug  # noqa
+from .schedule import IntervalCounter, schedule_instance_method_interval
+from .sound import SoundDict
 
 import pygame
 
@@ -684,12 +685,20 @@ class TitleMenuScene(Scene):
         self.gamemenu = [2, 1, 0]
         self.index_of_menu_item_selected = 0
         self.keydown_timecount = 0
+        self.keyboard = Keyboard()
+        self.keyboard.register_keyaction(
+            pygame.K_UP,
+            self.arrow_for_menu_cursor.set,
+            self.arrow_for_menu_cursor.unset,
+            0, 0)
 
     def event(self, event):
         if event.type == pygame.KEYDOWN:
             print(self.keydown_timecount)
-            if event.key == pygame.K_UP:
-                self.arrow_for_menu_cursor.set(Arrow.up)
+            # if event.key == pygame.K_UP:
+            self.keyboard.on_press(event.key, Arrow.up)
+                # self.arrow_for_menu_cursor.set(Arrow.up)
+                # self.arrow_for_menu_cursor.set(Arrow.up)
             if event.key == pygame.K_DOWN:
                 self.arrow_for_menu_cursor.set(Arrow.down)
             if event.key == pygame.K_RIGHT:
