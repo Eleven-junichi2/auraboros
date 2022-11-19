@@ -79,7 +79,16 @@
         {
             "timing": 0,
             "enemy": "trumpla",
-            "pattern": "strike_to_player",
+            "pattern": "random_vertical",
+            "pos": [
+                "random",
+                0
+            ]
+        },
+        {
+            "timing": 20,
+            "enemy": "trumpla",
+            "pattern": "random_vertical",
             "pos": [
                 "random",
                 0
