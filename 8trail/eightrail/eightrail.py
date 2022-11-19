@@ -645,6 +645,9 @@ class GameScene(Scene):
         textfactory.register_text(
             "elapsed_time_in_level",
             f"経過時間:{round(self.gameworld.elapsed_time_in_level)}")
+        textfactory.register_text(
+            "count_of_enemies_summoned",
+            f"敵生成数:{self.gameworld.count_of_enemies_summoned}")
 
         self.keyboard.do_action_by_keyinput(pygame.K_v)
         if not self.gameworld.pause:
@@ -658,9 +661,10 @@ class GameScene(Scene):
 
             self.gameworld.stop_entity_from_moving_off_screen(self.player)
 
-            if (not (self.player in self.gameworld.entities) or
-                    self.gameworld.num_of_remaining_enemies == 0):
-                self.stop_game_and_show_result()
+            if self.gameworld.count_of_enemies_summoned > 0:
+                if (not (self.player in self.gameworld.entities) or
+                        self.gameworld.num_of_remaining_enemies == 0):
+                    self.stop_game_and_show_result()
 
             self.gameworld.run_level(dt)
             self.gameworld.process_collision(
@@ -687,6 +691,7 @@ class GameScene(Scene):
         textfactory.render("gamescore", screen, (0, 32))
         textfactory.render("num_of_enemy", screen, (0, 48))
         textfactory.render("elapsed_time_in_level", screen, (0, 64))
+        textfactory.render("count_of_enemies_summoned", screen, (0, 80))
 
 
 class OptionsScene(Scene):

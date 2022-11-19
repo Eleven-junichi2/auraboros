@@ -1,15 +1,12 @@
 from __future__ import annotations
-# from collections import UserList
-# from dataclasses import dataclass
 from typing import TYPE_CHECKING, Iterable, Type
 if TYPE_CHECKING:
     pass
     # from .eightrail import Enemy
 
-import copy
-# from dataclasses import dataclass
-# import itertools
 from random import randint
+
+import copy
 
 import pygame
 
@@ -33,6 +30,8 @@ class EntityListOfGameWorld(EntityList):
         super().kill_living_entity(entity)
 
     def append(self, item: Sprite):
+        if isinstance(item, Enemy):
+            self.gameworld.count_of_enemies_summoned += 1
         item.gameworld = self.gameworld
         item.entity_container = self
         super().append(item)
@@ -59,6 +58,7 @@ class Level:
         self.pause = False
         self.elapsed_time_in_level = 0
         self.count_of_enemies_killed = 0
+        self.count_of_enemies_summoned = 0
         self.reset_num_of_remaining_enemies()
 
         self.gamescore: int
@@ -77,6 +77,9 @@ class Level:
 
     def reset_num_of_remaining_enemies(self):
         self.num_of_remaining_enemies = self.num_of_enemy_on_level()
+
+    def reset_count_of_enemies_summoned(self):
+        self.count_of_enemies_summoned = 0
 
     def entity(self, entity_type: Type[Sprite]):
         """Return the entity of specified type which added first to
@@ -204,6 +207,7 @@ class Level:
         self.reset_scroll()
         self.reset_score()
         self.reset_num_of_remaining_enemies()
+        self.reset_count_of_enemies_summoned()
 
     def clear_enemies_off_screen(self):
         [entity.remove_from_container() for entity in self.enemies()
