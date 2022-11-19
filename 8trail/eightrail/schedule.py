@@ -1,6 +1,7 @@
 import functools
 from typing import Callable
 
+
 from .__init__ import TARGET_FPS
 
 # TODO: make clock count reset feature

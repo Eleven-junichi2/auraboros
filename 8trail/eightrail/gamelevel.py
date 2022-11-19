@@ -1,7 +1,7 @@
 from __future__ import annotations
 # from collections import UserList
 # from dataclasses import dataclass
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING, Iterable, Type
 if TYPE_CHECKING:
     pass
     # from .eightrail import Enemy
@@ -66,6 +66,14 @@ class Level:
     @entities.setter
     def entities(self, value):
         self._entities = value
+
+    def entity(self, entity_type: Type[Sprite]):
+        """Return the entity of specified type which added first to
+           entities."""
+        entity_list = [
+            entity for entity in self.entities
+            if isinstance(entity, entity_type)]
+        return entity_list[0]
 
     def show_hitbox(self):
         self.do_showing_hitbox = True

@@ -19,7 +19,7 @@ from .animation import (
 
 from .__init__ import init, w_size, screen, w_size_unscaled  # noqa
 
-# TODO: Game Level
+# TODO: Fix game reset bug
 
 pygame.init()
 pygame.mixer.init()
@@ -178,7 +178,7 @@ class PlayerShot(Sprite):
         self.hitbox = self.image.get_rect()
         self.reset_pos_x()
         self.reset_pos_y()
-        self.movement_speed = 4
+        self.movement_speed = 4.5
         self.adjust_movement_speed = 1
         self.is_launching = False
 
@@ -340,21 +340,22 @@ class TrumplaEnemy(ScoutDiskEnemy):
     def launch_shot(self):
         player_list = [entity for entity in self.gameworld.entities
                        if isinstance(entity, Player)]
-        distance_to_player_list = []
-        for player in player_list:
-            distance_to_player_list.append(
-                math.sqrt(
-                    (player.x - self.x) ** 2 + (player.y - self.y) ** 2))
-        target_player = player_list[
-            distance_to_player_list.index(min(distance_to_player_list))]
-        if (self.is_able_to_shot and
-            (abs(target_player.y - self.y) <= 150) and
-                (abs(target_player.x - self.x) <= self.rect.width * 4)):
-            shot = EnemyShot()
-            shot.x = self.x
-            shot.y = self.y
-            self.gameworld.entities.append(shot)
-            shot.set_destination_to_entity(Player)
+        if player_list:
+            distance_to_player_list = []
+            for player in player_list:
+                distance_to_player_list.append(
+                    math.sqrt(
+                        (player.x - self.x) ** 2 + (player.y - self.y) ** 2))
+            target_player = player_list[
+                distance_to_player_list.index(min(distance_to_player_list))]
+            if (self.is_able_to_shot and
+                (abs(target_player.y - self.y) <= 150) and
+                    (abs(target_player.x - self.x) <= self.rect.width * 4)):
+                shot = EnemyShot()
+                shot.x = self.x
+                shot.y = self.y
+                self.gameworld.entities.append(shot)
+                shot.set_destination_to_entity(Player)
 
 
 class EnemyShot(Enemy):
@@ -408,7 +409,7 @@ class Player(ShooterSprite):
         self.shot_que = EntityList()
         self.weapon = WeaponBulletFactory()
         self.weapon["normal"] = PlayerShot
-        self.weapon["normal"]["max_num"] = 3
+        self.weapon["normal"]["max_num"] = 4
         self.weapon["normal"]["interval"] = 3
         self.weapon["laser"] = PlayerLaser
         self.weapon["laser"]["max_num"] = 6
@@ -443,26 +444,10 @@ class Player(ShooterSprite):
         self.movement_speed = 3
 
         self.ignore_shot_interval = True
-        # self.is_shot_triggered = False
         self.is_shot_allowed = True
 
         self.ignore_missile_interval = True
-        # self.is_missile_triggered = False
         self.is_missile_allowed = True
-
-    # def trigger_shot(self):
-    #     self.is_shot_triggered = True
-
-    # def release_trigger(self):
-    #     if self.current_weapon == "laser":
-    #         self.laser_shot_sound.stop()
-    #     self.is_shot_triggered = False
-
-    # def trigger_missile(self):
-    #     self.is_missile_triggered = True
-
-    # def release_trigger_missile(self):
-    #     self.is_missile_triggered = False
 
     def change_weapon(self, weapon):
         self.current_weapon = weapon
@@ -536,15 +521,11 @@ class Player(ShooterSprite):
             self.ignore_shot_interval = False
         else:
             self.ignore_shot_interval = True
-        # if self.is_shot_triggered:
-        #     self._shooting()
 
         if self.missile_que:
             self.ignore_missile_interval = False
         else:
             self.ignore_missile_interval = True
-        # if self.is_missile_triggered:
-        #     self._shooting_missile()
 
         self.do_animation(dt)
 
@@ -572,13 +553,17 @@ class GameScene(Scene):
         self.gameworld.set_background()
         self.gameworld.enemy_factory["scoutdisk"] = ScoutDiskEnemy
         self.gameworld.enemy_factory["trumpla"] = TrumplaEnemy
+        self.init_player()
+        self.gamelevel_running = True
+        textfactory.register_text(
+            "tutorial", "z:主砲 x:ミサイル c:主砲切り替え v:やり直す")
+        # self.gameworld.show_hitbox()
+
+    def init_player(self):
         self.player = Player()
         self.player.center_x_on_screen()
         self.player.y = w_size[1] - self.player.rect.height
         self.gameworld.entities.append(self.player)
-        self.gamelevel_running = True
-        textfactory.register_text(
-            "tutorial", "z:主砲 x:ミサイル c:主砲切り替え v:やり直す")
         self.keyboard.register_keyaction(
             pygame.K_UP,
             0, 0,
@@ -615,26 +600,12 @@ class GameScene(Scene):
             pygame.K_v,
             10, 10,
             self.reset_game)
-        # self.keyboard.register_keyaction(
-        #     pygame.K_z,
-        #     0, 0, self.command_menu_item)
-        # self.gameworld.show_hitbox()
 
     def switch_weapon(self):
         if self.player.current_weapon == "normal":
             self.player.change_weapon("laser")
         else:
             self.player.change_weapon("normal")
-
-    def stop_move_of_player_on_wall(self):
-        if self.player.y < 0:
-            self.player.stop_moving_to(Arrow.up)
-        if w_size[1] - self.player.rect.height < self.player.y:
-            self.player.stop_moving_to(Arrow.down)
-        if w_size[0] - self.player.rect.width < self.player.x:
-            self.player.stop_moving_to(Arrow.right)
-        if self.player.x < 0:
-            self.player.stop_moving_to(Arrow.left)
 
     def update(self, dt):
         textfactory.register_text(
@@ -644,10 +615,7 @@ class GameScene(Scene):
         textfactory.register_text(
             "elapsed_time_in_level",
             f"経過時間:{self.gameworld.elapsed_time_in_level}")
-        textfactory.register_text(
-            "shot_que", f"shotque:{len(self.player.shot_que)}")
-        textfactory.register_text(
-            "missile_que", f"missileque:{len(self.player.missile_que)}")
+
         self.keyboard.do_action_by_keyinput(pygame.K_v)
         if not self.gameworld.pause:
             self.keyboard.do_action_by_keyinput(pygame.K_UP)
@@ -662,29 +630,19 @@ class GameScene(Scene):
 
             if not (self.player in self.gameworld.entities):
                 self.stop_game_and_show_result()
-                self.gameworld.initialize_level()
 
             self.gameworld.run_level(dt)
+            self.gameworld.process_collision(
+                (self.player, ),
+                self.player.shot_que + self.player.missile_que)
 
-            weapon_que = self.player.shot_que + self.player.missile_que
-            self.gameworld.process_collision((self.player, ), weapon_que)
-
-            # self.gameworld.clear_enemies_off_screen()
-            # self.gameworld.scroll(dt)
+            self.gameworld.clear_enemies_off_screen()
+            self.gameworld.scroll(dt)
 
     def reset_game(self):
-        [shot.death()
-         for shot in self.player.shot_que]
-        [missile.death()
-         for missile in self.player.missile_que]
-        # print(self.player.shot_que)
-        # print(self.player.missile_que)
         self.gameworld.pause = False
         self.gameworld.initialize_level()
-        self.player.center_x_on_screen()
-        self.player.y = w_size[1] - self.player.rect.height
-        if self.player not in self.gameworld.entities:
-            self.gameworld.entities.append(self.player)
+        self.init_player()
 
     def stop_game_and_show_result(self):
         self.gameworld.pause = True
@@ -696,9 +654,6 @@ class GameScene(Scene):
         textfactory.render("tutorial", screen, (0, 0))
         textfactory.render("highscore", screen, (0, 16))
         textfactory.render("gamescore", screen, (0, 32))
-        textfactory.render("shot_que", screen, (0, 48))
-        textfactory.render("missile_que", screen, (0, 64))
-        # textfactory.render("elapsed_time_in_level", screen, (0, 48))
 
 
 class OptionsScene(Scene):
@@ -727,9 +682,6 @@ class TitleMenuScene(Scene):
         self.keyboard.register_keyaction(
             pygame.K_z,
             0, 0, self.command_menu_item)
-
-    # def event(self, event):
-        # self.keyboard.event(event)
 
     def process_menu_cursor(self):
         if self.arrow_for_menu_cursor.is_up:
