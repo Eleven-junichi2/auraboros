@@ -51,6 +51,9 @@ class SceneManager:
         self._current = value
 
     def event(self, event: pygame.event):
+        """return False as a signal of quit app"""
+        if event.type == pygame.QUIT:
+            return False
         if self.current == -1:
             return False
         self.scenes[self.current].event(event)

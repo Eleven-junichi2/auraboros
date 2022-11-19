@@ -827,8 +827,6 @@ def run(fps_num=fps):
 
         screen.fill((0, 0, 0))
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
             running = scene_manager.event(event)
         scene_manager.update(dt)
         scene_manager.draw(screen)
