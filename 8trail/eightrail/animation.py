@@ -11,7 +11,6 @@ class AnimationImage:
         self._anim_frames: list[pygame.surface.Surface] = [
             pygame.surface.Surface((0, 0)), ]
         self.anim_frame_id = 0
-        self._anim_frame_progress = 0
         self.anim_interval = 1
         self.is_playing = False
         self.is_loop = True
@@ -40,26 +39,20 @@ class AnimationImage:
 
     @schedule_instance_method_interval(
         "anim_interval",
-        )
+    )
     def update_frame_at_interval(self):
         self.update_frame()
 
     def update_frame(self):
         if self.is_playing:
-
-            # print("b:", self.anim_frame_id)
-            if self.anim_frame_id < len(self.anim_frames) - 1:
+            if self.anim_frame_id < len(self.anim_frames):
                 self.image = self.anim_frames[self.anim_frame_id]
+                # print("b", self.anim_frame_id)
                 self.anim_frame_id += 1
-                self._anim_frame_progress += 1
-            elif self._anim_frame_progress < len(self.anim_frames):
-                self.image = self.anim_frames[self.anim_frame_id]
-                self._anim_frame_progress += 1
-            # if self.anim_frame_id > len(self.anim_frames) - 1:
-            else:
+            if self.anim_frame_id == len(self.anim_frames):
+                # print("--finished--")
                 if self.is_loop:
                     self.reset_animation()
-                    # self.let_stop_animation()
                     self.is_finished = True
                 self.was_played_once = True
 

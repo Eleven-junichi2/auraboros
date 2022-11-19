@@ -149,7 +149,6 @@ class TrumplaMove(AnimationImage):
         self.anim_frames: list[pygame.surface.Surface] = [
             self.sprite_sheet.image_by_area(0, 0, 16, 16),
             self.sprite_sheet.image_by_area(0, 16, 16, 16),
-            self.sprite_sheet.image_by_area(0, 16, 16, 16),
             self.sprite_sheet.image_by_area(0, 16 * 2, 16, 16),
             self.sprite_sheet.image_by_area(0, 16 * 3, 16, 16), ]
         self.anim_interval = 10
@@ -347,8 +346,9 @@ class TrumplaEnemy(ScoutDiskEnemy):
                     (player.x - self.x) ** 2 + (player.y - self.y) ** 2))
         target_player = player_list[
             distance_to_player_list.index(min(distance_to_player_list))]
-        if self.is_able_to_shot and abs(
-                target_player.y - self.y) <= 120:
+        if (self.is_able_to_shot and
+            (abs(target_player.y - self.y) <= 150) and
+                (abs(target_player.x - self.x) <= self.rect.width * 4)):
             shot = EnemyShot()
             shot.x = self.x
             shot.y = self.y
