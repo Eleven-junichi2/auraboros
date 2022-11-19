@@ -2,7 +2,7 @@ from collections import UserDict
 from inspect import isclass
 import math
 # from typing import Any
-from .keyboard import Keyboard
+# from .keyboard import Keyboard
 from .entity import EntityList, Sprite, ShooterSprite, Enemy
 from .gamelevel import Level
 from .gamescene import Scene, SceneManager
@@ -443,26 +443,26 @@ class Player(ShooterSprite):
         self.movement_speed = 3
 
         self.ignore_shot_interval = True
-        self.is_shot_triggered = False
+        # self.is_shot_triggered = False
         self.is_shot_allowed = True
 
         self.ignore_missile_interval = True
-        self.is_missile_triggered = False
+        # self.is_missile_triggered = False
         self.is_missile_allowed = True
 
-    def trigger_shot(self):
-        self.is_shot_triggered = True
+    # def trigger_shot(self):
+    #     self.is_shot_triggered = True
 
-    def release_trigger(self):
-        if self.current_weapon == "laser":
-            self.laser_shot_sound.stop()
-        self.is_shot_triggered = False
+    # def release_trigger(self):
+    #     if self.current_weapon == "laser":
+    #         self.laser_shot_sound.stop()
+    #     self.is_shot_triggered = False
 
-    def trigger_missile(self):
-        self.is_missile_triggered = True
+    # def trigger_missile(self):
+    #     self.is_missile_triggered = True
 
-    def release_trigger_missile(self):
-        self.is_missile_triggered = False
+    # def release_trigger_missile(self):
+    #     self.is_missile_triggered = False
 
     def change_weapon(self, weapon):
         self.current_weapon = weapon
@@ -475,7 +475,7 @@ class Player(ShooterSprite):
 
     @ schedule_instance_method_interval(
         "shot_interval", interval_ignorerer="ignore_shot_interval")
-    def _shooting(self):
+    def shooting(self):
         if (self.is_shot_allowed and
                 (len(self.shot_que) <
                  self.weapon[self.current_weapon]["max_num"])):
@@ -490,9 +490,13 @@ class Player(ShooterSprite):
             shot.will_launch(Arrow.up)
             self.shot_que.append(shot)
 
+    def on_release_trigger(self):
+        if self.current_weapon == "laser":
+            self.laser_shot_sound.stop()
+
     @ schedule_instance_method_interval(
         "missile_interval", interval_ignorerer="ignore_missile_interval")
-    def _shooting_missile(self):
+    def shooting_missile(self):
         if (self.is_missile_allowed and
                 (len(self.missile_que) <
                  self.second_weapon[self.current_second_weapon]["max_num"])):
@@ -532,15 +536,15 @@ class Player(ShooterSprite):
             self.ignore_shot_interval = False
         else:
             self.ignore_shot_interval = True
-        if self.is_shot_triggered:
-            self._shooting()
+        # if self.is_shot_triggered:
+        #     self._shooting()
 
         if self.missile_que:
             self.ignore_missile_interval = False
         else:
             self.ignore_missile_interval = True
-        if self.is_missile_triggered:
-            self._shooting_missile()
+        # if self.is_missile_triggered:
+        #     self._shooting_missile()
 
         self.do_animation(dt)
 
@@ -575,22 +579,53 @@ class GameScene(Scene):
         self.gamelevel_running = True
         textfactory.register_text(
             "tutorial", "z:主砲 x:ミサイル c:主砲切り替え v:やり直す")
+        self.keyboard.register_keyaction(
+            pygame.K_UP,
+            0, 0,
+            lambda: self.player.will_move_to(Arrow.up),
+            lambda: self.player.stop_moving_to(Arrow.up))
+        self.keyboard.register_keyaction(
+            pygame.K_DOWN,
+            0, 0,
+            lambda: self.player.will_move_to(Arrow.down),
+            lambda: self.player.stop_moving_to(Arrow.down))
+        self.keyboard.register_keyaction(
+            pygame.K_RIGHT,
+            0, 0,
+            lambda: self.player.will_move_to(Arrow.right),
+            lambda: self.player.stop_moving_to(Arrow.right))
+        self.keyboard.register_keyaction(
+            pygame.K_LEFT,
+            0, 0,
+            lambda: self.player.will_move_to(Arrow.left),
+            lambda: self.player.stop_moving_to(Arrow.left))
+        self.keyboard.register_keyaction(
+            pygame.K_z,
+            4, 4,
+            self.player.shooting, self.player.on_release_trigger)
+        self.keyboard.register_keyaction(
+            pygame.K_x,
+            4, 4,
+            lambda: self.player.shooting_missile())
+        # self.keyboard.register_keyaction(
+        #     pygame.K_z,
+        #     0, 0, self.command_menu_item)
         # self.gameworld.show_hitbox()
 
     def event(self, event):
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP:
-                self.player.will_move_to(Arrow.up)
-            if event.key == pygame.K_DOWN:
-                self.player.will_move_to(Arrow.down)
-            if event.key == pygame.K_RIGHT:
-                self.player.will_move_to(Arrow.right)
-            if event.key == pygame.K_LEFT:
-                self.player.will_move_to(Arrow.left)
-            if event.key == pygame.K_z:
-                self.player.trigger_shot()
-            if event.key == pygame.K_x:
-                self.player.trigger_missile()
+            # if event.key == pygame.K_UP:
+            #     self.player.will_move_to(Arrow.up)
+            # if event.key == pygame.K_DOWN:
+            #     self.player.will_move_to(Arrow.down)
+            # if event.key == pygame.K_RIGHT:
+            #     self.player.will_move_to(Arrow.right)
+            # if event.key == pygame.K_LEFT:
+            #     self.player.will_move_to(Arrow.left)
+            # if event.key == pygame.K_z:
+            #     self.player.trigger_shot()
+            # if event.key == pygame.K_x:
+            #     self.player.trigger_missile()
             if event.key == pygame.K_v:
                 self.reset_game()
             if event.key == pygame.K_c:
@@ -598,19 +633,19 @@ class GameScene(Scene):
                     self.player.change_weapon("laser")
                 else:
                     self.player.change_weapon("normal")
-        if event.type == pygame.KEYUP:
-            if event.key == pygame.K_UP:
-                self.player.stop_moving_to(Arrow.up)
-            if event.key == pygame.K_DOWN:
-                self.player.stop_moving_to(Arrow.down)
-            if event.key == pygame.K_RIGHT:
-                self.player.stop_moving_to(Arrow.right)
-            if event.key == pygame.K_LEFT:
-                self.player.stop_moving_to(Arrow.left)
-            if event.key == pygame.K_z:
-                self.player.release_trigger()
-            if event.key == pygame.K_x:
-                self.player.release_trigger_missile()
+        # if event.type == pygame.KEYUP:
+            # if event.key == pygame.K_UP:
+            #     self.player.stop_moving_to(Arrow.up)
+            # if event.key == pygame.K_DOWN:
+            #     self.player.stop_moving_to(Arrow.down)
+            # if event.key == pygame.K_RIGHT:
+            #     self.player.stop_moving_to(Arrow.right)
+            # if event.key == pygame.K_LEFT:
+            #     self.player.stop_moving_to(Arrow.left)
+            # if event.key == pygame.K_z:
+            #     self.player.release_trigger()
+            # if event.key == pygame.K_x:
+            #     self.player.release_trigger_missile()
 
     def stop_move_of_player_on_wall(self):
         if self.player.y < 0:
@@ -623,6 +658,12 @@ class GameScene(Scene):
             self.player.stop_moving_to(Arrow.left)
 
     def update(self, dt):
+        self.keyboard.do_action_by_keyinput(pygame.K_UP)
+        self.keyboard.do_action_by_keyinput(pygame.K_DOWN)
+        self.keyboard.do_action_by_keyinput(pygame.K_RIGHT)
+        self.keyboard.do_action_by_keyinput(pygame.K_LEFT)
+        self.keyboard.do_action_by_keyinput(pygame.K_z)
+        self.keyboard.do_action_by_keyinput(pygame.K_x)
         textfactory.register_text(
             "gamescore", f"スコア:{self.gameworld.gamescore}")
         textfactory.register_text(
@@ -684,7 +725,6 @@ class TitleMenuScene(Scene):
         self.arrow_for_menu_cursor = ArrowToTurnToward()
         self.gamemenu = [2, 1, 0]
         self.index_of_menu_item_selected = 0
-        self.keyboard = Keyboard()
         self.keyboard.register_keyaction(
             pygame.K_UP,
             10, 10, self.go_up_menu_cursor)
