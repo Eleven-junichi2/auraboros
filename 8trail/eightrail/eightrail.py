@@ -591,7 +591,7 @@ class GameScene(Scene):
         textfactory.register_text(
             "gamescore", pos=[0, 32], color_rgb=[255, 255, 255])
         textfactory.register_text("highscore")
-        textfactory.register_text("num_of_enemy")
+        textfactory.register_text("num_of_enemy", color_rgb=[255, 200, 200])
         textfactory.register_text("elapsed_time_in_level")
         textfactory.register_text("count_of_enemies_summoned")
 
@@ -651,7 +651,7 @@ class GameScene(Scene):
         textfactory.set_text_pos_to_right("highscore")
         textfactory.rewrite_text(
             "num_of_enemy",
-            f"敵:{self.gameworld.num_of_remaining_enemies}")
+            f"敵機残り:{self.gameworld.num_of_remaining_enemies}")
         textfactory.rewrite_text(
             "elapsed_time_in_level",
             f"経過時間:{round(self.gameworld.elapsed_time_in_level)}")
