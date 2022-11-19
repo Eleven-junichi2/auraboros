@@ -683,9 +683,11 @@ class TitleMenuScene(Scene):
         self.arrow_for_menu_cursor = ArrowToTurnToward()
         self.gamemenu = [2, 1, 0]
         self.index_of_menu_item_selected = 0
+        self.keydown_timecount = 0
 
     def event(self, event):
         if event.type == pygame.KEYDOWN:
+            print(self.keydown_timecount)
             if event.key == pygame.K_UP:
                 self.arrow_for_menu_cursor.set(Arrow.up)
             if event.key == pygame.K_DOWN:
@@ -698,6 +700,7 @@ class TitleMenuScene(Scene):
                 self.command_menu_item()
             if event.key == pygame.K_x:
                 pass
+            self.keydown_timecount += 1
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_UP:
                 self.arrow_for_menu_cursor.unset(Arrow.up)
