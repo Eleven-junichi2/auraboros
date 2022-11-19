@@ -1,5 +1,9 @@
 # import pygame
 
 
-class GameMenu:
+class UIElement:
+    pass
+
+
+class UILayout:
     pass

@@ -43,6 +43,7 @@ class Sprite(pygame.sprite.Sprite):
         self._hitbox = self.image.get_rect()
         self.is_visible_hitbox = False
         self.is_hitbox_on_center = True
+        self.invincible_to_entity = False
         self._x = 0
         self._y = 0
         self.angle = 0
@@ -149,8 +150,10 @@ class Sprite(pygame.sprite.Sprite):
                 and is_entity_a_alive and is_entity_b_alive):
             # if (collided(entity_a, entity_b)
             #         and is_entity_a_alive and is_entity_b_alive):
-            entity_a.death()
-            entity_b.death()
+            if not entity_a.invincible_to_entity:
+                entity_a.death()
+            if not entity_b.invincible_to_entity:
+                entity_b.death()
             return True
         else:
             return False
@@ -215,13 +218,13 @@ class Sprite(pygame.sprite.Sprite):
         if self.set_destination_to_entity(entity_type):
             self.move_to_destination(dt)
 
-    def move_to_destination(self, dt):
+    def move_to_dest_x(self, dt, stop_when_arrived=True):
         if self.move_target_x:
             if (self.move_target_x - self.movement_speed
                 + self.hitbox.width
                 <= self.x <=
                     self.move_target_x + self.movement_speed
-                    - self.hitbox.width):
+                    - self.hitbox.width) and stop_when_arrived:
                 self.direction_of_movement.unset(Arrow.right)
                 self.direction_of_movement.unset(Arrow.left)
             elif self.x < self.move_target_x:
@@ -230,6 +233,8 @@ class Sprite(pygame.sprite.Sprite):
             elif self.move_target_x < self.x:
                 self.direction_of_movement.set(Arrow.left)
                 self.direction_of_movement.unset(Arrow.right)
+
+    def move_to_dest_y(self, dt, stop_when_arrived=True):
         if self.move_target_y:
             if (self.move_target_y - self.movement_speed
                 + self.hitbox.height
@@ -245,6 +250,10 @@ class Sprite(pygame.sprite.Sprite):
                 self.direction_of_movement.set(Arrow.up)
                 self.direction_of_movement.unset(Arrow.down)
 
+    def move_to_destination(self, dt):
+        self.move_to_dest_x(dt)
+        self.move_to_dest_y(dt)
+
     def set_destination_to_entity(self, entity_type: Sprite) -> bool:
         entity_list = [
             entity for entity in self.gameworld.entities
@@ -255,6 +264,26 @@ class Sprite(pygame.sprite.Sprite):
             return True
         else:
             return False
+
+    def move_bounce_to_left_from_right(self, dt):
+        if (self.move_target_x != 0) and self.x < w_size[0]:
+            self.move_target_x = w_size[0] - self.rect.width
+            self.direction_of_movement.set(Arrow.right)
+            self.direction_of_movement.unset(Arrow.left)
+        if w_size[0] <= self.x + self.rect.width:
+            self.move_target_x = 0
+            self.direction_of_movement.set(Arrow.left)
+            self.direction_of_movement.unset(Arrow.right)
+
+    def move_bounce_to_right_from_left(self, dt):
+        if (self.move_target_x != w_size[0]) and 0 < self.x:
+            self.move_target_x = 0
+            self.direction_of_movement.set(Arrow.left)
+            self.direction_of_movement.unset(Arrow.right)
+        if self.x <= 0 + self.movement_speed:
+            self.move_target_x = w_size[0]
+            self.direction_of_movement.set(Arrow.right)
+            self.direction_of_movement.unset(Arrow.left)
 
 
 class ShooterSprite(Sprite):
@@ -277,6 +306,10 @@ class Enemy(Sprite):
             "random_horizontal"] = self.move_random_horizontal
         self.behavior_pattern_dict[
             "random"] = self.move_random
+        self.behavior_pattern_dict[
+            "bounce_to_left_from_right"] = self.move_bounce_to_left_from_right
+        self.behavior_pattern_dict[
+            "bounce_to_right_from_left"] = self.move_bounce_to_right_from_left
         self.gamescore = 0
 
     def update(self, dt):

@@ -1,8 +1,8 @@
 from collections import UserDict
 from inspect import isclass
-# import math
+import math
 # from typing import Any
-from .utilities import Arrow, AssetFilePath, TextToDebug  # noqa
+from .utilities import Arrow, ArrowToTurnToward, AssetFilePath, TextToDebug  # noqa
 from .schedule import IntervalCounter, schedule_instance_method_interval
 from .sound import SoundDict
 from .gamelevel import Level
@@ -131,6 +131,40 @@ class ScoutDiskMove(AnimationImage):
             self.sprite_sheet.image_by_area(0, 16 * 6, 16, 16),
             self.sprite_sheet.image_by_area(0, 16 * 7, 16, 16), ]
         self.anim_interval = 5
+
+
+class TrumplaIdle(AnimationImage):
+    def __init__(self):
+        super().__init__()
+        self.sprite_sheet = SpriteSheet(AssetFilePath.img("enemy_b.png"))
+        self.anim_frames: list[pygame.surface.Surface] = [
+            self.sprite_sheet.image_by_area(0, 0, 16, 16), ]
+        self.anim_interval = 5
+
+
+class TrumplaMove(AnimationImage):
+    def __init__(self):
+        super().__init__()
+        self.sprite_sheet = SpriteSheet(AssetFilePath.img("enemy_b.png"))
+        self.anim_frames: list[pygame.surface.Surface] = [
+            self.sprite_sheet.image_by_area(0, 0, 16, 16),
+            self.sprite_sheet.image_by_area(0, 16, 16, 16),
+            self.sprite_sheet.image_by_area(0, 16, 16, 16),
+            self.sprite_sheet.image_by_area(0, 16 * 2, 16, 16),
+            self.sprite_sheet.image_by_area(0, 16 * 3, 16, 16), ]
+        self.anim_interval = 10
+
+
+class EnemyShotAnim(AnimationImage):
+    def __init__(self):
+        super().__init__()
+        self.sprite_sheet = SpriteSheet(AssetFilePath.img("enemy_b.png"))
+        self.anim_frames: list[pygame.surface.Surface] = [
+            self.sprite_sheet.image_by_area(0, 0, 4, 4),
+            self.sprite_sheet.image_by_area(0, 4, 4, 4),
+            self.sprite_sheet.image_by_area(0, 4*2, 4, 4),
+            self.sprite_sheet.image_by_area(0, 4*3, 4, 4), ]
+        self.anim_interval = 6
 
 
 class PlayerShot(Sprite):
@@ -263,7 +297,6 @@ class ScoutDiskEnemy(Enemy):
         self.behavior_pattern_dict[
             "strike_to_player"] = self.move_strike_to_player
         self.gamescore = 10
-        self.radian_for_behavior_pattern = 0
 
     def update(self, dt):
         super().update(dt)
@@ -281,6 +314,77 @@ class ScoutDiskEnemy(Enemy):
         self.gameworld.scene.visual_effects.append(visual_effect)
         self.explosion_sound.play()
         super().death()
+
+
+class TrumplaEnemy(ScoutDiskEnemy):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.animation = AnimationDict()
+        self.animation["idle"] = TrumplaIdle()
+        self.animation["move"] = TrumplaMove()
+        self.image = self.animation[self.action].image
+        self.rect = self.image.get_rect()
+        self.hitbox = self.image.get_rect()
+        self.hitbox.width = 10
+        self.hitbox.height = 8
+        self.movement_speed = 2.5
+        self.gamescore = 10
+        self.is_able_to_shot = True
+        self.shot_interval = 75
+
+    def update(self, dt):
+        super().update(dt)
+        self.launch_shot()
+
+    @schedule_instance_method_interval("shot_interval")
+    def launch_shot(self):
+        player_list = [entity for entity in self.gameworld.entities
+                       if isinstance(entity, Player)]
+        distance_to_player_list = []
+        for player in player_list:
+            distance_to_player_list.append(
+                math.sqrt(
+                    (player.x - self.x) ** 2 + (player.y - self.y) ** 2))
+        target_player = player_list[
+            distance_to_player_list.index(min(distance_to_player_list))]
+        if self.is_able_to_shot and abs(
+                target_player.y - self.y) <= 120:
+            shot = EnemyShot()
+            shot.x = self.x
+            shot.y = self.y
+            self.gameworld.entities.append(shot)
+            shot.set_destination_to_entity(Player)
+
+
+class EnemyShot(Enemy):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.animation = AnimationDict()
+        self.animation["idle"] = EnemyShotAnim()
+        self.animation["move"] = EnemyShotAnim()
+        self.action = "move"
+        self.image = self.animation[self.action].image
+        self.rect = self.image.get_rect()
+        self.hitbox = self.image.get_rect()
+        self.hitbox.width = 2
+        self.hitbox.height = 2
+        self.invincible_to_entity = True
+        self.movement_speed = 2
+        self.behavior_pattern = "launching_aim_at_player"
+        self.behavior_pattern_dict[
+            "launching_aim_at_player"] = self.move_launching_aim_at_player
+        self.gamescore = 10
+
+    def update(self, dt):
+        super().update(dt)
+        self.animation[self.action].let_continue_animation()
+        self.image = self.animation[self.action].image
+        self.animation[self.action].update(dt)
+
+    def move_launching_aim_at_player(self, dt):
+        self.direction_of_movement.set(Arrow.down)
+        self.direction_of_movement.unset(Arrow.up)
+        # self.move_to_destination(dt, stop_when_arrived=False)
 
 
 class WeaponBulletFactory(UserDict):
@@ -457,11 +561,12 @@ class GameScene(Scene):
 
     gamefont = pygame.font.Font(AssetFilePath.font("misaki_gothic.ttf"), 16)
 
-    def __init__(self):
-        super().__init__()
-        self.gameworld = Level(AssetFilePath.level("stage1.json"), self)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.gameworld = Level(AssetFilePath.level("debug2.json"), self)
         self.gameworld.set_background()
         self.gameworld.enemy_factory["scoutdisk"] = ScoutDiskEnemy
+        self.gameworld.enemy_factory["trumpla"] = TrumplaEnemy
         self.player = Player()
         self.player.center_x_on_screen()
         self.player.y = w_size[1] - self.player.rect.height
@@ -561,21 +666,80 @@ class GameScene(Scene):
         # textfactory.render("elapsed_time_in_level", screen, (0, 48))
 
 
+class OptionsScene(Scene):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
 class TitleMenuScene(Scene):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         textfactory.set_current_font("misaki_gothic")
         textfactory.register_text("title_start", "START")
-        textfactory.register_text("title_start", "OPTIONS")
+        textfactory.register_text("title_options", "OPTIONS")
         textfactory.register_text("title_exit", "EXIT")
+        textfactory.register_text("menu_cursor_>", ">")
+        self.menu_cursor_pos = [0, 0]
+        self.arrow_for_menu_cursor = ArrowToTurnToward()
+        self.gamemenu = [2, 1, 0]
+        self.index_of_menu_item_selected = 0
+
+    def event(self, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP:
+                self.arrow_for_menu_cursor.set(Arrow.up)
+            if event.key == pygame.K_DOWN:
+                self.arrow_for_menu_cursor.set(Arrow.down)
+            if event.key == pygame.K_RIGHT:
+                self.arrow_for_menu_cursor.set(Arrow.right)
+            if event.key == pygame.K_LEFT:
+                self.arrow_for_menu_cursor.set(Arrow.left)
+            if event.key == pygame.K_z:
+                self.command_menu_item()
+            if event.key == pygame.K_x:
+                pass
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_UP:
+                self.arrow_for_menu_cursor.unset(Arrow.up)
+            if event.key == pygame.K_DOWN:
+                self.arrow_for_menu_cursor.unset(Arrow.down)
+            if event.key == pygame.K_RIGHT:
+                self.arrow_for_menu_cursor.unset(Arrow.right)
+            if event.key == pygame.K_LEFT:
+                self.arrow_for_menu_cursor.unset(Arrow.left)
+            if event.key == pygame.K_z:
+                pass
+            if event.key == pygame.K_x:
+                pass
+
+    def process_menu_cursor(self):
+        if self.arrow_for_menu_cursor.is_up:
+            self.go_up_menu_cursor()
+        elif self.arrow_for_menu_cursor.is_down:
+            self.go_down_menu_cursor()
+
+    def go_up_menu_cursor(self):
+        if 0 < self.index_of_menu_item_selected:
+            self.menu_cursor_pos[1] -= 16
+            self.index_of_menu_item_selected -= 1
+
+    def go_down_menu_cursor(self):
+        if self.index_of_menu_item_selected < len(self.gamemenu) - 1:
+            self.menu_cursor_pos[1] += 16
+            self.index_of_menu_item_selected += 1
+
+    def command_menu_item(self):
+        self.manager.transition_to(
+            self.gamemenu[self.index_of_menu_item_selected])
 
     def update(self, dt):
-        pass
+        self.process_menu_cursor()
 
     def draw(self, screen):
-        textfactory.render("title_start", screen, (0, 0))
-        textfactory.render("title_start", screen, (0, 0))
-        textfactory.render("title_start", screen, (0, 0))
+        textfactory.render("title_start", screen, (16, 0))
+        textfactory.render("title_options", screen, (16, 16))
+        textfactory.render("title_exit", screen, (16, 32))
+        textfactory.render("menu_cursor_>", screen, self.menu_cursor_pos)
 
 
 def run(fps_num=fps):
@@ -583,8 +747,9 @@ def run(fps_num=fps):
     fps = fps_num
     running = True
     scene_manager = SceneManager()
-    scene_manager.push(TitleMenuScene())
-    scene_manager.push(GameScene())
+    scene_manager.push(TitleMenuScene(scene_manager))
+    scene_manager.push(OptionsScene(scene_manager))
+    scene_manager.push(GameScene(scene_manager))
     while running:
         dt = clock.tick(fps)/1000  # dt means delta time
 

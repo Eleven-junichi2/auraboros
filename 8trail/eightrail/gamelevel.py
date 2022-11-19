@@ -94,6 +94,8 @@ class Level:
                     if isinstance(data["pos"][i], str):
                         if data["pos"][i] == "random":
                             pos[i] = randint(0, w_size[i])
+                        if data["pos"][i] == "right":
+                            pos[i] = w_size[i] - enemy.rect.width
                     else:
                         pos[i] = data["pos"][i]
                 enemy.x, enemy.y = pos

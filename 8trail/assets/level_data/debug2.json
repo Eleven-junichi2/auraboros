@@ -1,0 +1,107 @@
+[
+    {
+        "tag": "debug1",
+        "timing": 20,
+        "enemy": "trumpla",
+        "pattern": "bounce_to_left_from_right",
+        "pos": [
+            0,
+            0
+        ]
+    },
+    {
+        "tag": "debug1",
+        "timing": 30,
+        "enemy": "trumpla",
+        "pattern": "bounce_to_left_from_right",
+        "pos": [
+            0,
+            0
+        ]
+    },
+    {
+        "tag": "debug1",
+        "timing": 40,
+        "enemy": "trumpla",
+        "pattern": "bounce_to_left_from_right",
+        "pos": [
+            0,
+            0
+        ]
+    },
+    {
+        "tag": "debug1",
+        "timing": 50,
+        "enemy": "trumpla",
+        "pattern": "bounce_to_left_from_right",
+        "pos": [
+            0,
+            0
+        ]
+    },
+    {
+        "tag": "debug1",
+        "timing": 60,
+        "enemy": "trumpla",
+        "pattern": "bounce_to_left_from_right",
+        "pos": [
+            0,
+            0
+        ]
+    },
+
+    {
+        "tag": "debug2",
+        "timing": 20,
+        "enemy": "trumpla",
+        "pattern": "bounce_to_right_from_left",
+        "pos": [
+            "right",
+            0
+        ]
+    },
+    {
+        "tag": "debug2",
+        "timing": 30,
+        "enemy": "trumpla",
+        "pattern": "bounce_to_right_from_left",
+        "pos": [
+            "right",
+            0
+        ]
+    },
+    {
+        "tag": "debug2",
+        "timing": 40,
+        "enemy": "trumpla",
+        "pattern": "bounce_to_right_from_left",
+        "pos": [
+            "right",
+            0
+        ]
+    },
+    {
+        "tag": "debug2",
+        "timing": 50,
+        "enemy": "trumpla",
+        "pattern": "bounce_to_right_from_left",
+        "pos": [
+            "right",
+            0
+        ]
+    },
+    {
+        "tag": "debug2",
+        "timing": 60,
+        "enemy": "trumpla",
+        "pattern": "bounce_to_right_from_left",
+        "pos": [
+            "right",
+            0
+        ]
+    },
+    ["debug1", 0],
+    ["debug1", 200],
+    ["debug2", 450],
+    ["debug2", 650]
+]

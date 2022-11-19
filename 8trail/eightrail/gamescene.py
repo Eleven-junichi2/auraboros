@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from .gamelevel import Level
+    pass
+    # from .gamelevel import Level
 
 from dataclasses import dataclass
 
@@ -12,8 +13,9 @@ from .animation import AnimationImage
 @dataclass
 class Scene(object):
 
-    def __init__(self):
+    def __init__(self, manager):
         from .gamelevel import Level
+        self.manager = manager
         self.gameworld: Level = None
         self.visual_effects: list[AnimationImage] = []
         attrs_of_class = set(dir(self.__class__)) - set(dir(Scene))
@@ -38,14 +40,19 @@ class SceneManager:
     def __init__(self):
         self.scenes: list[Scene] = []
         self.current: int = 0
-        self.gameworld: Level = None
 
     def event(self, event: pygame.event):
         self.scenes[self.current].event(event)
 
+    def is_current_scene_has_gameworld(self) -> bool:
+        if self.scenes[self.current].gameworld is None:
+            return False
+        else:
+            return True
+
     def update(self, dt):
         self.scenes[self.current].update(dt)
-        if self.gameworld is not None:
+        if self.is_current_scene_has_gameworld():
             if not self.scenes[self.current].gameworld.pause:
                 [entity.update(dt)
                  for entity in self.scenes[self.current].gameworld.entities]
@@ -59,7 +66,7 @@ class SceneManager:
             self.scenes[self.current].visual_effects)
          if visual_effect.was_played_once]
         self.scenes[self.current].draw(screen)
-        if self.gameworld is not None:
+        if self.is_current_scene_has_gameworld():
             if not self.scenes[self.current].gameworld.pause:
                 [entity.draw(screen)
                  for entity in self.scenes[self.current].gameworld.entities]
@@ -71,3 +78,6 @@ class SceneManager:
 
     def pop(self):
         self.scenes.pop()
+
+    def transition_to(self, index):
+        self.current = index
