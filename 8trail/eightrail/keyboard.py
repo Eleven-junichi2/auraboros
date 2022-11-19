@@ -19,7 +19,7 @@ class Keyboard:
             if self.keyaction_dict.get(event.key):
                 self.keyaction_dict[event.key]["is_pressed"] = False
 
-    def action_by_keyinput(self, pygame_key_const):
+    def do_action_by_keyinput(self, pygame_key_const):
         # run keyaction whether the key is pressed
         if self.keyaction_dict[pygame_key_const]['is_pressed']:
             if self.keyaction_dict[pygame_key_const]['_interval_counter'] == 0:

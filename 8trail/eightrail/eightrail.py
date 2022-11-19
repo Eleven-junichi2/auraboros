@@ -684,7 +684,6 @@ class TitleMenuScene(Scene):
         self.arrow_for_menu_cursor = ArrowToTurnToward()
         self.gamemenu = [2, 1, 0]
         self.index_of_menu_item_selected = 0
-        self.keydown_timecount = 0
         self.keyboard = Keyboard()
         self.keyboard.register_keyaction(
             pygame.K_UP,
@@ -696,8 +695,8 @@ class TitleMenuScene(Scene):
             pygame.K_z,
             0, 0, self.command_menu_item)
 
-    def event(self, event):
-        self.keyboard.event(event)
+    # def event(self, event):
+        # self.keyboard.event(event)
 
     def process_menu_cursor(self):
         if self.arrow_for_menu_cursor.is_up:
@@ -720,19 +719,16 @@ class TitleMenuScene(Scene):
             self.gamemenu[self.index_of_menu_item_selected])
 
     def update(self, dt):
-        self.keyboard.action_by_keyinput(pygame.K_UP)
-        self.keyboard.action_by_keyinput(pygame.K_DOWN)
-        self.keyboard.action_by_keyinput(pygame.K_z)
+        self.keyboard.do_action_by_keyinput(pygame.K_UP)
+        self.keyboard.do_action_by_keyinput(pygame.K_DOWN)
+        self.keyboard.do_action_by_keyinput(pygame.K_z)
         self.process_menu_cursor()
-        textfactory.register_text(
-            "keyup", f"{self.keyboard[pygame.K_UP]['is_pressed']}")
 
     def draw(self, screen):
         textfactory.render("title_start", screen, (16, 0))
         textfactory.render("title_options", screen, (16, 16))
         textfactory.render("title_exit", screen, (16, 32))
         textfactory.render("menu_cursor_>", screen, self.menu_cursor_pos)
-        textfactory.render("keyup", screen, (64, 64))
 
 
 def run(fps_num=fps):

@@ -1,13 +1,13 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    pass
-    # from .gamelevel import Level
+# from typing import TYPE_CHECKING
+# if TYPE_CHECKING:
+#     pass
 
 from dataclasses import dataclass
 
 import pygame
 
 from .animation import AnimationImage
+from .keyboard import Keyboard
 
 
 @dataclass
@@ -17,6 +17,7 @@ class Scene(object):
         from .gamelevel import Level
         self.manager = manager
         self.gameworld: Level = None
+        self.keyboard: Keyboard = Keyboard()
         self.visual_effects: list[AnimationImage] = []
         attrs_of_class = set(dir(self.__class__)) - set(dir(Scene))
         for attr_name in attrs_of_class:
@@ -43,6 +44,7 @@ class SceneManager:
 
     def event(self, event: pygame.event):
         self.scenes[self.current].event(event)
+        self.scenes[self.current].keyboard.event(event)
 
     def is_current_scene_has_gameworld(self) -> bool:
         if self.scenes[self.current].gameworld is None:
