@@ -614,7 +614,7 @@ class GameScene(Scene):
             "highscore", f"ハイスコア:{self.gameworld.highscore()}")
         textfactory.register_text(
             "elapsed_time_in_level",
-            f"経過時間:{self.gameworld.elapsed_time_in_level}")
+            f"経過時間:{round(self.gameworld.elapsed_time_in_level)}")
 
         self.keyboard.do_action_by_keyinput(pygame.K_v)
         if not self.gameworld.pause:
@@ -654,6 +654,7 @@ class GameScene(Scene):
         textfactory.render("tutorial", screen, (0, 0))
         textfactory.render("highscore", screen, (0, 16))
         textfactory.render("gamescore", screen, (0, 32))
+        textfactory.render("elapsed_time_in_level", screen, (0, 64))
 
 
 class OptionsScene(Scene):

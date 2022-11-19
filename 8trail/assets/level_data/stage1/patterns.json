@@ -10,15 +10,6 @@
             ]
         },
         {
-            "timing": 10,
-            "enemy": "scoutdisk",
-            "pattern": "random_vertical",
-            "pos": [
-                "random",
-                0
-            ]
-        },
-        {
             "timing": 20,
             "enemy": "scoutdisk",
             "pattern": "random_vertical",
@@ -28,7 +19,16 @@
             ]
         },
         {
-            "timing": 30,
+            "timing": 40,
+            "enemy": "scoutdisk",
+            "pattern": "random_vertical",
+            "pos": [
+                "random",
+                0
+            ]
+        },
+        {
+            "timing": 60,
             "enemy": "scoutdisk",
             "pattern": "random_vertical",
             "pos": [
@@ -48,15 +48,6 @@
             ]
         },
         {
-            "timing": 10,
-            "enemy": "scoutdisk",
-            "pattern": "strike_to_player",
-            "pos": [
-                "random",
-                0
-            ]
-        },
-        {
             "timing": 20,
             "enemy": "scoutdisk",
             "pattern": "strike_to_player",
@@ -66,7 +57,16 @@
             ]
         },
         {
-            "timing": 30,
+            "timing": 40,
+            "enemy": "scoutdisk",
+            "pattern": "strike_to_player",
+            "pos": [
+                "random",
+                0
+            ]
+        },
+        {
+            "timing": 60,
             "enemy": "scoutdisk",
             "pattern": "strike_to_player",
             "pos": [
@@ -86,7 +86,7 @@
             ]
         },
         {
-            "timing": 10,
+            "timing": 20,
             "enemy": "trumpla",
             "pattern": "random_vertical",
             "pos": [
@@ -95,7 +95,7 @@
             ]
         },
         {
-            "timing": 20,
+            "timing": 40,
             "enemy": "trumpla",
             "pattern": "strike_to_player",
             "pos": [

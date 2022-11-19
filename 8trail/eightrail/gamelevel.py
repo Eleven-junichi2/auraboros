@@ -96,9 +96,12 @@ class Level:
         pattern_dict = self.level_raw_pattern_data
         for data in self.level_raw_data:
             decompressed = pattern_dict[data[0]]
-            [new_dict.update(timing=new_dict["timing"]+data[1])
-             for new_dict in decompressed]
-            level.extend(decompressed)
+            list_ = []
+            for dict_ in decompressed:
+                new_dict = copy.copy(dict_)
+                new_dict["timing"] = dict_["timing"]+data[1]
+                list_.append(new_dict)
+            level.extend(list_)
         self.level_data = level
 
     def run_level(self, dt):

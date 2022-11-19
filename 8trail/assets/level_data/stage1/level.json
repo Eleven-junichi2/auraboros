@@ -1,7 +1,7 @@
 [
-    ["scouts", 10],
-    ["strikers", 100],
-    ["strikers", 200],
-    ["yugekitai", 300],
-    ["yugekitai", 400]
+    ["scouts", 0],
+    ["strikers", 400],
+    ["strikers", 800],
+    ["yugekitai", 1200],
+    ["yugekitai", 1600]
 ]
