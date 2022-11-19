@@ -290,10 +290,6 @@ class Enemy(Sprite):
 
     def update(self, dt):
         self.do_pattern(dt)
-        if self.is_moving:
-            self.action = "move"
-        else:
-            self.action = "idle"
 
     def do_pattern(self, dt):
         if self.behavior_pattern is not None:

@@ -27,6 +27,11 @@ class EntityListOfGameWorld(EntityList):
         super().__init__(*args, **kwargs)
         self.gameworld = gameworld
 
+    def kill_living_entity(self, entity: Sprite):
+        if isinstance(entity, Enemy):
+            self.gameworld.num_of_remaining_enemies -= 1
+        super().kill_living_entity(entity)
+
     def append(self, item: Sprite):
         item.gameworld = self.gameworld
         item.entity_container = self
@@ -53,6 +58,8 @@ class Level:
 
         self.pause = False
         self.elapsed_time_in_level = 0
+        self.count_of_enemies_killed = 0
+        self.reset_num_of_remaining_enemies()
 
         self.gamescore: int
         self.scoreboard = [0, ]
@@ -67,6 +74,9 @@ class Level:
     @entities.setter
     def entities(self, value):
         self._entities = value
+
+    def reset_num_of_remaining_enemies(self):
+        self.num_of_remaining_enemies = self.num_of_enemy_on_level()
 
     def entity(self, entity_type: Type[Sprite]):
         """Return the entity of specified type which added first to
@@ -90,6 +100,9 @@ class Level:
         enemy_list = [
             enemy for enemy in self.entities if isinstance(enemy, Enemy)]
         return enemy_list
+
+    def num_of_enemy_now(self):
+        return len(self.enemies())
 
     def prepare_level_data(self):
         level = []
@@ -138,6 +151,7 @@ class Level:
             for weapon in weapon_entities:
                 if Sprite.collide(weapon, enemy):
                     self.gamescore += enemy.gamescore
+                    self.count_of_enemies_killed += 1
             for player in player_entities:
                 Sprite.collide(player, enemy)
 
@@ -155,20 +169,14 @@ class Level:
                     item for item in without_str if item["tag"] == data[0]]
         return data_dict_by_tag
 
-    def _set_level_data_with_tag_decompressed(self, data_dict_by_tag):
-        level = []
-        timing_list = []
-        for data in self.level_raw_data:
-            if isinstance(data, list):
-                level.append(data_dict_by_tag[data[0]])
-                timing_list.append(data[1])
-        new_level = []
-        for data_list, timing in zip(level, timing_list):
-            for data in data_list:
-                data_ = copy.copy(data)
-                data_["timing"] += timing
-                new_level.append(data_)
-        self.level = new_level
+    def num_of_enemy_on_level(self) -> int:
+        return len(self.level_data)
+
+    def kill_count_of_enemy(self) -> int:
+        return self.count_of_enemies_killed
+
+    # def num_of_remaining_enemy(self) -> int:
+    #     return
 
     def reset_elapsed_time_counter(self):
         self.elapsed_time_in_level = 0
@@ -195,6 +203,7 @@ class Level:
         self.reset_elapsed_time_counter()
         self.reset_scroll()
         self.reset_score()
+        self.reset_num_of_remaining_enemies()
 
     def clear_enemies_off_screen(self):
         [entity.remove_from_container() for entity in self.enemies()

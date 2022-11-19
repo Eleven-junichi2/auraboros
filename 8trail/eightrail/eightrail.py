@@ -143,15 +143,21 @@ class TrumplaIdle(AnimationImage):
         self.anim_interval = 5
 
 
-class TrumplaMove(AnimationImage):
+class TrumplaRollLeft(AnimationImage):
     def __init__(self):
         super().__init__()
         self.sprite_sheet = SpriteSheet(AssetFilePath.img("enemy_b.png"))
         self.anim_frames: list[pygame.surface.Surface] = [
-            self.sprite_sheet.image_by_area(0, 0, 16, 16),
-            self.sprite_sheet.image_by_area(0, 16, 16, 16),
-            self.sprite_sheet.image_by_area(0, 16 * 2, 16, 16),
             self.sprite_sheet.image_by_area(0, 16 * 3, 16, 16), ]
+        self.anim_interval = 10
+
+
+class TrumplaRollRight(AnimationImage):
+    def __init__(self):
+        super().__init__()
+        self.sprite_sheet = SpriteSheet(AssetFilePath.img("enemy_b.png"))
+        self.anim_frames: list[pygame.surface.Surface] = [
+            self.sprite_sheet.image_by_area(0, 16, 16, 16), ]
         self.anim_interval = 10
 
 
@@ -299,7 +305,11 @@ class ScoutDiskEnemy(Enemy):
         self.gamescore = 10
 
     def update(self, dt):
-        super().update(dt)
+        self.do_pattern(dt)
+        if self.is_moving:
+            self.action = "move"
+        else:
+            self.action = "idle"
         self.animation[self.action].let_continue_animation()
         self.image = self.animation[self.action].image
         self.animation[self.action].update(dt)
@@ -321,19 +331,30 @@ class TrumplaEnemy(ScoutDiskEnemy):
         super().__init__(*args, **kwargs)
         self.animation = AnimationDict()
         self.animation["idle"] = TrumplaIdle()
-        self.animation["move"] = TrumplaMove()
+        self.animation["roll_left"] = TrumplaRollLeft()
+        self.animation["roll_right"] = TrumplaRollRight()
         self.image = self.animation[self.action].image
         self.rect = self.image.get_rect()
         self.hitbox = self.image.get_rect()
         self.hitbox.width = 10
         self.hitbox.height = 8
-        self.movement_speed = 2.5
+        self.movement_speed = 2.25
         self.gamescore = 10
         self.is_able_to_shot = True
         self.shot_interval = 75
 
     def update(self, dt):
-        super().update(dt)
+        self.do_pattern(dt)
+        if self.is_moving:
+            if self.direction_of_movement.is_left:
+                self.action = "roll_left"
+            elif self.direction_of_movement.is_right:
+                self.action = "roll_right"
+        else:
+            self.action = "idle"
+        self.animation[self.action].let_continue_animation()
+        self.image = self.animation[self.action].image
+        self.animation[self.action].update(dt)
         self.launch_shot()
 
     @schedule_instance_method_interval("shot_interval")
@@ -358,7 +379,7 @@ class TrumplaEnemy(ScoutDiskEnemy):
                 shot.set_destination_to_entity(Player)
 
 
-class EnemyShot(Enemy):
+class EnemyShot(Sprite):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.animation = AnimationDict()
@@ -373,15 +394,21 @@ class EnemyShot(Enemy):
         self.invincible_to_entity = True
         self.movement_speed = 2
         self.behavior_pattern = "launching_aim_at_player"
+        self.behavior_pattern_dict = {}
         self.behavior_pattern_dict[
             "launching_aim_at_player"] = self.move_launching_aim_at_player
         self.gamescore = 10
 
     def update(self, dt):
-        super().update(dt)
+        self.do_pattern(dt)
         self.animation[self.action].let_continue_animation()
         self.image = self.animation[self.action].image
         self.animation[self.action].update(dt)
+
+    def do_pattern(self, dt):
+        if self.behavior_pattern is not None:
+            self.behavior_pattern_dict[self.behavior_pattern](dt)
+            self.move_on(dt)
 
     def move_launching_aim_at_player(self, dt):
         self.direction_of_movement.set(Arrow.down)
@@ -549,7 +576,7 @@ class GameScene(Scene):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.gameworld = Level(AssetFilePath.level("stage1"), self)
+        self.gameworld = Level(AssetFilePath.level("debug1"), self)
         self.gameworld.set_background()
         self.gameworld.enemy_factory["scoutdisk"] = ScoutDiskEnemy
         self.gameworld.enemy_factory["trumpla"] = TrumplaEnemy
@@ -613,6 +640,9 @@ class GameScene(Scene):
         textfactory.register_text(
             "highscore", f"ハイスコア:{self.gameworld.highscore()}")
         textfactory.register_text(
+            "num_of_enemy",
+            f"敵:{self.gameworld.num_of_remaining_enemies}")
+        textfactory.register_text(
             "elapsed_time_in_level",
             f"経過時間:{round(self.gameworld.elapsed_time_in_level)}")
 
@@ -628,7 +658,8 @@ class GameScene(Scene):
 
             self.gameworld.stop_entity_from_moving_off_screen(self.player)
 
-            if not (self.player in self.gameworld.entities):
+            if (not (self.player in self.gameworld.entities) or
+                    self.gameworld.num_of_remaining_enemies == 0):
                 self.stop_game_and_show_result()
 
             self.gameworld.run_level(dt)
@@ -654,12 +685,63 @@ class GameScene(Scene):
         textfactory.render("tutorial", screen, (0, 0))
         textfactory.render("highscore", screen, (0, 16))
         textfactory.render("gamescore", screen, (0, 32))
+        textfactory.render("num_of_enemy", screen, (0, 48))
         textfactory.render("elapsed_time_in_level", screen, (0, 64))
 
 
 class OptionsScene(Scene):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        textfactory.set_current_font("misaki_gothic")
+        textfactory.register_text("title_start", "START")
+        textfactory.register_text("title_options", "OPTIONS")
+        textfactory.register_text("title_exit", "EXIT")
+        textfactory.register_text("menu_cursor_>", ">")
+        self.menu_cursor_pos = [0, 0]
+        self.arrow_for_menu_cursor = ArrowToTurnToward()
+        self.gamemenu = [2, 1, 0]
+        self.index_of_menu_item_selected = 0
+        self.keyboard.register_keyaction(
+            pygame.K_UP,
+            10, 10, self.go_up_menu_cursor)
+        self.keyboard.register_keyaction(
+            pygame.K_DOWN,
+            10, 10, self.go_down_menu_cursor)
+        self.keyboard.register_keyaction(
+            pygame.K_z,
+            0, 0, self.command_menu_item)
+
+    def process_menu_cursor(self):
+        if self.arrow_for_menu_cursor.is_up:
+            self.go_up_menu_cursor()
+        elif self.arrow_for_menu_cursor.is_down:
+            self.go_down_menu_cursor()
+
+    def go_up_menu_cursor(self):
+        if 0 < self.index_of_menu_item_selected:
+            self.menu_cursor_pos[1] -= 16
+            self.index_of_menu_item_selected -= 1
+
+    def go_down_menu_cursor(self):
+        if self.index_of_menu_item_selected < len(self.gamemenu) - 1:
+            self.menu_cursor_pos[1] += 16
+            self.index_of_menu_item_selected += 1
+
+    def command_menu_item(self):
+        self.manager.transition_to(
+            self.gamemenu[self.index_of_menu_item_selected])
+
+    def update(self, dt):
+        self.keyboard.do_action_by_keyinput(pygame.K_UP)
+        self.keyboard.do_action_by_keyinput(pygame.K_DOWN)
+        self.keyboard.do_action_by_keyinput(pygame.K_z)
+        self.process_menu_cursor()
+
+    def draw(self, screen):
+        textfactory.render("option_switch_debug", screen, (16, 0))
+        textfactory.render("title_options", screen, (16, 16))
+        textfactory.render("return", screen, (16, 32))
+        textfactory.render("menu_cursor_>", screen, self.menu_cursor_pos)
 
 
 class TitleMenuScene(Scene):
