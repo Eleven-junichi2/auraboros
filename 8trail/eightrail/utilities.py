@@ -83,11 +83,6 @@ class AssetFilePath:
         return path
 
     @ classmethod
-    def path(cls, file_or_dir_path):
-        """return path that joined to root path"""
-        return cls.root / file_or_dir_path
-
-    @ classmethod
     def img(cls, filename):
         return cls.pyinstaller_path(Path(cls.img_dirname) / filename)
 
