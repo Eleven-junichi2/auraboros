@@ -1,6 +1,7 @@
 # from dataclasses import dataclass
+from collections import UserDict
 from inspect import isclass
-from typing import Any, MutableMapping
+# from typing import Any
 
 import pygame
 
@@ -10,11 +11,12 @@ import pygame
 #     sound_dict = dict[Any, pygame.mixer.Sound] = {}
 
 
-class SoundDict(MutableMapping):
+class SoundDict(UserDict):
 
-    def __init__(self, *args, **kwargs):
-        self.__dict__: dict[Any, pygame.mixer.Sound]
-        self.__dict__.update(*args, **kwargs)
+    def __init__(self, channel: pygame.mixer.Channel, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.channel = channel
+        self.sound = None
 
     def __getitem__(self, key) -> pygame.mixer.Sound:
         return self.__dict__[key]

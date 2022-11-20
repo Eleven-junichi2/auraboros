@@ -112,5 +112,52 @@
                 0
             ]
         }
+    ],
+    "viperteam": [
+        {
+            "timing": 0,
+            "enemy": "trumpla",
+            "pattern": "random_horizontal",
+            "pos": [
+                64,
+                0
+            ]
+        },
+        {
+            "timing": 20,
+            "enemy": "trumpla",
+            "pattern": "random_horizontal",
+            "pos": [
+                128,
+                0
+            ]
+        },
+        {
+            "timing": 30,
+            "enemy": "trumpla",
+            "pattern": "random_horizontal",
+            "pos": [
+                192,
+                0
+            ]
+        },
+        {
+            "timing": 20,
+            "enemy": "trumpla",
+            "pattern": "random_horizontal",
+            "pos": [
+                256,
+                0
+            ]
+        },
+        {
+            "timing": 0,
+            "enemy": "trumpla",
+            "pattern": "random_horizontal",
+            "pos": [
+                320,
+                0
+            ]
+        }
     ]
 }
