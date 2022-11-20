@@ -9,7 +9,7 @@ from .gamescene import Scene, SceneManager
 from .gametext import TextSurfaceFactory
 from .utilities import Arrow, ArrowToTurnToward, AssetFilePath, TextToDebug  # noqa
 from .schedule import IntervalCounter, schedule_instance_method_interval
-from .sound import SoundDict
+from .sound import SoundDict, ChannelManager
 
 import pygame
 
@@ -34,10 +34,11 @@ textfactory.register_font(
     "misaki_gothic",
     pygame.font.Font(AssetFilePath.font("misaki_gothic.ttf"), 16))
 
-se_volume_default = 0.8
-se_channel = pygame.mixer.Channel(0)
-se_channel.set_volume(se_volume_default)
-sound_dict = SoundDict(se_channel)
+SE_VOLUME_DEFAULT = 0.8
+channel_manager = ChannelManager()
+channel_manager.register("enemy", pygame.mixer.Channel(0), SE_VOLUME_DEFAULT)
+channel_manager.register("player", pygame.mixer.Channel(1), SE_VOLUME_DEFAULT)
+sound_dict = SoundDict()
 sound_dict["explosion"] = pygame.mixer.Sound(
     AssetFilePath.sound("explosion1.wav"))
 sound_dict["enemy_death1"] = pygame.mixer.Sound(
@@ -296,7 +297,7 @@ class PlayerMissile(PlayerShot):
 class ScoutDiskEnemy(Enemy):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.explosion_sound = sound_dict["enemy_death1"]
+        self.death_sound = sound_dict["enemy_death1"]
         self.visual_effects = AnimationFactory()
         self.visual_effects["death"] = Explosion
         self.animation = AnimationDict()
@@ -331,14 +332,13 @@ class ScoutDiskEnemy(Enemy):
         visual_effect.rect = self.rect
         visual_effect.let_play_animation()
         self.gameworld.scene.visual_effects.append(visual_effect)
-        se_channel.play(self.explosion_sound)
+        channel_manager["enemy"]["channel"].play(self.death_sound)
         super().death()
 
 
 class TrumplaEnemy(ScoutDiskEnemy):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.explosion_sound = sound_dict["enemy_death2"]
         self.animation = AnimationDict()
         self.animation["idle"] = TrumplaIdle()
         self.animation["roll_left"] = TrumplaRollLeft()
@@ -468,7 +468,7 @@ class Player(ShooterSprite):
         self.visual_effects = AnimationFactory()
         self.visual_effects["explosion"] = PlayerExplosion
 
-        self.explosion_sound = sound_dict["player_death"]
+        self.death_sound = sound_dict["player_death"]
         self.normal_shot_sound = sound_dict["shot"]
         self.laser_shot_sound = sound_dict["laser"]
 
@@ -502,10 +502,12 @@ class Player(ShooterSprite):
                 (len(self.shot_que) <
                  self.weapon[self.current_weapon]["max_num"])):
             if self.current_weapon == "normal":
-                se_channel.play(self.normal_shot_sound)
+                channel_manager["player"]["channel"].play(
+                    self.normal_shot_sound)
             elif self.current_weapon == "laser":
                 if not pygame.mixer.get_busy():
-                    se_channel.play(self.laser_shot_sound)
+                    channel_manager["player"]["channel"].play(
+                        self.laser_shot_sound)
             shot = self.weapon[self.current_weapon]["entity"](
                 self, self.shot_que)
             shot.entity_container = self.entity_container
@@ -523,7 +525,8 @@ class Player(ShooterSprite):
                 (len(self.missile_que) <
                  self.second_weapon[self.current_second_weapon]["max_num"])):
             if self.current_second_weapon == "normal":
-                se_channel.play(self.normal_shot_sound)
+                channel_manager["player"]["channel"].play(
+                    self.normal_shot_sound)
             missile = self.second_weapon[self.current_second_weapon]["entity"](
                 self, self.missile_que)
             missile.entity_container = self.entity_container
@@ -577,7 +580,8 @@ class Player(ShooterSprite):
             explosion_effect.let_play_animation()
             self.gameworld.scene.visual_effects.append(explosion_effect)
             self.entity_container.kill_living_entity(self)
-            se_channel.play(self.explosion_sound)
+            channel_manager["player"]["channel"].play(
+                self.death_sound)
 
 
 class GameScene(Scene):
@@ -730,12 +734,14 @@ class OptionsScene(Scene):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         textfactory.set_current_font("misaki_gothic")
-        textfactory.register_text("se_volume", "")
+        textfactory.register_text("enemy_se_volume", "")
+        textfactory.register_text("player_se_volume", "")
+        textfactory.register_text("se_volume_header", "-Sound Volume-")
         textfactory.register_text("return", "RETURN TO THE MENU")
         textfactory.register_text("menu_cursor_>", ">")
-        self.menu_cursor_pos = [0, 0]
+        self.menu_cursor_pos = [0, 16]
         self.arrow_for_menu_cursor = ArrowToTurnToward()
-        self.gamemenu = ["se_volume", 0]
+        self.gamemenu = ["enemy_se_volume", "player_se_volume", 0]
         self.index_of_menu_item_selected = 0
         self.keyboard.register_keyaction(
             pygame.K_UP,
@@ -781,17 +787,25 @@ class OptionsScene(Scene):
 
     def add_value_of_option(self):
         menu_item = self.menu_pointed_by_cursor()
-        if menu_item == "se_volume":
-            print("hi")
-            se_channel.set_volume(round(se_channel.get_volume(), 1) + 0.1)
+        if menu_item == "enemy_se_volume":
+            channel_manager["enemy"]["volume"] += 0.1
+        if menu_item == "player_se_volume":
+            channel_manager["player"]["volume"] += 0.1
 
     def sub_value_of_option(self):
         menu_item = self.menu_pointed_by_cursor()
-        if menu_item == "se_volume":
-            se_channel.set_volume(round(se_channel.get_volume(), 1) - 0.1)
+        if menu_item == "enemy_se_volume":
+            channel_manager["enemy"]["volume"] -= 0.1
+        if menu_item == "player_se_volume":
+            channel_manager["player"]["volume"] -= 0.1
 
     def update(self, dt):
-        textfactory.rewrite_text("se_volume", str(se_channel.get_volume()))
+        textfactory.rewrite_text(
+            "enemy_se_volume", "Enemy: "+str(
+                round(channel_manager["enemy"]["volume"], 1)))
+        textfactory.rewrite_text(
+            "player_se_volume", "Player: "+str(
+                round(channel_manager["player"]["volume"], 1)))
         self.keyboard.do_action_by_keyinput(pygame.K_UP)
         self.keyboard.do_action_by_keyinput(pygame.K_DOWN)
         self.keyboard.do_action_by_keyinput(pygame.K_RIGHT)
@@ -800,8 +814,10 @@ class OptionsScene(Scene):
         self.process_menu_cursor()
 
     def draw(self, screen):
-        textfactory.render("se_volume", screen, (16, 0))
-        textfactory.render("return", screen, (16, 16))
+        textfactory.render("se_volume_header", screen, (16, 0))
+        textfactory.render("enemy_se_volume", screen, (16, 16))
+        textfactory.render("player_se_volume", screen, (16, 32))
+        textfactory.render("return", screen, (16, 48))
         textfactory.render("menu_cursor_>", screen, self.menu_cursor_pos)
 
 
