@@ -339,6 +339,7 @@ class ScoutDiskEnemy(Enemy):
 class TrumplaEnemy(ScoutDiskEnemy):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.death_sound = sound_dict["enemy_death2"]
         self.animation = AnimationDict()
         self.animation["idle"] = TrumplaIdle()
         self.animation["roll_left"] = TrumplaRollLeft()
