@@ -168,6 +168,9 @@ class Sprite(pygame.sprite.Sprite):
 
     def visible_hitbox(self):
         self.is_visible_hitbox = True
+    
+    def invisible_hitbox(self):
+        self.is_visible_hitbox = False
 
     def move_random_vertical(self, dt):
         if not self.move_target_x:
@@ -274,7 +277,11 @@ class ShooterSprite(Sprite):
         self.is_shot_allowed = True
 
 
-class Enemy(Sprite):
+class DeadlyObstacle(Sprite):
+    pass
+
+
+class Enemy(DeadlyObstacle):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.action = "idle"

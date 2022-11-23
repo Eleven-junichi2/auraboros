@@ -10,7 +10,7 @@ import copy
 
 import pygame
 
-from .entity import Sprite, EntityList, Enemy, EnemyFactory
+from .entity import Sprite, EntityList, Enemy, EnemyFactory, DeadlyObstacle
 from .gamescene import Scene
 from .utilities import Arrow, open_json_file
 from .__init__ import w_size, TARGET_FPS
@@ -42,7 +42,8 @@ class Level:
     def __init__(self, levelfile_dir, scene=None):
         self.scene: Scene = scene
 
-        self.level_raw_data = open_json_file(levelfile_dir / "level.json")
+        self.levelfile_dir = levelfile_dir
+        self.level_raw_data = open_json_file(self.levelfile_dir / "level.json")
         self.level_raw_pattern_data = open_json_file(
             levelfile_dir / "patterns.json")
         self.prepare_level_data()
@@ -92,17 +93,29 @@ class Level:
     def show_hitbox(self):
         self.do_showing_hitbox = True
 
+    def hide_hitbox(self):
+        self.do_showing_hitbox = False
+
     def _visible_hitbox(self):
         [entity.visible_hitbox() for entity in self.entities]
+
+    def _invisible_hitbox(self):
+        [entity.invisible_hitbox() for entity in self.entities]
 
     def highscore(self):
         self.scoreboard.sort(reverse=True)
         return self.scoreboard[0]
 
-    def enemies(self) -> list[Enemy]:
+    def enemies(self) -> EntityList[Enemy]:
         enemy_list = [
             enemy for enemy in self.entities if isinstance(enemy, Enemy)]
         return enemy_list
+
+    def deadly_obstacles(self) -> EntityList[DeadlyObstacle]:
+        deadly_obstacle_list = [
+            deadly_obstacle for deadly_obstacle in self.entities
+            if isinstance(deadly_obstacle, DeadlyObstacle)]
+        return deadly_obstacle_list
 
     def num_of_enemy_now(self):
         return len(self.enemies())
@@ -149,14 +162,14 @@ class Level:
             self,
             player_entities: Iterable[Sprite],
             weapon_entities: Iterable[Sprite]) -> bool:
-        """Return True if a player hit a enemy."""
-        for enemy in self.enemies():
+        for deadly_obstacle in self.deadly_obstacles():
             for weapon in weapon_entities:
-                if Sprite.collide(weapon, enemy):
-                    self.gamescore += enemy.gamescore
-                    self.count_of_enemies_killed += 1
+                if Sprite.collide(weapon, deadly_obstacle):
+                    if isinstance(deadly_obstacle, Enemy):
+                        self.gamescore += deadly_obstacle.gamescore
+                        self.count_of_enemies_killed += 1
             for player in player_entities:
-                Sprite.collide(player, enemy)
+                Sprite.collide(player, deadly_obstacle)
 
     def register_gamescore(self):
         self.scoreboard.append(self.gamescore)

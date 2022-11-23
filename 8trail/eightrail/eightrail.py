@@ -3,7 +3,7 @@ from inspect import isclass
 import math
 # from typing import Any
 # from .keyboard import Keyboard
-from .entity import EntityList, Sprite, ShooterSprite, Enemy
+from .entity import DeadlyObstacle, EntityList, Sprite, ShooterSprite, Enemy
 from .gamelevel import Level
 from .gamescene import Scene, SceneManager
 from .gametext import TextSurfaceFactory
@@ -52,6 +52,8 @@ sound_dict["shot"] = pygame.mixer.Sound(
 sound_dict["laser"] = pygame.mixer.Sound(
     AssetFilePath.sound("laser2.wav"))
 music_dict = {"gameover": AssetFilePath.sound("music/gameover.wav")}
+
+show_hitbox = False
 
 
 class Explosion(AnimationImage):
@@ -390,7 +392,7 @@ class TrumplaEnemy(ScoutDiskEnemy):
                 shot.set_destination_to_entity(Player)
 
 
-class EnemyShot(Sprite):
+class EnemyShot(DeadlyObstacle):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.animation = AnimationDict()
@@ -400,8 +402,8 @@ class EnemyShot(Sprite):
         self.image = self.animation[self.action].image
         self.rect = self.image.get_rect()
         self.hitbox = self.image.get_rect()
-        self.hitbox.width = 2
-        self.hitbox.height = 2
+        self.hitbox.width = 4
+        self.hitbox.height = 4
         self.invincible_to_entity = True
         self.movement_speed = 2
         self.behavior_pattern = "launching_aim_at_player"
@@ -591,14 +593,13 @@ class GameScene(Scene):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.gameworld = Level(AssetFilePath.level("stage1"), self)
+        self.gameworld = Level(AssetFilePath.level("debug1"), self)
         self.gameworld.set_background()
         self.gameworld.enemy_factory["scoutdisk"] = ScoutDiskEnemy
         self.gameworld.enemy_factory["trumpla"] = TrumplaEnemy
         self.init_player()
         self.init_text()
         self.gamelevel_running = True
-        # self.gameworld.show_hitbox()
         self.keyboard.register_keyaction(
             pygame.K_q,
             0, 10,
@@ -679,6 +680,12 @@ class GameScene(Scene):
             f"敵生成数:{self.gameworld.count_of_enemies_summoned}")
 
         self.keyboard.do_action_by_keyinput(pygame.K_v)
+
+        if show_hitbox:
+            self.gameworld.show_hitbox()
+        else:
+            self.gameworld.hide_hitbox()
+
         if not self.gameworld.pause:
             self.keyboard.do_action_by_keyinput(pygame.K_UP)
             self.keyboard.do_action_by_keyinput(pygame.K_DOWN)
@@ -737,12 +744,13 @@ class OptionsScene(Scene):
         textfactory.set_current_font("misaki_gothic")
         textfactory.register_text("enemy_se_volume", "")
         textfactory.register_text("player_se_volume", "")
+        textfactory.register_text("switch_hitbox", "")
         textfactory.register_text("se_volume_header", "-Sound Volume-")
         textfactory.register_text("return", "RETURN TO THE MENU")
         textfactory.register_text("menu_cursor_>", ">")
         self.menu_cursor_pos = [0, 16]
         self.arrow_for_menu_cursor = ArrowToTurnToward()
-        self.gamemenu = ["enemy_se_volume", "player_se_volume", 0]
+        self.gamemenu = ["enemy_se_volume", "player_se_volume", "hitbox", 0]
         self.index_of_menu_item_selected = 0
         self.keyboard.register_keyaction(
             pygame.K_UP,
@@ -782,7 +790,9 @@ class OptionsScene(Scene):
     def command_menu_item(self):
         menu_item = self.menu_pointed_by_cursor()
         if isinstance(menu_item, str):
-            pass
+            if menu_item == "hitbox":
+                global show_hitbox
+                show_hitbox = not show_hitbox
         else:
             self.manager.transition_to(menu_item)
 
@@ -807,6 +817,8 @@ class OptionsScene(Scene):
         textfactory.rewrite_text(
             "player_se_volume", "Player: "+str(
                 round(channel_manager["player"]["volume"], 1)))
+        textfactory.rewrite_text(
+            "switch_hitbox", f"Show hitbox: {show_hitbox}")
         self.keyboard.do_action_by_keyinput(pygame.K_UP)
         self.keyboard.do_action_by_keyinput(pygame.K_DOWN)
         self.keyboard.do_action_by_keyinput(pygame.K_RIGHT)
@@ -818,7 +830,8 @@ class OptionsScene(Scene):
         textfactory.render("se_volume_header", screen, (16, 0))
         textfactory.render("enemy_se_volume", screen, (16, 16))
         textfactory.render("player_se_volume", screen, (16, 32))
-        textfactory.render("return", screen, (16, 48))
+        textfactory.render("switch_hitbox", screen, (16, 48))
+        textfactory.render("return", screen, (16, 64))
         textfactory.render("menu_cursor_>", screen, self.menu_cursor_pos)
 
 
