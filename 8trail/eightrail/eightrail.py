@@ -17,7 +17,7 @@ from .animation import (
     AnimationDict, AnimationImage, AnimationFactory, SpriteSheet
 )
 
-from .__init__ import init, w_size, screen, w_size_unscaled  # noqa
+from .__init__ import w_size, screen, w_size_unscaled  # noqa
 
 # TODO: Fix game reset bug
 # TODO: Fix keyboard module repeating input
@@ -51,7 +51,9 @@ sound_dict["shot"] = pygame.mixer.Sound(
     AssetFilePath.sound("shot1.wav"))
 sound_dict["laser"] = pygame.mixer.Sound(
     AssetFilePath.sound("laser2.wav"))
-music_dict = {"gameover": AssetFilePath.sound("music/gameover.wav")}
+music_dict = {"gameover": AssetFilePath.sound("music/gameover.wav"),
+              "space_battle": AssetFilePath.sound(
+                "music/beginning_of_history_cover.wav")}
 
 show_hitbox = False
 
@@ -593,7 +595,7 @@ class GameScene(Scene):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.gameworld = Level(AssetFilePath.level("debug1"), self)
+        self.gameworld = Level(AssetFilePath.level("stage1"), self)
         self.gameworld.set_background()
         self.gameworld.enemy_factory["scoutdisk"] = ScoutDiskEnemy
         self.gameworld.enemy_factory["trumpla"] = TrumplaEnemy
@@ -664,6 +666,9 @@ class GameScene(Scene):
             self.player.change_weapon("normal")
 
     def update(self, dt):
+        if not pygame.mixer.music.get_busy():
+            pygame.mixer.music.load(music_dict["space_battle"])
+            pygame.mixer.music.play()
         textfactory.rewrite_text(
             "gamescore", f"スコア:{self.gameworld.gamescore}")
         textfactory.rewrite_text(
