@@ -48,12 +48,9 @@ class ChannelDict(UserDict):
             self.update(kwargs)
 
     def __setitem__(self, key, value):
-        print("hi!")
         if key == "volume":
-            if not (value < 0 or 1.0 < value):            
+            if not (value < 0 or 1.0 < value):
                 self.data["channel"].set_volume(value)
-                print(self.data["channel"].get_volume())
             else:
-                print(self.data["channel"].get_volume())
                 return
         super().__setitem__(key, value)

@@ -96,4 +96,5 @@ class SceneManager:
         self.scenes.pop()
 
     def transition_to(self, index):
+        self.scenes[self.current].keyboard.release_all_of_keys()
         self.current = index

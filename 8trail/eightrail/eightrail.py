@@ -601,7 +601,7 @@ class GameScene(Scene):
         # self.gameworld.show_hitbox()
         self.keyboard.register_keyaction(
             pygame.K_q,
-            0, 0,
+            0, 10,
             lambda: self.manager.transition_to(0))
 
     def init_text(self):
@@ -746,19 +746,19 @@ class OptionsScene(Scene):
         self.index_of_menu_item_selected = 0
         self.keyboard.register_keyaction(
             pygame.K_UP,
-            10, 10, self.go_up_menu_cursor)
+            0, 10, self.go_up_menu_cursor)
         self.keyboard.register_keyaction(
             pygame.K_DOWN,
-            10, 10, self.go_down_menu_cursor)
+            0, 10, self.go_down_menu_cursor)
         self.keyboard.register_keyaction(
             pygame.K_z,
-            0, 0, self.command_menu_item)
+            0, 20, self.command_menu_item)
         self.keyboard.register_keyaction(
             pygame.K_RIGHT,
-            10, 10, self.add_value_of_option)
+            0, 10, self.add_value_of_option)
         self.keyboard.register_keyaction(
             pygame.K_LEFT,
-            10, 10, self.sub_value_of_option)
+            0, 10, self.sub_value_of_option)
 
     def process_menu_cursor(self):
         if self.arrow_for_menu_cursor.is_up:
@@ -831,18 +831,17 @@ class TitleMenuScene(Scene):
         textfactory.register_text("title_exit", "EXIT")
         textfactory.register_text("menu_cursor_>", ">")
         self.menu_cursor_pos = [0, 0]
-        self.arrow_for_menu_cursor = ArrowToTurnToward()
         self.gamemenu = [2, 1, -1]
         self.index_of_menu_item_selected = 0
         self.keyboard.register_keyaction(
             pygame.K_UP,
-            10, 10, self.go_up_menu_cursor)
+            0, 10, self.go_up_menu_cursor)
         self.keyboard.register_keyaction(
             pygame.K_DOWN,
-            10, 10, self.go_down_menu_cursor)
+            0, 10, self.go_down_menu_cursor)
         self.keyboard.register_keyaction(
             pygame.K_z,
-            0, 0, self.command_menu_item)
+            0, 20, self.command_menu_item)
 
     def process_menu_cursor(self):
         if self.arrow_for_menu_cursor.is_up:
@@ -868,7 +867,6 @@ class TitleMenuScene(Scene):
         self.keyboard.do_action_by_keyinput(pygame.K_UP)
         self.keyboard.do_action_by_keyinput(pygame.K_DOWN)
         self.keyboard.do_action_by_keyinput(pygame.K_z)
-        self.process_menu_cursor()
 
     def draw(self, screen):
         textfactory.render("title_start", screen, (16, 0))
