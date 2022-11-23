@@ -641,19 +641,19 @@ class GameScene(Scene):
             lambda: self.player.stop_moving_to(Arrow.left))
         self.keyboard.register_keyaction(
             pygame.K_z,
-            4, 4,
+            0, 4,
             self.player.shooting, self.player.on_release_trigger)
         self.keyboard.register_keyaction(
             pygame.K_x,
-            4, 4,
+            0, 4,
             self.player.shooting_missile)
         self.keyboard.register_keyaction(
             pygame.K_c,
-            10, 10,
+            0, 10,
             self.switch_weapon)
         self.keyboard.register_keyaction(
             pygame.K_v,
-            10, 10,
+            0, 10,
             self.reset_game)
 
     def switch_weapon(self):

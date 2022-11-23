@@ -56,6 +56,7 @@ class Keyboard:
             self.keyaction_dict[key_const]["_delay_counter"] = 0
             self.keyaction_dict[key_const]["_interval_counter"] = 0
             self.keyaction_dict[key_const]["_first_input_finished"] = False
+            do_keyup = True
         if do_keydown:
             return self.keyaction_dict[key_const]["keydown"]()
         elif do_keyup:
