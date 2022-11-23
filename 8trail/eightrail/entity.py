@@ -1,5 +1,6 @@
 from __future__ import annotations
 from inspect import isclass
+import math
 import random
 from typing import TYPE_CHECKING, Type
 if TYPE_CHECKING:
@@ -46,10 +47,13 @@ class Sprite(pygame.sprite.Sprite):
         self.invincible_to_entity = False
         self._x = 0
         self._y = 0
+        # self._centerx = self.rect.centerx
+        # self._centery = self.rect.centery
         self.angle = 0
         self.is_moving = False  # this is True when move_on called
         self.move_target_x = None
         self.move_target_y = None
+        self.angle_to_target = None
 
     # @property
     # def entity_container(self):
@@ -67,10 +71,10 @@ class Sprite(pygame.sprite.Sprite):
     def hitbox(self, value):
         self._hitbox = value
 
-    def center_hitbox_x(self):
+    def set_hitbox_x_to_rect_center_x(self):
         self.hitbox.x = self.x + (self.rect.width - self.hitbox.width) // 2
 
-    def center_hitbox_y(self):
+    def set_hitbox_y_to_rect_center_y(self):
         self.hitbox.y = self.y + (self.rect.height - self.hitbox.height) // 2
 
     @ property
@@ -82,7 +86,7 @@ class Sprite(pygame.sprite.Sprite):
         self._x = round(value, 2)
         self.rect.x = self._x
         if self.is_hitbox_on_center:
-            self.center_hitbox_x()
+            self.set_hitbox_x_to_rect_center_x()
         else:
             self.hitbox.x = self._x
 
@@ -96,7 +100,7 @@ class Sprite(pygame.sprite.Sprite):
         self.rect.y = self._y
         self.hitbox.y = self._y
         if self.is_hitbox_on_center:
-            self.center_hitbox_y()
+            self.set_hitbox_y_to_rect_center_y()
         else:
             self.hitbox.y = self._y
 
@@ -125,11 +129,15 @@ class Sprite(pygame.sprite.Sprite):
         if self.direction_of_movement.is_left:
             self.x -= movement_speed
 
-    def center_x_on_screen(self):
+    def move_on_by_angle(self, dt, radians):
+        self.y += math.sin(radians)*self.movement_speed
+        self.x += math.cos(radians)*self.movement_speed
+
+    def set_x_to_center_on_screen(self):
         """Center the posistion on the screen"""
         self.x = w_size[0] / 2 - self.rect.width
 
-    def center_y_on_screen(self):
+    def set_y_to_center_on_screen(self):
         """Center the posistion on the screen"""
         self.y = w_size[1] / 2 - self.rect.height
 
@@ -168,7 +176,7 @@ class Sprite(pygame.sprite.Sprite):
 
     def visible_hitbox(self):
         self.is_visible_hitbox = True
-    
+
     def invisible_hitbox(self):
         self.is_visible_hitbox = False
 

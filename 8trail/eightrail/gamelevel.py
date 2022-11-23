@@ -88,7 +88,8 @@ class Level:
         entity_list = [
             entity for entity in self.entities
             if isinstance(entity, entity_type)]
-        return entity_list[0]
+        if entity_list:
+            return entity_list[0]
 
     def show_hitbox(self):
         self.do_showing_hitbox = True

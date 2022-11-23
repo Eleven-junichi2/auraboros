@@ -20,7 +20,7 @@ from .animation import (
 from .__init__ import w_size, screen, w_size_unscaled  # noqa
 
 # TODO: Fix game reset bug
-# TODO: Fix keyboard module repeating input
+# TODO: Replace movement direction process to use angle
 
 pygame.init()
 pygame.mixer.init()
@@ -53,7 +53,7 @@ sound_dict["laser"] = pygame.mixer.Sound(
     AssetFilePath.sound("laser2.wav"))
 music_dict = {"gameover": AssetFilePath.sound("music/gameover.wav"),
               "space_battle": AssetFilePath.sound(
-                "music/beginning_of_history_cover.wav")}
+    "music/beginning_of_history_cover.wav")}
 
 show_hitbox = False
 
@@ -224,6 +224,7 @@ class PlayerShot(Sprite):
     def _fire(self, dt):
         if self.is_launching:
             self.move_on(dt)
+            # self.move_on_by_angle(dt, 90)
             if (self.y < 0 or w_size[1] < self.y or
                     self.x < 0 or w_size[0] < self.x):
                 self.direction_of_movement.unset(Arrow.up)
@@ -356,7 +357,8 @@ class TrumplaEnemy(ScoutDiskEnemy):
         self.movement_speed = 2.25
         self.gamescore = 10
         self.is_able_to_shot = True
-        self.shot_interval = 75
+        self.shot_interval = 45
+        self.shot_range = 160
 
     def update(self, dt):
         self.do_pattern(dt)
@@ -372,31 +374,37 @@ class TrumplaEnemy(ScoutDiskEnemy):
         self.animation[self.action].update(dt)
         self.launch_shot()
 
+    def draw(self, screen):
+        super().draw(screen)
+
+    def draw_to_debug(self, screen):
+        pygame.draw.circle(
+            screen, (255, 0, 0),
+            (self.hitbox.centerx, self.hitbox.centery), self.shot_range, 1)
+
     @schedule_instance_method_interval("shot_interval")
     def launch_shot(self):
         player_list = [entity for entity in self.gameworld.entities
                        if isinstance(entity, Player)]
-        if player_list:
-            distance_to_player_list = []
-            for player in player_list:
-                distance_to_player_list.append(
-                    math.sqrt(
-                        (player.x - self.x) ** 2 + (player.y - self.y) ** 2))
-            target_player = player_list[
-                distance_to_player_list.index(min(distance_to_player_list))]
-            if (self.is_able_to_shot and
-                (abs(target_player.y - self.y) <= 150) and
-                    (abs(target_player.x - self.x) <= self.rect.width * 4)):
-                shot = EnemyShot()
-                shot.x = self.x
-                shot.y = self.y
-                self.gameworld.entities.append(shot)
-                shot.set_destination_to_entity(Player)
+        player = player_list[0]
+        distance = math.sqrt(
+            (player.hitbox.centerx - self.hitbox.centerx) ** 2 +
+            (player.hitbox.centery - self.hitbox.centery) ** 2)
+        if distance <= self.shot_range:
+            shot = EnemyShot(self)
+            shot.x = self.rect.centerx - shot.rect.width // 2
+            shot.y = self.rect.centery - shot.rect.height // 2
+            shot.angle_to_target = math.atan2(
+                player.rect.centery - self.rect.centery,
+                player.rect.centerx - self.rect.centerx)
+            self.gameworld.entities.append(shot)
+            shot.set_destination_to_entity(Player)
 
 
 class EnemyShot(DeadlyObstacle):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, shooter_entity: Sprite, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.shooter = shooter_entity
         self.animation = AnimationDict()
         self.animation["idle"] = EnemyShotAnim()
         self.animation["move"] = EnemyShotAnim()
@@ -423,12 +431,10 @@ class EnemyShot(DeadlyObstacle):
     def do_pattern(self, dt):
         if self.behavior_pattern is not None:
             self.behavior_pattern_dict[self.behavior_pattern](dt)
-            self.move_on(dt)
+            # self.move_on(dt)
 
     def move_launching_aim_at_player(self, dt):
-        self.direction_of_movement.set(Arrow.down)
-        self.direction_of_movement.unset(Arrow.up)
-        # self.move_to_destination(dt, stop_when_arrived=False)
+        self.move_on_by_angle(dt, self.angle_to_target)
 
 
 class WeaponBulletFactory(UserDict):
@@ -555,6 +561,7 @@ class Player(ShooterSprite):
             self.is_moving = False
 
     def update(self, dt):
+        # print(math.degrees(math.atan2(self.rect.centery, self.rect.centerx)))
         if self.current_weapon == "laser":
             if pygame.mixer.get_busy():
                 if len(self.shot_que) == 0:
@@ -588,6 +595,18 @@ class Player(ShooterSprite):
             channel_manager["player"]["channel"].play(
                 self.death_sound)
 
+    def draw(self, screen):
+        super().draw(screen)
+
+    def draw_to_debug(self, screen):
+        centerpos = (self.rect.centerx, self.rect.centery)
+        hitbox_centerpos = (self.hitbox.centerx, self.hitbox.centery)
+        pygame.draw.line(screen, (0, 255, 0), centerpos, centerpos)
+        pygame.draw.line(screen, (255, 122, 55),
+                         hitbox_centerpos, hitbox_centerpos)
+        pygame.draw.line(screen, (155, 155, 155),
+                         (0, 0), hitbox_centerpos)
+
 
 class GameScene(Scene):
 
@@ -595,7 +614,7 @@ class GameScene(Scene):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.gameworld = Level(AssetFilePath.level("stage1"), self)
+        self.gameworld = Level(AssetFilePath.level("debug1"), self)
         self.gameworld.set_background()
         self.gameworld.enemy_factory["scoutdisk"] = ScoutDiskEnemy
         self.gameworld.enemy_factory["trumpla"] = TrumplaEnemy
@@ -619,7 +638,7 @@ class GameScene(Scene):
 
     def init_player(self):
         self.player = Player()
-        self.player.center_x_on_screen()
+        self.player.set_x_to_center_on_screen()
         self.player.y = w_size[1] - self.player.rect.height
         self.gameworld.entities.append(self.player)
         self.keyboard.register_keyaction(

@@ -159,5 +159,16 @@
                 0
             ]
         }
+    ],
+    "debug_shooting": [
+        {
+            "timing": 0,
+            "enemy": "trumpla",
+            "pattern": null,
+            "pos": [
+                "random",
+                0
+            ]
+        }
     ]
 }
