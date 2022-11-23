@@ -165,10 +165,12 @@ class Level:
             weapon_entities: Iterable[Sprite]) -> bool:
         for deadly_obstacle in self.deadly_obstacles():
             for weapon in weapon_entities:
-                if Sprite.collide(weapon, deadly_obstacle):
-                    if isinstance(deadly_obstacle, Enemy):
+                if isinstance(deadly_obstacle, Enemy):
+                    if Sprite.collide(weapon, deadly_obstacle):
                         self.gamescore += deadly_obstacle.gamescore
                         self.count_of_enemies_killed += 1
+                else:
+                    Sprite.collide(weapon, deadly_obstacle, False)
             for player in player_entities:
                 Sprite.collide(player, deadly_obstacle)
 

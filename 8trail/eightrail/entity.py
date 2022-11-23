@@ -149,7 +149,7 @@ class Sprite(pygame.sprite.Sprite):
 
     @staticmethod
     def collide(entity_a: Sprite, entity_b: Sprite,
-                collided=pygame.sprite.collide_rect) -> bool:
+                death_a=True, death_b=True) -> bool:
         """Each entity executes death() when a collision occurs."""
         is_entity_a_alive = entity_a in entity_a.gameworld.entities
         is_entity_b_alive = entity_a in entity_b.gameworld.entities
@@ -159,9 +159,11 @@ class Sprite(pygame.sprite.Sprite):
             # if (collided(entity_a, entity_b)
             #         and is_entity_a_alive and is_entity_b_alive):
             if not entity_a.invincible_to_entity:
-                entity_a.death()
+                if death_a:
+                    entity_a.death()
             if not entity_b.invincible_to_entity:
-                entity_b.death()
+                if death_b:
+                    entity_b.death()
             return True
         else:
             return False
