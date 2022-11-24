@@ -76,11 +76,6 @@ class SceneManager:
          for visual_effect in self.scenes[self.current].visual_effects]
 
     def draw(self, screen: pygame.surface.Surface):
-        # Delete finished animations
-        [self.scenes[self.current].visual_effects.pop(i)
-         for i, visual_effect in enumerate(
-            self.scenes[self.current].visual_effects)
-         if visual_effect.was_played_once]
         self.scenes[self.current].draw(screen)
         if self.is_current_scene_has_gameworld():
             if not self.scenes[self.current].gameworld.pause:
@@ -88,6 +83,11 @@ class SceneManager:
                  for entity in self.scenes[self.current].gameworld.entities]
         [visual_effect.draw(screen)
          for visual_effect in self.scenes[self.current].visual_effects]
+        # Delete finished animations
+        [self.scenes[self.current].visual_effects.pop(i)
+         for i, visual_effect in enumerate(
+            self.scenes[self.current].visual_effects)
+         if visual_effect.was_played_once]
 
     def push(self, scene: Scene):
         self.scenes.append(scene)

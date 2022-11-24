@@ -266,10 +266,3 @@ class Level:
         if self.bg_scroll_y > w_size[1]:
             self.bg_scroll_y = 0
             self.set_background_for_scroll()
-
-
-# @dataclass
-# class LevelData:
-#     timing: int
-#     enemy: str
-#     pos: list[Union[str, int], Union[str, int]]

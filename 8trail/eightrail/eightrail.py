@@ -73,7 +73,7 @@ class Explosion(AnimationImage):
             self.sprite_sheet.image_by_area(
                 0, 16*4, 16, 16),
             self.sprite_sheet.image_by_area(0, 16*5, 16, 16)]
-        self.anim_interval = 2
+        self.anim_interval = 8
 
 
 class PlayerExplosion(AnimationImage):
@@ -252,7 +252,6 @@ class PlayerShot(Entity):
     def _fire(self, dt):
         if self.is_launching:
             self.move_by_arrow(dt)
-            # self.move_by_arrow_by_angle(dt, 90)
             if (self.y < 0 or w_size[1] < self.y or
                     self.x < 0 or w_size[0] < self.x):
                 self.arrow_of_move.unset(Arrow.up)
@@ -459,7 +458,6 @@ class EnemyShot(DeadlyObstacle):
     def do_pattern(self, dt):
         if self.behavior_pattern is not None:
             self.behavior_pattern_dict[self.behavior_pattern](dt)
-            # self.move_by_arrow(dt)
 
     def move_launching_aim_at_player(self, dt):
         self.move_by_angle(dt, self.angle_to_target)
@@ -589,7 +587,6 @@ class Player(ShooterEntity):
             self.is_moving = False
 
     def update(self, dt):
-        # print(math.degrees(math.atan2(self.rect.centery, self.rect.centerx)))
         if self.current_weapon == "laser":
             if pygame.mixer.get_busy():
                 if len(self.shot_que) == 0:

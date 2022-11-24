@@ -47,7 +47,6 @@ class AnimationImage:
         if self.is_playing:
             if self.anim_frame_id < len(self.anim_frames):
                 self.image = self.anim_frames[self.anim_frame_id]
-                # print("b", self.anim_frame_id)
                 self.anim_frame_id += 1
             if self.anim_frame_id == len(self.anim_frames):
                 # print("--finished--")
