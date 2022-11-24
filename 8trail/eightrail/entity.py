@@ -16,28 +16,12 @@ from .utilities import Arrow, ArrowToTurnToward
 from .__init__ import TARGET_FPS, w_size
 
 
-class EntityList(list):
+class Entity(pygame.sprite.Sprite):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-    def kill_living_entity(self, entity: Sprite):
-        """Do list.remove(entity) if list has it."""
-        if entity in self:
-            self.remove(entity)
-
-    def append(self, item: Sprite):
-        if not isinstance(item, Sprite):
-            raise TypeError("item is not Entity")
-        super().append(item)
-
-
-class Sprite(pygame.sprite.Sprite):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # self.scene: Scene
         self.gameworld: Level = None
         self.entity_container: EntityList = None
-        self.direction_of_movement = ArrowToTurnToward()
+        self.arrow_of_move = ArrowToTurnToward()
         self.movement_speed = 1
         self.image = pygame.surface.Surface((0, 0))
         self.rect = self.image.get_rect()
@@ -47,21 +31,11 @@ class Sprite(pygame.sprite.Sprite):
         self.invincible_to_entity = False
         self._x = 0
         self._y = 0
-        # self._centerx = self.rect.centerx
-        # self._centery = self.rect.centery
         self.angle = 0
-        self.is_moving = False  # this is True when move_on called
-        self.move_target_x = None
-        self.move_target_y = None
+        self.is_moving = False  # this is True when move_by func called
+        self.move_dest_x = None
+        self.move_dest_y = None
         self.angle_to_target = None
-
-    # @property
-    # def entity_container(self):
-    #     return self._entity_container
-
-    # @entity_container.setter
-    # def entity_container(self, value):
-    #     self._entity_container = value
 
     @ property
     def hitbox(self):
@@ -104,42 +78,43 @@ class Sprite(pygame.sprite.Sprite):
         else:
             self.hitbox.y = self._y
 
-    def move_on(self, dt):
+    def move_by_arrow(self, dt):
         self.is_moving = True
         # diagonal movement
-        if ((self.direction_of_movement.is_up and
-            self.direction_of_movement.is_right) or
-            (self.direction_of_movement.is_up and
-            self.direction_of_movement.is_left) or
-            (self.direction_of_movement.is_down and
-            self.direction_of_movement.is_right) or
-            (self.direction_of_movement.is_down and
-                self.direction_of_movement.is_left)):
+        if ((self.arrow_of_move.is_up and
+            self.arrow_of_move.is_right) or
+            (self.arrow_of_move.is_up and
+            self.arrow_of_move.is_left) or
+            (self.arrow_of_move.is_down and
+            self.arrow_of_move.is_right) or
+            (self.arrow_of_move.is_down and
+                self.arrow_of_move.is_left)):
             # Correct the speed of diagonal movement
             movement_speed = self.movement_speed / sqrt(2)
         else:
             movement_speed = self.movement_speed
         movement_speed = movement_speed * dt * TARGET_FPS
-        if self.direction_of_movement.is_up:
+        if self.arrow_of_move.is_up:
             self.y -= movement_speed
-        if self.direction_of_movement.is_down:
+        if self.arrow_of_move.is_down:
             self.y += movement_speed
-        if self.direction_of_movement.is_right:
+        if self.arrow_of_move.is_right:
             self.x += movement_speed
-        if self.direction_of_movement.is_left:
+        if self.arrow_of_move.is_left:
             self.x -= movement_speed
 
-    def move_on_by_angle(self, dt, radians):
+    def move_by_angle(self, dt, radians):
+        self.is_moving = True
         self.y += math.sin(radians)*self.movement_speed
         self.x += math.cos(radians)*self.movement_speed
 
-    def set_x_to_center_on_screen(self):
+    def set_x_to_center_of_screen(self):
         """Center the posistion on the screen"""
-        self.x = w_size[0] / 2 - self.rect.width
+        self.x = w_size[0] / 2 - self.rect.width / 2
 
-    def set_y_to_center_on_screen(self):
+    def set_y_to_center_of_screen(self):
         """Center the posistion on the screen"""
-        self.y = w_size[1] / 2 - self.rect.height
+        self.y = w_size[1] / 2 - self.rect.height / 2
 
     def remove_from_container(self):
         self.entity_container.kill_living_entity(self)
@@ -148,7 +123,7 @@ class Sprite(pygame.sprite.Sprite):
         self.remove_from_container()
 
     @staticmethod
-    def collide(entity_a: Sprite, entity_b: Sprite,
+    def collide(entity_a: Entity, entity_b: Entity,
                 death_a=True, death_b=True) -> bool:
         """Each entity executes death() when a collision occurs."""
         is_entity_a_alive = entity_a in entity_a.gameworld.entities
@@ -182,104 +157,119 @@ class Sprite(pygame.sprite.Sprite):
     def invisible_hitbox(self):
         self.is_visible_hitbox = False
 
-    def move_random_vertical(self, dt):
-        if not self.move_target_x:
-            self.random_destination_x()
-        if (self.move_target_x - self.movement_speed
+    def set_arrow_random_vertical(self, dt):
+        """Set arrow of movement to right or left."""
+        if not self.move_dest_x:
+            self.random_dest_x()
+        if (self.move_dest_x - self.movement_speed
             <= self.x <=
-                self.move_target_x + self.movement_speed):
-            self.direction_of_movement.unset(Arrow.right)
-            self.direction_of_movement.unset(Arrow.left)
-            self.random_destination_x()
-        elif self.x < self.move_target_x:
-            self.direction_of_movement.set(Arrow.right)
-            self.direction_of_movement.unset(Arrow.left)
-        elif self.move_target_x < self.x:
-            self.direction_of_movement.set(Arrow.left)
-            self.direction_of_movement.unset(Arrow.right)
+                self.move_dest_x + self.movement_speed):
+            self.arrow_of_move.unset(Arrow.right)
+            self.arrow_of_move.unset(Arrow.left)
+            self.random_dest_x()
+        elif self.x < self.move_dest_x:
+            self.arrow_of_move.set(Arrow.right)
+            self.arrow_of_move.unset(Arrow.left)
+        elif self.move_dest_x < self.x:
+            self.arrow_of_move.set(Arrow.left)
+            self.arrow_of_move.unset(Arrow.right)
 
-    def move_random_horizontal(self, dt):
-        if not self.move_target_y:
-            self.random_destination_y()
-        if (self.move_target_y - self.movement_speed
+    def set_arrow_random_horizontal(self, dt):
+        """Set arrow of movement to up or down."""
+        if not self.move_dest_y:
+            self.random_dest_y()
+        if (self.move_dest_y - self.movement_speed
             <= self.y <=
-                self.move_target_y + self.movement_speed):
-            self.direction_of_movement.unset(Arrow.up)
-            self.direction_of_movement.unset(Arrow.down)
-            self.random_destination_x()
-        elif self.y < self.move_target_y:
-            self.direction_of_movement.set(Arrow.down)
-            self.direction_of_movement.unset(Arrow.up)
-        elif self.move_target_y < self.y:
-            self.direction_of_movement.set(Arrow.down)
-            self.direction_of_movement.unset(Arrow.up)
+                self.move_dest_y + self.movement_speed):
+            self.arrow_of_move.unset(Arrow.up)
+            self.arrow_of_move.unset(Arrow.down)
+            self.random_dest_x()
+        elif self.y < self.move_dest_y:
+            self.arrow_of_move.set(Arrow.down)
+            self.arrow_of_move.unset(Arrow.up)
+        elif self.move_dest_y < self.y:
+            self.arrow_of_move.set(Arrow.down)
+            self.arrow_of_move.unset(Arrow.up)
 
-    def move_random(self, dt):
+    def set_arrow_random(self, dt):
+        """Set arrow of movement to up or down, right, or left."""
         v_or_h = random.randint(0, 1)
         if v_or_h == 0:
-            self.move_random_vertical(dt)
+            self.set_arrow_random_vertical(dt)
         elif v_or_h == 1:
-            self.move_random_horizontal(dt)
+            self.set_arrow_random_horizontal(dt)
 
-    def random_destination_x(self):
-        self.move_target_x = random.randint(0, w_size[0])
+    def random_dest_x(self):
+        self.move_dest_x = random.randint(0, w_size[0])
 
-    def random_destination_y(self):
-        self.move_target_y = random.randint(0, w_size[1])
+    def random_dest_y(self):
+        self.move_dest_y = random.randint(0, w_size[1])
 
-    def move_strike_to_entity(self, dt, entity_type: Sprite):
+    def set_arrow_to_entity_as_dest(self, dt, entity_type: Entity):
         if self.set_destination_to_entity(entity_type):
-            self.move_to_destination(dt)
+            self.set_arrow_to_dest(dt)
 
-    def move_to_dest_x(self, dt, stop_when_arrived=True):
-        if self.move_target_x:
-            if (self.move_target_x - self.movement_speed
+    def set_arrow_to_dest_x(self, dt, stop_when_arrived=True):
+        if self.move_dest_x:
+            if (self.move_dest_x - self.movement_speed
                 + self.hitbox.width
                 <= self.x <=
-                    self.move_target_x + self.movement_speed
+                    self.move_dest_x + self.movement_speed
                     - self.hitbox.width) and stop_when_arrived:
-                self.direction_of_movement.unset(Arrow.right)
-                self.direction_of_movement.unset(Arrow.left)
-            elif self.x < self.move_target_x:
-                self.direction_of_movement.set(Arrow.right)
-                self.direction_of_movement.unset(Arrow.left)
-            elif self.move_target_x < self.x:
-                self.direction_of_movement.set(Arrow.left)
-                self.direction_of_movement.unset(Arrow.right)
+                self.arrow_of_move.unset(Arrow.right)
+                self.arrow_of_move.unset(Arrow.left)
+            elif self.x < self.move_dest_x:
+                self.arrow_of_move.set(Arrow.right)
+                self.arrow_of_move.unset(Arrow.left)
+            elif self.move_dest_x < self.x:
+                self.arrow_of_move.set(Arrow.left)
+                self.arrow_of_move.unset(Arrow.right)
 
-    def move_to_dest_y(self, dt, stop_when_arrived=True):
-        if self.move_target_y:
-            if (self.move_target_y - self.movement_speed
+    def set_arrow_to_dest_y(self, dt):
+        if self.move_dest_y:
+            if (self.move_dest_y - self.movement_speed
                 + self.hitbox.height
                 <= self.y <=
-                    self.move_target_y + self.movement_speed
+                    self.move_dest_y + self.movement_speed
                     - self.hitbox.height):
-                self.direction_of_movement.unset(Arrow.up)
-                self.direction_of_movement.unset(Arrow.down)
-            elif self.y < self.move_target_y:
-                self.direction_of_movement.set(Arrow.down)
-                self.direction_of_movement.unset(Arrow.up)
-            elif self.move_target_y < self.y:
-                self.direction_of_movement.set(Arrow.up)
-                self.direction_of_movement.unset(Arrow.down)
+                self.arrow_of_move.unset(Arrow.up)
+                self.arrow_of_move.unset(Arrow.down)
+            elif self.y < self.move_dest_y:
+                self.arrow_of_move.set(Arrow.down)
+                self.arrow_of_move.unset(Arrow.up)
+            elif self.move_dest_y < self.y:
+                self.arrow_of_move.set(Arrow.up)
+                self.arrow_of_move.unset(Arrow.down)
 
-    def move_to_destination(self, dt):
-        self.move_to_dest_x(dt)
-        self.move_to_dest_y(dt)
+    def set_arrow_to_dest(self, dt):
+        self.set_arrow_to_dest_x(dt)
+        self.set_arrow_to_dest_y(dt)
 
-    def set_destination_to_entity(self, entity_type: Sprite) -> bool:
+    def set_destination_to_entity(self, entity_type: Entity) -> bool:
         entity_list = [
             entity for entity in self.gameworld.entities
             if isinstance(entity, entity_type)]
         if entity_list:
-            self.move_target_x = entity_list[0].hitbox.x
-            self.move_target_y = entity_list[0].hitbox.y
+            self.move_dest_x = entity_list[0].hitbox.x
+            self.move_dest_y = entity_list[0].hitbox.y
             return True
         else:
             return False
 
 
-class ShooterSprite(Sprite):
+class EntityList(list[Entity]):
+    def kill_living_entity(self, entity: Entity):
+        """Do list.remove(entity) if list has it."""
+        if entity in self:
+            self.remove(entity)
+
+    def append(self, item: Entity):
+        if not isinstance(item, Entity):
+            raise TypeError("item is not Entity")
+        super().append(item)
+
+
+class ShooterEntity(Entity):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.shot_max_num = 1
@@ -287,7 +277,7 @@ class ShooterSprite(Sprite):
         self.is_shot_allowed = True
 
 
-class DeadlyObstacle(Sprite):
+class DeadlyObstacle(Entity):
     pass
 
 
@@ -298,11 +288,11 @@ class Enemy(DeadlyObstacle):
         self.behavior_pattern = None
         self.behavior_pattern_dict = {}
         self.behavior_pattern_dict[
-            "random_vertical"] = self.move_random_vertical
+            "random_vertical"] = self.set_arrow_random_vertical
         self.behavior_pattern_dict[
-            "random_horizontal"] = self.move_random_horizontal
+            "random_horizontal"] = self.set_arrow_random_horizontal
         self.behavior_pattern_dict[
-            "random"] = self.move_random
+            "random"] = self.set_arrow_random
         self.gamescore = 0
 
     def update(self, dt):
@@ -311,7 +301,7 @@ class Enemy(DeadlyObstacle):
     def do_pattern(self, dt):
         if self.behavior_pattern is not None:
             self.behavior_pattern_dict[self.behavior_pattern](dt)
-            self.move_on(dt)
+            self.move_by_arrow(dt)
 
 
 class EnemyFactory(UserDict):

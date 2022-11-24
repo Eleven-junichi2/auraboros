@@ -10,7 +10,7 @@ import copy
 
 import pygame
 
-from .entity import Sprite, EntityList, Enemy, EnemyFactory, DeadlyObstacle
+from .entity import Enemy, EnemyFactory, Entity, EntityList, DeadlyObstacle
 from .gamescene import Scene
 from .utilities import Arrow, open_json_file
 from .__init__ import w_size, TARGET_FPS
@@ -24,12 +24,12 @@ class EntityListOfGameWorld(EntityList):
         super().__init__(*args, **kwargs)
         self.gameworld = gameworld
 
-    def kill_living_entity(self, entity: Sprite):
+    def kill_living_entity(self, entity: Entity):
         if isinstance(entity, Enemy):
             self.gameworld.num_of_remaining_enemies -= 1
         super().kill_living_entity(entity)
 
-    def append(self, item: Sprite):
+    def append(self, item: Entity):
         if isinstance(item, Enemy):
             self.gameworld.count_of_enemies_summoned += 1
         item.gameworld = self.gameworld
@@ -82,7 +82,7 @@ class Level:
     def reset_count_of_enemies_summoned(self):
         self.count_of_enemies_summoned = 0
 
-    def entity(self, entity_type: Type[Sprite]):
+    def entity(self, entity_type: Type[Entity]):
         """Return the entity of specified type which added first to
            entities."""
         entity_list = [
@@ -161,18 +161,18 @@ class Level:
 
     def process_collision(
             self,
-            player_entities: Iterable[Sprite],
-            weapon_entities: Iterable[Sprite]) -> bool:
+            player_entities: Iterable[Entity],
+            weapon_entities: Iterable[Entity]) -> bool:
         for deadly_obstacle in self.deadly_obstacles():
             for weapon in weapon_entities:
                 if isinstance(deadly_obstacle, Enemy):
-                    if Sprite.collide(weapon, deadly_obstacle):
+                    if Entity.collide(weapon, deadly_obstacle):
                         self.gamescore += deadly_obstacle.gamescore
                         self.count_of_enemies_killed += 1
                 else:
-                    Sprite.collide(weapon, deadly_obstacle, False)
+                    Entity.collide(weapon, deadly_obstacle, False)
             for player in player_entities:
-                Sprite.collide(player, deadly_obstacle)
+                Entity.collide(player, deadly_obstacle)
 
     def register_gamescore(self):
         self.scoreboard.append(self.gamescore)
@@ -230,15 +230,15 @@ class Level:
          if w_size[1] < entity.y or w_size[0] < entity.x
             or entity.x < 0 or entity.y < 0]
 
-    def stop_entity_from_moving_off_screen(self, entity: Sprite):
+    def stop_entity_from_moving_off_screen(self, entity: Entity):
         if w_size[1] < entity.y + entity.rect.height:
-            entity.direction_of_movement.unset(Arrow.down)
+            entity.arrow_of_move.unset(Arrow.down)
         if w_size[0] < entity.x + entity.rect.width:
-            entity.direction_of_movement.unset(Arrow.right)
+            entity.arrow_of_move.unset(Arrow.right)
         if entity.x < 0:
-            entity.direction_of_movement.unset(Arrow.left)
+            entity.arrow_of_move.unset(Arrow.left)
         if entity.y < 0:
-            entity.direction_of_movement.unset(Arrow.up)
+            entity.arrow_of_move.unset(Arrow.up)
 
     def set_background(self):
         [self.bg_surf.fill(

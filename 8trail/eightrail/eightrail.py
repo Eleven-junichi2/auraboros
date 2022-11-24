@@ -3,7 +3,7 @@ from inspect import isclass
 import math
 # from typing import Any
 # from .keyboard import Keyboard
-from .entity import DeadlyObstacle, EntityList, Sprite, ShooterSprite, Enemy
+from .entity import DeadlyObstacle, Entity, EntityList, ShooterEntity, Enemy
 from .gamelevel import Level
 from .gamescene import Scene, SceneManager
 from .gametext import TextSurfaceFactory
@@ -53,7 +53,7 @@ sound_dict["laser"] = pygame.mixer.Sound(
     AssetFilePath.sound("laser2.wav"))
 music_dict = {"gameover": AssetFilePath.sound("music/gameover.wav"),
               "space_battle": AssetFilePath.sound(
-    "music/beginning_of_history_cover.wav")}
+    "music/bgm1.wav")}
 
 show_hitbox = False
 
@@ -215,8 +215,8 @@ class EnemyShot3Anim(AnimationImage):
         self.anim_interval = 6
 
 
-class PlayerShot(Sprite):
-    def __init__(self, shooter_sprite: ShooterSprite, shot_que: list,
+class PlayerShot(Entity):
+    def __init__(self, shooter_sprite: ShooterEntity, shot_que: EntityList,
                  *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.shot_que = shot_que
@@ -239,23 +239,23 @@ class PlayerShot(Sprite):
             self.shooter.rect.height / 2 - self.rect.height
 
     def will_launch(self, direction: Arrow):
-        self.direction_of_movement.set(direction)
+        self.arrow_of_move.set(direction)
         self.entity_container.append(self)
         self.is_launching = True
         # set accelerater if the direction is the same as that of the shooter.
-        if (self.direction_of_movement.is_up and
-                self.shooter.direction_of_movement.is_up):
+        if (self.arrow_of_move.is_up and
+                self.shooter.arrow_of_move.is_up):
             self.adjust_movement_speed = self.shooter.movement_speed
         else:
             self.adjust_movement_speed = 0
 
     def _fire(self, dt):
         if self.is_launching:
-            self.move_on(dt)
-            # self.move_on_by_angle(dt, 90)
+            self.move_by_arrow(dt)
+            # self.move_by_arrow_by_angle(dt, 90)
             if (self.y < 0 or w_size[1] < self.y or
                     self.x < 0 or w_size[0] < self.x):
-                self.direction_of_movement.unset(Arrow.up)
+                self.arrow_of_move.unset(Arrow.up)
                 self.is_launching = False
                 self.reset_pos_x()
                 self.reset_pos_y()
@@ -289,9 +289,9 @@ class PlayerLaser(PlayerShot):
         self.reset_pos_x()
         self.reset_pos_y()
 
-    def move_on(self, dt):
+    def move_by_arrow(self, dt):
         self.reset_pos_x()
-        super().move_on(dt)
+        super().move_by_arrow(dt)
 
 
 class PlayerMissile(PlayerShot):
@@ -304,26 +304,26 @@ class PlayerMissile(PlayerShot):
         self.reset_pos_x()
         self.reset_pos_y()
 
-    def move_on(self, dt):
-        self.set_destination_to_enemy()
-        self.move_to_destination(dt)
-        super().move_on(dt)
+    def move_by_arrow(self, dt):
+        self.set_dest_to_enemy()
+        self.set_arrow_to_dest(dt)
+        super().move_by_arrow(dt)
 
     def allow_shooter_to_fire(self):
         self.shooter.is_missile_allowed = True
 
-    def set_destination_to_enemy(self) -> bool:
+    def set_dest_to_enemy(self) -> bool:
         enemy_list = [entity for entity in self.gameworld.entities
                       if isinstance(entity, Enemy)]
         if len(enemy_list) >= len(self.shot_que):
             for i, missile in enumerate(self.shot_que):
                 enemy = enemy_list[i]
-                self.shot_que[i].move_target_x = enemy.hitbox.x
-                self.shot_que[i].move_target_y = enemy.hitbox.y
+                self.shot_que[i].move_dest_x = enemy.hitbox.x
+                self.shot_que[i].move_dest_y = enemy.hitbox.y
             return True
         else:
-            self.move_target_x = None
-            self.move_target_y = None
+            self.move_dest_x = None
+            self.move_dest_y = None
             return False
 
 
@@ -358,7 +358,7 @@ class ScoutDiskEnemy(Enemy):
         self.animation[self.action].update(dt)
 
     def move_strike_to_player(self, dt):
-        self.move_strike_to_entity(dt, Player)
+        self.set_arrow_to_entity_as_dest(dt, Player)
 
     def death(self):
         visual_effect = self.visual_effects["death"]
@@ -391,9 +391,9 @@ class TrumplaEnemy(ScoutDiskEnemy):
     def update(self, dt):
         self.do_pattern(dt)
         if self.is_moving:
-            if self.direction_of_movement.is_left:
+            if self.arrow_of_move.is_left:
                 self.action = "roll_left"
-            elif self.direction_of_movement.is_right:
+            elif self.arrow_of_move.is_right:
                 self.action = "roll_right"
         else:
             self.action = "idle"
@@ -430,7 +430,7 @@ class TrumplaEnemy(ScoutDiskEnemy):
 
 
 class EnemyShot(DeadlyObstacle):
-    def __init__(self, shooter_entity: Sprite, *args, **kwargs):
+    def __init__(self, shooter_entity: Entity, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.shooter = shooter_entity
         self.animation = AnimationDict()
@@ -459,10 +459,10 @@ class EnemyShot(DeadlyObstacle):
     def do_pattern(self, dt):
         if self.behavior_pattern is not None:
             self.behavior_pattern_dict[self.behavior_pattern](dt)
-            # self.move_on(dt)
+            # self.move_by_arrow(dt)
 
     def move_launching_aim_at_player(self, dt):
-        self.move_on_by_angle(dt, self.angle_to_target)
+        self.move_by_angle(dt, self.angle_to_target)
 
 
 class WeaponBulletFactory(UserDict):
@@ -479,7 +479,7 @@ class WeaponBulletFactory(UserDict):
             raise ValueError("The value must not be instance.")
 
 
-class Player(ShooterSprite):
+class Player(ShooterEntity):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.shot_que = EntityList()
@@ -573,18 +573,18 @@ class Player(ShooterSprite):
             self.missile_que.append(missile)
 
     def will_move_to(self, direction: Arrow):
-        self.direction_of_movement.set(direction)
-        if self.direction_of_movement.is_left:
+        self.arrow_of_move.set(direction)
+        if self.arrow_of_move.is_left:
             self.action = "roll_left"
-        elif self.direction_of_movement.is_right:
+        elif self.arrow_of_move.is_right:
             self.action = "roll_right"
         if not self.is_moving:
             self.animation[self.action].let_play_animation()
         self.is_moving = True
 
     def stop_moving_to(self, direction: Arrow):
-        self.direction_of_movement.unset(direction)
-        if not self.direction_of_movement.is_set_any():
+        self.arrow_of_move.unset(direction)
+        if not self.arrow_of_move.is_set_any():
             self.action = "idle"
             self.is_moving = False
 
@@ -595,7 +595,7 @@ class Player(ShooterSprite):
                 if len(self.shot_que) == 0:
                     self.laser_shot_sound.stop()
         if self.is_moving:
-            self.move_on(dt)
+            self.move_by_arrow(dt)
 
         if self.shot_que:
             self.ignore_shot_interval = False
@@ -666,7 +666,7 @@ class GameScene(Scene):
 
     def init_player(self):
         self.player = Player()
-        self.player.set_x_to_center_on_screen()
+        self.player.set_x_to_center_of_screen()
         self.player.y = w_size[1] - self.player.rect.height
         self.gameworld.entities.append(self.player)
         self.keyboard.register_keyaction(
