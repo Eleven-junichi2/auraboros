@@ -187,6 +187,34 @@ class EnemyShotAnim(AnimationImage):
         self.anim_interval = 6
 
 
+class EnemyShot2Anim(AnimationImage):
+    def __init__(self):
+        super().__init__()
+        self.sprite_sheet = SpriteSheet(AssetFilePath.img("shot3.png"))
+        self.anim_frames: list[pygame.surface.Surface] = [
+            self.sprite_sheet.image_by_area(0, 0, 4, 4),
+            self.sprite_sheet.image_by_area(0, 4, 4, 4),
+            self.sprite_sheet.image_by_area(0, 4*2, 4, 4),
+            self.sprite_sheet.image_by_area(0, 4*3, 4, 4), ]
+        self.anim_interval = 6
+
+
+class EnemyShot3Anim(AnimationImage):
+    def __init__(self):
+        super().__init__()
+        self.sprite_sheet = SpriteSheet(AssetFilePath.img("shot5.png"))
+        self.anim_frames: list[pygame.surface.Surface] = [
+            self.sprite_sheet.image_by_area(0, 0, 4, 4),
+            self.sprite_sheet.image_by_area(0, 4, 4, 4),
+            self.sprite_sheet.image_by_area(0, 4*2, 4, 4),
+            self.sprite_sheet.image_by_area(0, 4*3, 4, 4),
+            self.sprite_sheet.image_by_area(0, 4*4, 4, 4),
+            self.sprite_sheet.image_by_area(0, 4*5, 4, 4),
+            self.sprite_sheet.image_by_area(0, 4*6, 4, 4),
+            self.sprite_sheet.image_by_area(0, 4*7, 4, 4), ]
+        self.anim_interval = 6
+
+
 class PlayerShot(Sprite):
     def __init__(self, shooter_sprite: ShooterSprite, shot_que: list,
                  *args, **kwargs):
@@ -406,8 +434,8 @@ class EnemyShot(DeadlyObstacle):
         super().__init__(*args, **kwargs)
         self.shooter = shooter_entity
         self.animation = AnimationDict()
-        self.animation["idle"] = EnemyShotAnim()
-        self.animation["move"] = EnemyShotAnim()
+        self.animation["idle"] = EnemyShot3Anim()
+        self.animation["move"] = EnemyShot3Anim()
         self.action = "move"
         self.image = self.animation[self.action].image
         self.rect = self.image.get_rect()
@@ -614,7 +642,7 @@ class GameScene(Scene):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.gameworld = Level(AssetFilePath.level("debug1"), self)
+        self.gameworld = Level(AssetFilePath.level("stage1"), self)
         self.gameworld.set_background()
         self.gameworld.enemy_factory["scoutdisk"] = ScoutDiskEnemy
         self.gameworld.enemy_factory["trumpla"] = TrumplaEnemy
