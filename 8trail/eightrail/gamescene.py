@@ -7,7 +7,7 @@ from dataclasses import dataclass
 import pygame
 
 from .animation import AnimationImage
-from .gameinput import Keyboard
+from .gameinput import Keyboard, Joystick2
 
 
 @dataclass
@@ -18,6 +18,7 @@ class Scene(object):
         self.manager = manager
         self.gameworld: Level = None
         self.keyboard: Keyboard = Keyboard()
+        self.joystick: Joystick2 = Joystick2()
         self.visual_effects: list[AnimationImage] = []
         attrs_of_class = set(dir(self.__class__)) - set(dir(Scene))
         for attr_name in attrs_of_class:
@@ -58,6 +59,7 @@ class SceneManager:
             return False
         self.scenes[self.current].event(event)
         self.scenes[self.current].keyboard.event(event)
+        self.scenes[self.current].joystick.event(event)
         return True
 
     def is_current_scene_has_gameworld(self) -> bool:

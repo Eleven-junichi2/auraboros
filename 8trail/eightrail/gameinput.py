@@ -43,7 +43,7 @@ class Keyboard:
                     self.keyaction_dict[key_const]["_delay_counter"] = 0
                     do_keydown = True
                     self.keyaction_dict[key_const][
-                            "_first_input_finished"] = True
+                        "_first_input_finished"] = True
             else:
                 # repeating input
                 if self.keyaction_dict[key_const][
@@ -85,3 +85,21 @@ class KeyActionItem(TypedDict):
     _delay_counter: int
     _interval_counter: int
     _first_input_finished: bool
+
+
+class Joystick2:
+    def __init__(self, joystick: pygame.joystick.Joystick):
+        self.joystick = joystick
+
+    def event(self, event):
+        if event.type == pygame.JOYAXISMOTION:
+            stick0 = self.joystick.get_axis(0)
+            stick1 = self.joystick.get_axis(1)
+            print(stick0, stick1)
+        elif event.type == pygame.JOYBUTTONDOWN:
+            print(event.button)
+        elif event.type == pygame.JOYBUTTONUP:
+            print(event.button)
+        elif event.type == pygame.JOYHATMOTION:
+            hat_pos = self.joystick.get_hat(0)
+            print(hat_pos)
