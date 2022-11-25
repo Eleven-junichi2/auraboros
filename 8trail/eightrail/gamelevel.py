@@ -15,8 +15,6 @@ from .gamescene import Scene
 from .utilities import Arrow, open_json_file
 from . import global_
 
-# TODO: destroy garbage enemy
-
 
 class EntityListOfGameWorld(EntityList):
     def __init__(self, gameworld: Level, *args, **kwargs):
