@@ -1,4 +1,5 @@
 from collections import UserDict
+import copy
 from inspect import isclass
 import math
 # from typing import Any
@@ -17,14 +18,24 @@ from .animation import (
     AnimationDict, AnimationImage, AnimationFactory, SpriteSheet
 )
 
-from .__init__ import w_size, screen, w_size_unscaled  # noqa
+from .__init__ import init, w_size, screen, w_size_unscaled  # noqa
 
 # TODO: Fix game reset bug
 # TODO: Replace movement direction process to use angle
 
 pygame.init()
 pygame.mixer.init()
-# pygame.mixer.set_num_channels(8)
+pygame.joystick.init()
+
+try:
+    joy = pygame.joystick.Joystick(0)
+    joy.init()
+    print("Joystick Name: " + joy.get_name())
+    print("Number of Button : " + str(joy.get_numbuttons()))
+    print("Number of Axis : " + str(joy.get_numaxes()))
+    print("Number of Hats : " + str(joy.get_numhats()))
+except Exception as e:
+    print(e)
 
 clock = pygame.time.Clock()
 fps = 60
@@ -251,7 +262,7 @@ class PlayerShot(Entity):
 
     def _fire(self, dt):
         if self.is_launching:
-            self.move_by_arrow(dt)
+            self.move_on(dt)
             if (self.y < 0 or w_size[1] < self.y or
                     self.x < 0 or w_size[0] < self.x):
                 self.arrow_of_move.unset(Arrow.up)
@@ -260,6 +271,9 @@ class PlayerShot(Entity):
                 self.reset_pos_y()
                 self.allow_shooter_to_fire()
                 self.death()
+
+    def move_on(self, dt):
+        self.move_by_arrow(dt)
 
     def death(self):
         """Remove sprite from group and que of shooter."""
@@ -302,28 +316,60 @@ class PlayerMissile(PlayerShot):
         self.movement_speed = 2.75
         self.reset_pos_x()
         self.reset_pos_y()
+        self.angle_to_target = math.radians(-90)
 
-    def move_by_arrow(self, dt):
-        self.set_dest_to_enemy()
-        self.set_arrow_to_dest(dt)
-        super().move_by_arrow(dt)
+    def move_on(self, dt):
+        # self.homing_another_target(dt)
+        self.homing_single_target(dt)
 
     def allow_shooter_to_fire(self):
         self.shooter.is_missile_allowed = True
 
-    def set_dest_to_enemy(self) -> bool:
-        enemy_list = [entity for entity in self.gameworld.entities
-                      if isinstance(entity, Enemy)]
-        if len(enemy_list) >= len(self.shot_que):
-            for i, missile in enumerate(self.shot_que):
-                enemy = enemy_list[i]
-                self.shot_que[i].move_dest_x = enemy.hitbox.x
-                self.shot_que[i].move_dest_y = enemy.hitbox.y
-            return True
+    def homing_another_target(self, dt):
+        # TODO: Fix movement speed bug
+        missiles = self.gameworld.entities_by_type(type(self))
+        if self.gameworld.enemies():
+            distance_list = []
+            for enemy in self.gameworld.enemies():
+                distance = math.sqrt(
+                    (enemy.hitbox.centerx - self.hitbox.centerx) ** 2 +
+                    (enemy.hitbox.centery - self.hitbox.centery) ** 2)
+                distance_list.append(distance)
+            sorted_distance_list = copy.deepcopy(distance_list)
+            sorted_distance_list.sort()
+            sorted_distance_list = sorted_distance_list[:len(missiles)]
+            for i, distance in enumerate(sorted_distance_list):
+                target_enemy_index = distance_list.index(distance)
+                target = self.gameworld.enemies()[target_enemy_index]
+                print(i, math.atan2(
+                    target.rect.centery - missiles[i].rect.centery,
+                    target.rect.centerx - missiles[i].rect.centerx))
+                missiles[i].angle_to_target = math.atan2(
+                    target.rect.centery - missiles[i].rect.centery,
+                    target.rect.centerx - missiles[i].rect.centerx)
+                missiles[i].move_by_angle(dt, missiles[i].angle_to_target)
         else:
-            self.move_dest_x = None
-            self.move_dest_y = None
-            return False
+            self.angle_to_target = math.radians(-90)
+            self.move_by_angle(dt, self.angle_to_target)
+
+    def homing_single_target(self, dt):
+        if len(self.gameworld.enemies()) > 0:
+            distance_list = []
+            for enemy in self.gameworld.enemies():
+                distance = math.sqrt(
+                    (enemy.hitbox.centerx - self.hitbox.centerx) ** 2 +
+                    (enemy.hitbox.centery - self.hitbox.centery) ** 2)
+                distance_list.append(distance)
+            target_enemy_index = distance_list.index(min(distance_list))
+            target = self.gameworld.enemies()[target_enemy_index]
+            self.angle_to_target = math.atan2(
+                target.rect.centery - self.rect.centery,
+                target.rect.centerx - self.rect.centerx)
+            print(f"single atan2 {self.angle_to_target}")
+            self.move_by_angle(dt, self.angle_to_target)
+        else:
+            self.angle_to_target = math.radians(-90)
+            self.move_by_angle(dt, self.angle_to_target)
 
 
 class ScoutDiskEnemy(Enemy):
@@ -564,7 +610,8 @@ class Player(ShooterEntity):
             if self.current_second_weapon == "normal":
                 channel_manager["player"]["channel"].play(
                     self.normal_shot_sound)
-            missile = self.second_weapon[self.current_second_weapon]["entity"](
+            missile = self.second_weapon[
+                self.current_second_weapon]["entity"](
                 self, self.missile_que)
             missile.entity_container = self.entity_container
             missile.will_launch(Arrow.up)

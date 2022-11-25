@@ -91,6 +91,13 @@ class Level:
         if entity_list:
             return entity_list[0]
 
+    def entities_by_type(self, entity_type: Type[Entity]):
+        entity_list = [
+            entity for entity in self.entities
+            if isinstance(entity, entity_type)]
+        if entity_list:
+            return entity_list
+
     def show_hitbox(self):
         self.do_showing_hitbox = True
 
