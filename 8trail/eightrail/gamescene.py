@@ -1,8 +1,6 @@
-# from typing import TYPE_CHECKING
-# if TYPE_CHECKING:
-#     pass
 
 from dataclasses import dataclass
+from typing import Optional, Union
 
 import pygame
 
@@ -18,7 +16,7 @@ class Scene(object):
         self.manager = manager
         self.gameworld: Level = None
         self.keyboard: Keyboard = Keyboard()
-        self.joystick: Joystick2 = Joystick2()
+        self._joystick: Joystick2 = None
         self.visual_effects: list[AnimationImage] = []
         attrs_of_class = set(dir(self.__class__)) - set(dir(Scene))
         for attr_name in attrs_of_class:
@@ -27,6 +25,14 @@ class Scene(object):
             is_gameworld = Level in attrs_of_object
             if is_gameworld:
                 getattr(self, attr_name).scene = self
+
+    @property
+    def joystick(self) -> Optional[Joystick2]:
+        return self._joystick
+
+    @joystick.setter
+    def joystick(self, value: Union[Joystick2, None]):
+        self._joystick = value
 
     def event(self, event: pygame.event):
         pass
@@ -59,7 +65,8 @@ class SceneManager:
             return False
         self.scenes[self.current].event(event)
         self.scenes[self.current].keyboard.event(event)
-        self.scenes[self.current].joystick.event(event)
+        if self.scenes[self.current].joystick is not None:
+            self.scenes[self.current].joystick.event(event)
         return True
 
     def is_current_scene_has_gameworld(self) -> bool:

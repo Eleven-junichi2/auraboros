@@ -2,9 +2,11 @@ from collections import UserDict
 import copy
 from inspect import isclass
 import math
+
 # from typing import Any
 # from .keyboard import Keyboard
 from .entity import DeadlyObstacle, Entity, EntityList, ShooterEntity, Enemy
+from .gameinput import Joystick2
 from .gamelevel import Level
 from .gamescene import Scene, SceneManager
 from .gametext import TextSurfaceFactory
@@ -935,6 +937,7 @@ class OptionsScene(Scene):
 class TitleMenuScene(Scene):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.joystick = Joystick2(joystick)
         textfactory.set_current_font("misaki_gothic")
         textfactory.register_text("title_start", "START")
         textfactory.register_text("title_options", "OPTIONS")
@@ -972,21 +975,6 @@ class TitleMenuScene(Scene):
     def command_menu_item(self):
         self.manager.transition_to(
             self.gamemenu[self.index_of_menu_item_selected])
-
-    def event(self, event):
-        if event.type == pygame.JOYAXISMOTION:
-            print("スティック", joystick.get_axis(0), joystick.get_axis(1))
-        elif event.type == pygame.JOYBUTTONDOWN:
-            print('ボタン'+str(event.button)+'を押した')
-        elif event.type == pygame.JOYBUTTONUP:
-            print('ボタン'+str(event.button)+'を離した')
-        elif event.type == pygame.JOYHATMOTION:
-            pos = joystick.get_hat(0)
-            if pos[1] == 1:
-                self.go_up_menu_cursor()
-            if pos[1] == -1:
-                self.go_down_menu_cursor()
-            print(pos)
 
     def update(self, dt):
         self.keyboard.do_action_by_keyinput(pygame.K_UP)
