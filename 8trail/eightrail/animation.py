@@ -49,7 +49,6 @@ class AnimationImage:
                 self.image = self.anim_frames[self.anim_frame_id]
                 self.anim_frame_id += 1
             if self.anim_frame_id == len(self.anim_frames):
-                # print("--finished--")
                 if self.is_loop:
                     self.reset_animation()
                     self.is_finished = True

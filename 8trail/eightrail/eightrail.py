@@ -368,7 +368,7 @@ class PlayerMissile(PlayerShot):
             self.angle_to_target = math.atan2(
                 target.rect.centery - self.rect.centery,
                 target.rect.centerx - self.rect.centerx)
-            print(f"single atan2 {self.angle_to_target}")
+            # print(f"single atan2 {self.angle_to_target}")
             self.move_by_angle(dt, self.angle_to_target)
         else:
             self.angle_to_target = math.radians(-90)
@@ -1002,14 +1002,6 @@ def run(fps_num=fps):
         global_.screen.fill((0, 0, 0))
         for event in pygame.event.get():
             running = scene_manager.event(event)
-            # if event.type == pygame.JOYAXISMOTION:
-            #     print("スティック", joystick.get_axis(0), joystick.get_axis(1))
-            # elif event.type == pygame.JOYBUTTONDOWN:
-            #     print('ボタン'+str(event.button)+'を押した')
-            # elif event.type == pygame.JOYBUTTONUP:
-            #     print('ボタン'+str(event.button)+'を離した')
-            # elif event.type == pygame.JOYHATMOTION:
-            #     print(f"十字キー{joystick.get_hat(0)}")
 
         scene_manager.update(dt)
         scene_manager.draw(global_.screen)
