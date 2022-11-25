@@ -229,6 +229,30 @@ class EnemyShot3Anim(AnimationImage):
         self.anim_interval = 6
 
 
+class EnemyShot4Anim(AnimationImage):
+    def __init__(self):
+        super().__init__()
+        self.sprite_sheet = SpriteSheet(AssetFilePath.img("shot6.png"))
+        self.anim_frames: list[pygame.surface.Surface] = [
+            self.sprite_sheet.image_by_area(0, 0, 6, 6),
+            self.sprite_sheet.image_by_area(0, 6, 6, 6),
+            self.sprite_sheet.image_by_area(0, 6*2, 6, 6),
+            self.sprite_sheet.image_by_area(0, 6*3, 6, 6), ]
+        self.anim_interval = 6
+
+
+class EnemyShot5Anim(AnimationImage):
+    def __init__(self):
+        super().__init__()
+        self.sprite_sheet = SpriteSheet(AssetFilePath.img("shot7.png"))
+        self.anim_frames: list[pygame.surface.Surface] = [
+            self.sprite_sheet.image_by_area(0, 0, 4, 4),
+            self.sprite_sheet.image_by_area(0, 4, 4, 4),
+            self.sprite_sheet.image_by_area(0, 4*2, 4, 4),
+            self.sprite_sheet.image_by_area(0, 4*3, 4, 4), ]
+        self.anim_interval = 6
+
+
 class PlayerShot(Entity):
     def __init__(self, shooter_sprite: ShooterEntity, shot_que: EntityList,
                  *args, **kwargs):
@@ -482,8 +506,8 @@ class EnemyShot(DeadlyObstacle):
         super().__init__(*args, **kwargs)
         self.shooter = shooter_entity
         self.animation = AnimationDict()
-        self.animation["idle"] = EnemyShot3Anim()
-        self.animation["move"] = EnemyShot3Anim()
+        self.animation["idle"] = EnemyShot5Anim()
+        self.animation["move"] = EnemyShot5Anim()
         self.action = "move"
         self.image = self.animation[self.action].image
         self.rect = self.image.get_rect()
@@ -491,7 +515,7 @@ class EnemyShot(DeadlyObstacle):
         self.hitbox.width = 4
         self.hitbox.height = 4
         self.invincible_to_entity = True
-        self.movement_speed = 2
+        self.movement_speed = 3
         self.behavior_pattern = "launching_aim_at_player"
         self.behavior_pattern_dict = {}
         self.behavior_pattern_dict[
