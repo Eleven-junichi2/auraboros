@@ -7,7 +7,7 @@ from dataclasses import dataclass
 import pygame
 
 from .animation import AnimationImage
-from .keyboard import Keyboard
+from .gameinput import Keyboard
 
 
 @dataclass

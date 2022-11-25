@@ -973,6 +973,21 @@ class TitleMenuScene(Scene):
         self.manager.transition_to(
             self.gamemenu[self.index_of_menu_item_selected])
 
+    def event(self, event):
+        if event.type == pygame.JOYAXISMOTION:
+            print("スティック", joystick.get_axis(0), joystick.get_axis(1))
+        elif event.type == pygame.JOYBUTTONDOWN:
+            print('ボタン'+str(event.button)+'を押した')
+        elif event.type == pygame.JOYBUTTONUP:
+            print('ボタン'+str(event.button)+'を離した')
+        elif event.type == pygame.JOYHATMOTION:
+            pos = joystick.get_hat(0)
+            if pos[1] == 1:
+                self.go_up_menu_cursor()
+            if pos[1] == -1:
+                self.go_down_menu_cursor()
+            print(pos)
+
     def update(self, dt):
         self.keyboard.do_action_by_keyinput(pygame.K_UP)
         self.keyboard.do_action_by_keyinput(pygame.K_DOWN)
@@ -999,14 +1014,14 @@ def run(fps_num=fps):
         global_.screen.fill((0, 0, 0))
         for event in pygame.event.get():
             running = scene_manager.event(event)
-            if event.type == pygame.JOYAXISMOTION:
-                print('十時キー:', joystick.get_axis(0), joystick.get_axis(1))
-            elif event.type == pygame.JOYBUTTONDOWN:
-                print('ボタン'+str(event.button)+'を押した')
-            elif event.type == pygame.JOYBUTTONUP:
-                print('ボタン'+str(event.button)+'を離した')
-            elif event.type == pygame.JOYHATMOTION:
-                print("HATMOTION")
+            # if event.type == pygame.JOYAXISMOTION:
+            #     print("スティック", joystick.get_axis(0), joystick.get_axis(1))
+            # elif event.type == pygame.JOYBUTTONDOWN:
+            #     print('ボタン'+str(event.button)+'を押した')
+            # elif event.type == pygame.JOYBUTTONUP:
+            #     print('ボタン'+str(event.button)+'を離した')
+            # elif event.type == pygame.JOYHATMOTION:
+            #     print(f"十字キー{joystick.get_hat(0)}")
 
         scene_manager.update(dt)
         scene_manager.draw(global_.screen)
