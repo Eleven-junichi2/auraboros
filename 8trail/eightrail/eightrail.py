@@ -29,12 +29,12 @@ pygame.mixer.init()
 pygame.joystick.init()
 
 try:
-    joy = pygame.joystick.Joystick(0)
-    joy.init()
-    print("Joystick Name: " + joy.get_name())
-    print("Number of Button : " + str(joy.get_numbuttons()))
-    print("Number of Axis : " + str(joy.get_numaxes()))
-    print("Number of Hats : " + str(joy.get_numhats()))
+    joystick = pygame.joystick.Joystick(0)
+    joystick.init()
+    print("Joystick Name: " + joystick.get_name())
+    print("Number of Button : " + str(joystick.get_numbuttons()))
+    print("Number of Axis : " + str(joystick.get_numaxes()))
+    print("Number of Hats : " + str(joystick.get_numhats()))
 except Exception as e:
     print(e)
 
@@ -999,6 +999,15 @@ def run(fps_num=fps):
         global_.screen.fill((0, 0, 0))
         for event in pygame.event.get():
             running = scene_manager.event(event)
+            if event.type == pygame.JOYAXISMOTION:
+                print('十時キー:', joystick.get_axis(0), joystick.get_axis(1))
+            elif event.type == pygame.JOYBUTTONDOWN:
+                print('ボタン'+str(event.button)+'を押した')
+            elif event.type == pygame.JOYBUTTONUP:
+                print('ボタン'+str(event.button)+'を離した')
+            elif event.type == pygame.JOYHATMOTION:
+                print("HATMOTION")
+
         scene_manager.update(dt)
         scene_manager.draw(global_.screen)
         pygame.transform.scale(global_.screen, global_.w_size_unscaled,
