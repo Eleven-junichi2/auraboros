@@ -13,8 +13,7 @@ import pygame
 from .entity import Enemy, EnemyFactory, Entity, EntityList, DeadlyObstacle
 from .gamescene import Scene
 from .utilities import Arrow, open_json_file
-from .__init__ import w_size, TARGET_FPS
-
+from . import global_
 
 # TODO: destroy garbage enemy
 
@@ -52,7 +51,7 @@ class Level:
         self.enemy_factory = EnemyFactory()
 
         self.bg_surf = pygame.surface.Surface(
-            (w_size[0], w_size[1] * 2))
+            (global_.w_size[0], global_.w_size[1] * 2))
         self.scroll_speed = 0.5
         self.density_of_stars_on_bg = randint(100, 500)
 
@@ -152,9 +151,9 @@ class Level:
                 for i in range(2):
                     if isinstance(data["pos"][i], str):
                         if data["pos"][i] == "random":
-                            pos[i] = randint(0, w_size[i])
+                            pos[i] = randint(0, global_.w_size[i])
                         if data["pos"][i] == "right":
-                            pos[i] = w_size[i] - enemy.rect.width
+                            pos[i] = global_.w_size[i] - enemy.rect.width
                     else:
                         pos[i] = data["pos"][i]
                 enemy.x, enemy.y = pos
@@ -164,7 +163,7 @@ class Level:
         if self.do_showing_hitbox:
             self._visible_hitbox()
 
-        self.elapsed_time_in_level += 1 * dt * TARGET_FPS
+        self.elapsed_time_in_level += 1 * dt * global_.TARGET_FPS
 
     def process_collision(
             self,
@@ -234,13 +233,13 @@ class Level:
 
     def clear_enemies_off_screen(self):
         [entity.remove_from_container() for entity in self.enemies()
-         if w_size[1] < entity.y or w_size[0] < entity.x
+         if global_.w_size[1] < entity.y or global_.w_size[0] < entity.x
             or entity.x < 0 or entity.y < 0]
 
     def stop_entity_from_moving_off_screen(self, entity: Entity):
-        if w_size[1] < entity.y + entity.rect.height:
+        if global_.w_size[1] < entity.y + entity.rect.height:
             entity.arrow_of_move.unset(Arrow.down)
-        if w_size[0] < entity.x + entity.rect.width:
+        if global_.w_size[0] < entity.x + entity.rect.width:
             entity.arrow_of_move.unset(Arrow.right)
         if entity.x < 0:
             entity.arrow_of_move.unset(Arrow.left)
@@ -250,26 +249,29 @@ class Level:
     def set_background(self):
         [self.bg_surf.fill(
             (randint(0, 255), randint(0, 255), randint(0, 255)),
-            ((randint(0, w_size[0]), randint(0, w_size[1] * 2)), (1, 1)))
+            ((randint(0, global_.w_size[0]),
+              randint(0, global_.w_size[1] * 2)), (1, 1)))
          for i in range(self.density_of_stars_on_bg)]
 
     def set_background_for_scroll(self):
-        new_background = pygame.surface.Surface((w_size[0], w_size[1] * 2))
+        new_background = pygame.surface.Surface(
+            (global_.w_size[0], global_.w_size[1] * 2))
         new_background.blit(
-            self.bg_surf, (0, w_size[1], w_size[0], w_size[1]))
+            self.bg_surf,
+            (0, global_.w_size[1], global_.w_size[0], global_.w_size[1]))
         randomize_density = randint(-self.density_of_stars_on_bg // 2,
                                     self.density_of_stars_on_bg // 2)
         [new_background.fill(
             (randint(0, 255), randint(0, 255), randint(0, 255)),
-            ((randint(0, w_size[0]), randint(0, w_size[1])),
+            ((randint(0, global_.w_size[0]), randint(0, global_.w_size[1])),
              (1, 1)))
          for i in range(self.density_of_stars_on_bg + randomize_density)]
         self.bg_surf = new_background
 
     def scroll(self, dt):
         for enemy in self.enemies():
-            enemy.y += self.scroll_speed * 1.25 * dt * TARGET_FPS
-        self.bg_scroll_y += self.scroll_speed * dt * TARGET_FPS
-        if self.bg_scroll_y > w_size[1]:
+            enemy.y += self.scroll_speed * 1.25 * dt * global_.TARGET_FPS
+        self.bg_scroll_y += self.scroll_speed * dt * global_.TARGET_FPS
+        if self.bg_scroll_y > global_.w_size[1]:
             self.bg_scroll_y = 0
             self.set_background_for_scroll()

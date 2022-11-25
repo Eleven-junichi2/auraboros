@@ -3,7 +3,7 @@ from typing import TypedDict, Any
 
 import pygame
 
-from .__init__ import w_size
+from . import global_
 
 pygame.font.init()
 
@@ -61,19 +61,23 @@ class TextSurfaceFactory:
 
     def set_text_pos_to_right(self, key):
         self.text_dict[key]["pos"][0] = \
-            w_size[0] - self.font().size(self.text_dict[key]["text"])[0]
+            global_.w_size[0] - \
+            self.font().size(self.text_dict[key]["text"])[0]
 
     def set_text_pos_to_bottom(self, key):
         self.text_dict[key]["pos"][1] = \
-            w_size[1] - self.font().size(self.text_dict[key]["text"])[1]
+            global_.w_size[1] - \
+            self.font().size(self.text_dict[key]["text"])[1]
 
     def center_text_pos_x(self, key):
         self.text_dict[key]["pos"][0] = \
-            w_size[0]//2 - self.font().size(self.text_dict[key]["text"])[0]//2
+            global_.w_size[0]//2 - \
+            self.font().size(self.text_dict[key]["text"])[0]//2
 
     def center_text_pos_y(self, key):
         self.text_dict[key]["pos"][1] = \
-            w_size[1]//2 - self.font().size(self.text_dict[key]["text"])[1]//2
+            global_.w_size[1]//2 - \
+            self.font().size(self.text_dict[key]["text"])[1]//2
 
     def render(self, text_key, surface_to_draw: pygame.surface.Surface,
                pos=None, wait_rendering_for_text_to_register=True):

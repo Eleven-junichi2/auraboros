@@ -14,7 +14,7 @@ import pygame
 
 # from .gamescene import Scene
 from .utilities import Arrow, ArrowToTurnToward
-from .__init__ import TARGET_FPS, w_size
+from . import global_
 
 
 class Entity(pygame.sprite.Sprite):
@@ -94,7 +94,7 @@ class Entity(pygame.sprite.Sprite):
             movement_speed = self.movement_speed / sqrt(2)
         else:
             movement_speed = self.movement_speed
-        movement_speed = movement_speed * dt * TARGET_FPS
+        movement_speed = movement_speed * dt * global_.TARGET_FPS
         if self.arrow_of_move.is_up:
             self.y -= movement_speed
         if self.arrow_of_move.is_down:
@@ -111,11 +111,11 @@ class Entity(pygame.sprite.Sprite):
 
     def set_x_to_center_of_screen(self):
         """Center the posistion on the screen"""
-        self.x = w_size[0] / 2 - self.rect.width / 2
+        self.x = global_.w_size[0] / 2 - self.rect.width / 2
 
     def set_y_to_center_of_screen(self):
         """Center the posistion on the screen"""
-        self.y = w_size[1] / 2 - self.rect.height / 2
+        self.y = global_.w_size[1] / 2 - self.rect.height / 2
 
     def remove_from_container(self):
         self.entity_container.kill_living_entity(self)
@@ -201,10 +201,10 @@ class Entity(pygame.sprite.Sprite):
             self.set_arrow_random_horizontal(dt)
 
     def random_dest_x(self):
-        self.move_dest_x = random.randint(0, w_size[0])
+        self.move_dest_x = random.randint(0, global_.w_size[0])
 
     def random_dest_y(self):
-        self.move_dest_y = random.randint(0, w_size[1])
+        self.move_dest_y = random.randint(0, global_.w_size[1])
 
     def set_arrow_to_entity_as_dest(self, dt, entity_type: Entity):
         if self.set_destination_to_entity(entity_type):

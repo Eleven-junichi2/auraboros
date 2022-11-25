@@ -2,7 +2,7 @@ import functools
 from typing import Callable
 
 
-from .__init__ import TARGET_FPS
+from . import global_
 
 # TODO: make clock count reset feature
 
@@ -16,8 +16,8 @@ class IntervalCounter:
         self.count = 0
 
     def increment_count(self, dt):
-        self.count += round(1 * dt * TARGET_FPS, 3)
-        # self.count += 1 * dt * TARGET_FPS
+        self.count += round(1 * dt * global_.TARGET_FPS, 3)
+        # self.count += 1 * dt * global_.TARGET_FPS
 
     @classmethod
     def tick(cls, dt):

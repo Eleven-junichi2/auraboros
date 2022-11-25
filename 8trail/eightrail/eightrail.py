@@ -18,7 +18,8 @@ from .animation import (
     AnimationDict, AnimationImage, AnimationFactory, SpriteSheet
 )
 
-from .__init__ import init, w_size, screen, w_size_unscaled  # noqa
+from . import global_
+from .__init__ import init  # noqa
 
 # TODO: Fix game reset bug
 # TODO: Replace movement direction process to use angle
@@ -263,8 +264,8 @@ class PlayerShot(Entity):
     def _fire(self, dt):
         if self.is_launching:
             self.move_on(dt)
-            if (self.y < 0 or w_size[1] < self.y or
-                    self.x < 0 or w_size[0] < self.x):
+            if (self.y < 0 or global_.w_size[1] < self.y or
+                    self.x < 0 or global_.w_size[0] < self.x):
                 self.arrow_of_move.unset(Arrow.up)
                 self.is_launching = False
                 self.reset_pos_x()
@@ -341,9 +342,9 @@ class PlayerMissile(PlayerShot):
             for i, distance in enumerate(sorted_distance_list):
                 target_enemy_index = distance_list.index(distance)
                 target = self.gameworld.enemies()[target_enemy_index]
-                print(i, math.atan2(
-                    target.rect.centery - missiles[i].rect.centery,
-                    target.rect.centerx - missiles[i].rect.centerx))
+                # print(i, math.atan2(
+                #     target.rect.centery - missiles[i].rect.centery,
+                #     target.rect.centerx - missiles[i].rect.centerx))
                 missiles[i].angle_to_target = math.atan2(
                     target.rect.centery - missiles[i].rect.centery,
                     target.rect.centerx - missiles[i].rect.centerx)
@@ -711,7 +712,7 @@ class GameScene(Scene):
     def init_player(self):
         self.player = Player()
         self.player.set_x_to_center_of_screen()
-        self.player.y = w_size[1] - self.player.rect.height
+        self.player.y = global_.w_size[1] - self.player.rect.height
         self.gameworld.entities.append(self.player)
         self.keyboard.register_keyaction(
             pygame.K_UP,
@@ -825,7 +826,7 @@ class GameScene(Scene):
 
     def draw(self, screen):
         screen.blit(self.gameworld.bg_surf,
-                    (0, self.gameworld.bg_scroll_y - w_size[1]))
+                    (0, self.gameworld.bg_scroll_y - global_.w_size[1]))
         textfactory.render("tutorial", screen, (0, 0))
         textfactory.render("highscore", screen)
         textfactory.render("gamescore", screen)
@@ -995,13 +996,12 @@ def run(fps_num=fps):
     while running:
         dt = clock.tick(fps)/1000  # dt means delta time
 
-        screen.fill((0, 0, 0))
+        global_.screen.fill((0, 0, 0))
         for event in pygame.event.get():
             running = scene_manager.event(event)
         scene_manager.update(dt)
-        scene_manager.draw(screen)
-        # resize pixel size
-        pygame.transform.scale(screen, w_size_unscaled,
+        scene_manager.draw(global_.screen)
+        pygame.transform.scale(global_.screen, global_.w_size_unscaled,
                                pygame.display.get_surface())
         pygame.display.update()
         IntervalCounter.tick(dt)
