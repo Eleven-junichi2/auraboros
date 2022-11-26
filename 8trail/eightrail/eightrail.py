@@ -163,6 +163,25 @@ class ScoutDiskMove(AnimationImage):
         self.anim_interval = 5
 
 
+class ScoutDisk2Idle(AnimationImage):
+    def __init__(self):
+        super().__init__()
+        self.sprite_sheet = SpriteSheet(AssetFilePath.img("scoutdisk.png"))
+        self.anim_frames: list[pygame.surface.Surface] = [
+            self.sprite_sheet.image_by_area(0, 0, 18, 18), ]
+        self.anim_interval = 5
+
+
+class ScoutDisk2Move(AnimationImage):
+    def __init__(self):
+        super().__init__()
+        self.sprite_sheet = SpriteSheet(AssetFilePath.img("scoutdisk.png"))
+        self.anim_frames: list[pygame.surface.Surface] = [
+            self.sprite_sheet.image_by_area(0, 18 * 1, 18, 18),
+            self.sprite_sheet.image_by_area(0, 18 * 2, 18, 18), ]
+        self.anim_interval = 5
+
+
 class TrumplaIdle(AnimationImage):
     def __init__(self):
         super().__init__()
@@ -252,6 +271,18 @@ class EnemyShot5Anim(AnimationImage):
             self.sprite_sheet.image_by_area(0, 4*2, 4, 4),
             self.sprite_sheet.image_by_area(0, 4*3, 4, 4), ]
         self.anim_interval = 6
+
+
+class EnemyShot6Anim(AnimationImage):
+    def __init__(self):
+        super().__init__()
+        self.sprite_sheet = SpriteSheet(AssetFilePath.img("shot8.png"))
+        self.anim_frames: list[pygame.surface.Surface] = [
+            self.sprite_sheet.image_by_area(0, 0, 5, 5),
+            self.sprite_sheet.image_by_area(0, 5, 5, 5),
+            self.sprite_sheet.image_by_area(0, 5*2, 5, 5),
+            self.sprite_sheet.image_by_area(0, 5*3, 5, 5), ]
+        self.anim_interval = 4
 
 
 class PlayerShot(Entity):
@@ -400,8 +431,8 @@ class ScoutDiskEnemy(Enemy):
         self.visual_effects = AnimationFactory()
         self.visual_effects["death"] = Explosion
         self.animation = AnimationDict()
-        self.animation["idle"] = ScoutDiskIdle()
-        self.animation["move"] = ScoutDiskMove()
+        self.animation["idle"] = ScoutDisk2Idle()
+        self.animation["move"] = ScoutDisk2Move()
         self.image = self.animation[self.action].image
         self.rect = self.image.get_rect()
         self.hitbox = self.image.get_rect()
@@ -500,8 +531,8 @@ class EnemyShot(DeadlyObstacle):
         super().__init__(*args, **kwargs)
         self.shooter = shooter_entity
         self.animation = AnimationDict()
-        self.animation["idle"] = EnemyShot4Anim()
-        self.animation["move"] = EnemyShot4Anim()
+        self.animation["idle"] = EnemyShot6Anim()
+        self.animation["move"] = EnemyShot6Anim()
         self.action = "move"
         self.image = self.animation[self.action].image
         self.rect = self.image.get_rect()
@@ -518,9 +549,19 @@ class EnemyShot(DeadlyObstacle):
 
     def update(self, dt):
         self.do_pattern(dt)
-        self.animation[self.action].let_continue_animation()
+
+        # change image angle
+        shot_angle = abs(math.degrees(self.angle_to_target))
+        if (45 < shot_angle < 135) or (225 < shot_angle < 315):
+            self.animation[self.action].set_current_frame_id(0)
+        elif (135 < shot_angle < 225) or (
+                (315 < shot_angle) or (shot_angle < 45)):
+            self.animation[self.action].set_current_frame_id(2)
+        else:
+            self.animation[self.action].let_continue_animation()
+            self.animation[self.action].update(dt)
+        self.animation[self.action].set_current_frame_to_image()
         self.image = self.animation[self.action].image
-        self.animation[self.action].update(dt)
 
     def do_pattern(self, dt):
         if self.behavior_pattern is not None:
@@ -707,7 +748,7 @@ class GameScene(Scene):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.gameworld = Level(AssetFilePath.level("stage1"), self)
+        self.gameworld = Level(AssetFilePath.level("debug1"), self)
         self.gameworld.set_background()
         self.gameworld.enemy_factory["scoutdisk"] = ScoutDiskEnemy
         self.gameworld.enemy_factory["trumpla"] = TrumplaEnemy

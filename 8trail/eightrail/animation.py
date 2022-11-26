@@ -57,8 +57,8 @@ class AnimationImage:
     def set_current_frame_to_image(self):
         self.image = self.anim_frames[self.anim_frame_id]
 
-    def set_current_action_id(self, id: int):
-        self.anim_action_id = id
+    def set_current_frame_id(self, id: int):
+        self.anim_frame_id = id
 
     def let_play_animation(self):
         """Active update and draw function"""

@@ -36,7 +36,7 @@ class Entity(pygame.sprite.Sprite):
         self.is_moving = False  # this is True when move_by func called
         self.move_dest_x = None
         self.move_dest_y = None
-        self.angle_to_target = None
+        self.angle_to_target = 0
 
     @ property
     def hitbox(self):
