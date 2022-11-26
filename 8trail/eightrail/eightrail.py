@@ -552,7 +552,8 @@ class EnemyShot(DeadlyObstacle):
 
         # change image angle
         shot_angle = abs(math.degrees(self.angle_to_target))
-        if (45 < shot_angle < 135) or (225 < shot_angle < 315):
+        print(shot_angle)
+        if (60 < shot_angle < 120) or (240 < shot_angle < 300):
             self.animation[self.action].set_current_frame_id(0)
         elif (135 < shot_angle < 225) or (
                 (315 < shot_angle) or (shot_angle < 45)):
