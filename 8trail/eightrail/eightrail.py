@@ -485,6 +485,7 @@ class TrumplaEnemy(ScoutDiskEnemy):
         self.animation["roll_left"] = TrumplaRollLeft()
         self.animation["roll_right"] = TrumplaRollRight()
         self.animation["attack"] = TrumplaAttack()
+        self.animation["attack"].loop_count = 1
         self.image = self.animation[self.action].image
         self.rect = self.image.get_rect()
         self.hitbox = self.image.get_rect()
@@ -507,15 +508,17 @@ class TrumplaEnemy(ScoutDiskEnemy):
                 self.action = "roll_right"
         else:
             self.action = "idle"
-            self.animation[self.action].let_continue_animation()
         player = self.gameworld.entity(Player)
         if player is not None:
             if self.is_entity_in_shot_range(player):
                 self.action = "attack"
-                # if self.animation[self.action].was_played_once:
-                # self.action = "idle"
-                self.animation[self.action].let_continue_animation()
-                # print("playing")
+            else:
+                self.animation["attack"]._loop_counter = 0
+        print("frame id", self.animation["attack"].anim_frame_id)
+        print("loop: ", self.animation["attack"]._loop_counter)
+        print("loop count", self.animation["attack"].loop_count)
+        print("loop is once finished", self.animation["attack"].is_finished)
+        self.animation[self.action].let_continue_animation()
         self.animation[self.action].update(dt)
 
         self.launch_shot()
@@ -775,7 +778,7 @@ class GameScene(Scene):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.gameworld = Level(AssetFilePath.level("stage1"), self)
+        self.gameworld = Level(AssetFilePath.level("debug1"), self)
         self.gameworld.set_background()
         self.gameworld.enemy_factory["scoutdisk"] = ScoutDiskEnemy
         self.gameworld.enemy_factory["trumpla"] = TrumplaEnemy

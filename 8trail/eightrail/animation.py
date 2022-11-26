@@ -12,6 +12,7 @@ class AnimationImage:
             pygame.surface.Surface((0, 0)), ]
         self.anim_frame_id = 0
         self.anim_interval = 1
+        self.loop_count = -1  # -1 means unset loop count
         self.is_playing = False
         self.is_loop = True
         self.image = self.anim_frames[self.anim_frame_id]
@@ -19,6 +20,7 @@ class AnimationImage:
         self.is_finished = False
         self._frame_num = len(self.anim_frames)
         self._do_reset_anim_interval_counter = False
+        self._loop_counter = 0
 
     @property
     def anim_frames(self):
@@ -44,6 +46,8 @@ class AnimationImage:
         self.update_frame()
 
     def update_frame(self):
+        if self._loop_counter > self.loop_count and self.was_played_once:
+            return
         if self.is_playing:
             if self.anim_frame_id < len(self.anim_frames):
                 self.image = self.anim_frames[self.anim_frame_id]
@@ -51,6 +55,7 @@ class AnimationImage:
             if self.anim_frame_id == len(self.anim_frames):
                 if self.is_loop:
                     self.reset_animation()
+                    self._loop_counter += 1
                     self.is_finished = True
                 self.was_played_once = True
 
