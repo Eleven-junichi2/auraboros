@@ -209,6 +209,16 @@ class TrumplaRollRight(AnimationImage):
         self.anim_interval = 10
 
 
+class TrumplaAttack(AnimationImage):
+    def __init__(self):
+        super().__init__()
+        self.sprite_sheet = SpriteSheet(AssetFilePath.img("enemy_b.png"))
+        self.anim_frames: list[pygame.surface.Surface] = [
+            self.sprite_sheet.image_by_area(0, 16*4, 16, 16),
+            self.sprite_sheet.image_by_area(0, 0, 16, 16)]
+        self.anim_interval = 20
+
+
 class EnemyShotAnim(AnimationImage):
     def __init__(self):
         super().__init__()
@@ -474,6 +484,7 @@ class TrumplaEnemy(ScoutDiskEnemy):
         self.animation["idle"] = TrumplaIdle()
         self.animation["roll_left"] = TrumplaRollLeft()
         self.animation["roll_right"] = TrumplaRollRight()
+        self.animation["attack"] = TrumplaAttack()
         self.image = self.animation[self.action].image
         self.rect = self.image.get_rect()
         self.hitbox = self.image.get_rect()
@@ -486,6 +497,8 @@ class TrumplaEnemy(ScoutDiskEnemy):
         self.shot_range = 160
 
     def update(self, dt):
+        # TODO: Fix shot animation
+        print(self.animation[self.action].was_played_once)
         self.do_pattern(dt)
         if self.is_moving:
             if self.arrow_of_move.is_left:
@@ -494,10 +507,20 @@ class TrumplaEnemy(ScoutDiskEnemy):
                 self.action = "roll_right"
         else:
             self.action = "idle"
-        self.animation[self.action].let_continue_animation()
-        self.image = self.animation[self.action].image
+            self.animation[self.action].let_continue_animation()
+        player = self.gameworld.entity(Player)
+        if player is not None:
+            if self.is_entity_in_shot_range(player):
+                self.action = "attack"
+                # if self.animation[self.action].was_played_once:
+                # self.action = "idle"
+                self.animation[self.action].let_continue_animation()
+                # print("playing")
         self.animation[self.action].update(dt)
+
         self.launch_shot()
+
+        self.image = self.animation[self.action].image
 
     def draw(self, screen):
         super().draw(screen)
@@ -507,15 +530,18 @@ class TrumplaEnemy(ScoutDiskEnemy):
             screen, (255, 0, 0),
             (self.hitbox.centerx, self.hitbox.centery), self.shot_range, 1)
 
+    def is_entity_in_shot_range(self, entity: Entity) -> bool:
+        distance = math.sqrt(
+            (entity.hitbox.centerx - self.hitbox.centerx) ** 2 +
+            (entity.hitbox.centery - self.hitbox.centery) ** 2)
+        return distance <= self.shot_range
+
     @schedule_instance_method_interval("shot_interval")
     def launch_shot(self):
-        player_list = [entity for entity in self.gameworld.entities
-                       if isinstance(entity, Player)]
-        player = player_list[0]
-        distance = math.sqrt(
-            (player.hitbox.centerx - self.hitbox.centerx) ** 2 +
-            (player.hitbox.centery - self.hitbox.centery) ** 2)
-        if distance <= self.shot_range:
+        player = self.gameworld.entity(Player)
+        if player is None:
+            return
+        if self.is_entity_in_shot_range(player):
             shot = EnemyShot(self)
             shot.x = self.rect.centerx - shot.rect.width // 2
             shot.y = self.rect.centery - shot.rect.height // 2
@@ -552,7 +578,7 @@ class EnemyShot(DeadlyObstacle):
 
         # change image angle
         shot_angle = abs(math.degrees(self.angle_to_target))
-        print(shot_angle)
+        # print(shot_angle)
         if (60 < shot_angle < 120) or (240 < shot_angle < 300):
             self.animation[self.action].set_current_frame_id(0)
         elif (135 < shot_angle < 225) or (
@@ -749,7 +775,7 @@ class GameScene(Scene):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.gameworld = Level(AssetFilePath.level("debug1"), self)
+        self.gameworld = Level(AssetFilePath.level("stage1"), self)
         self.gameworld.set_background()
         self.gameworld.enemy_factory["scoutdisk"] = ScoutDiskEnemy
         self.gameworld.enemy_factory["trumpla"] = TrumplaEnemy
