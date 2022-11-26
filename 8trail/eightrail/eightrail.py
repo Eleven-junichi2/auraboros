@@ -39,6 +39,7 @@ try:
     print("Number of Hats : " + str(joystick.get_numhats()))
 except Exception as e:
     print(e)
+    joystick = None
 
 clock = pygame.time.Clock()
 fps = 60
@@ -264,8 +265,7 @@ class PlayerShot(Entity):
         self.hitbox = self.image.get_rect()
         self.reset_pos_x()
         self.reset_pos_y()
-        self.movement_speed = 4.5
-        self.adjust_movement_speed = 1
+        self.movement_speed = 5
         self.is_launching = False
 
     def reset_pos_x(self):
@@ -280,12 +280,6 @@ class PlayerShot(Entity):
         self.arrow_of_move.set(direction)
         self.entity_container.append(self)
         self.is_launching = True
-        # set accelerater if the direction is the same as that of the shooter.
-        if (self.arrow_of_move.is_up and
-                self.shooter.arrow_of_move.is_up):
-            self.adjust_movement_speed = self.shooter.movement_speed
-        else:
-            self.adjust_movement_speed = 0
 
     def _fire(self, dt):
         if self.is_launching:
@@ -353,7 +347,7 @@ class PlayerMissile(PlayerShot):
         self.shooter.is_missile_allowed = True
 
     def homing_another_target(self, dt):
-        # TODO: Fix movement speed bug
+        # TODO: Fix movement speed
         missiles = self.gameworld.entities_by_type(type(self))
         if self.gameworld.enemies():
             distance_list = []
@@ -506,8 +500,8 @@ class EnemyShot(DeadlyObstacle):
         super().__init__(*args, **kwargs)
         self.shooter = shooter_entity
         self.animation = AnimationDict()
-        self.animation["idle"] = EnemyShot5Anim()
-        self.animation["move"] = EnemyShot5Anim()
+        self.animation["idle"] = EnemyShot4Anim()
+        self.animation["move"] = EnemyShot4Anim()
         self.action = "move"
         self.image = self.animation[self.action].image
         self.rect = self.image.get_rect()
