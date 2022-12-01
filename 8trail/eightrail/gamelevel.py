@@ -63,7 +63,6 @@ class Level:
         self.scoreboard = [0, ]
 
         self.initialize_level()
-        self.do_showing_hitbox = False
 
     @property
     def entities(self):
@@ -96,10 +95,10 @@ class Level:
             return entity_list
 
     def show_hitbox(self):
-        self.do_showing_hitbox = True
+        self._visible_hitbox()
 
     def hide_hitbox(self):
-        self.do_showing_hitbox = False
+        self._invisible_hitbox()
 
     def _visible_hitbox(self):
         [entity.visible_hitbox() for entity in self.entities]
@@ -157,9 +156,6 @@ class Level:
                 enemy.x, enemy.y = pos
                 enemy.behavior_pattern = data["pattern"]
                 self.entities.append(enemy)
-
-        if self.do_showing_hitbox:
-            self._visible_hitbox()
 
         self.elapsed_time_in_level += 1 * dt * global_.TARGET_FPS
 
