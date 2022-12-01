@@ -46,8 +46,9 @@ class AnimationImage:
         self.update_frame()
 
     def update_frame(self):
-        if self._loop_counter > self.loop_count and self.was_played_once:
-            return
+        if self.loop_count > 0:
+            if self._loop_counter > self.loop_count and self.was_played_once:
+                return
         if self.is_playing:
             if self.anim_frame_id < len(self.anim_frames):
                 self.image = self.anim_frames[self.anim_frame_id]

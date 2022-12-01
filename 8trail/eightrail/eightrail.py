@@ -453,6 +453,7 @@ class ScoutDiskEnemy(Enemy):
         self.behavior_pattern_dict[
             "strike_to_player"] = self.move_strike_to_player
         self.gamescore = 10
+        # self.is_moving = True
 
     def update(self, dt):
         self.do_pattern(dt)
@@ -499,7 +500,7 @@ class TrumplaEnemy(ScoutDiskEnemy):
 
     def update(self, dt):
         # TODO: Fix shot animation
-        print(self.animation[self.action].was_played_once)
+        # print(self.animation[self.action].was_played_once)
         self.do_pattern(dt)
         if self.is_moving:
             if self.arrow_of_move.is_left:
@@ -514,10 +515,10 @@ class TrumplaEnemy(ScoutDiskEnemy):
                 self.action = "attack"
             else:
                 self.animation["attack"]._loop_counter = 0
-        print("frame id", self.animation["attack"].anim_frame_id)
-        print("loop: ", self.animation["attack"]._loop_counter)
-        print("loop count", self.animation["attack"].loop_count)
-        print("loop is once finished", self.animation["attack"].is_finished)
+        # print("frame id", self.animation["attack"].anim_frame_id)
+        # print("loop: ", self.animation["attack"]._loop_counter)
+        # print("loop count", self.animation["attack"].loop_count)
+        # print("loop is once finished", self.animation["attack"].is_finished)
         self.animation[self.action].let_continue_animation()
         self.animation[self.action].update(dt)
 
@@ -778,7 +779,7 @@ class GameScene(Scene):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.gameworld = Level(AssetFilePath.level("debug1"), self)
+        self.gameworld = Level(AssetFilePath.level("stage1"), self)
         self.gameworld.set_background()
         self.gameworld.enemy_factory["scoutdisk"] = ScoutDiskEnemy
         self.gameworld.enemy_factory["trumpla"] = TrumplaEnemy
