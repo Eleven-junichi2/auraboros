@@ -88,7 +88,7 @@ class Explosion(AnimationImage):
             self.sprite_sheet.image_by_area(
                 0, 16*4, 16, 16),
             self.sprite_sheet.image_by_area(0, 16*5, 16, 16)]
-        self.anim_interval = 8
+        self.anim_interval = 3
 
 
 class PlayerExplosion(AnimationImage):
