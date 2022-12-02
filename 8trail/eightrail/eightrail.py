@@ -554,6 +554,7 @@ class TrumplaEnemy(ScoutDiskEnemy):
                 player.rect.centerx - self.rect.centerx)
             self.gameworld.entities.append(shot)
             shot.set_destination_to_entity(Player)
+            self.animation[self.action].reset_animation()
 
 
 class EnemyShot(DeadlyObstacle):
@@ -779,7 +780,7 @@ class GameScene(Scene):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.gameworld = Level(AssetFilePath.level("stage1"), self)
+        self.gameworld = Level(AssetFilePath.level("debug1"), self)
         self.gameworld.set_background()
         self.gameworld.enemy_factory["scoutdisk"] = ScoutDiskEnemy
         self.gameworld.enemy_factory["trumpla"] = TrumplaEnemy

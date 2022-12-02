@@ -82,6 +82,7 @@ class AnimationImage:
     def reset_animation(self):
         self.anim_frame_id = 0
         self._anim_frame_progress = 0
+        self._loop_counter = 0
         self._do_reset_anim_interval_counter = True
 
     def draw(self, screen):
