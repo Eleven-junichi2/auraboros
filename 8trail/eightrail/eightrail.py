@@ -21,7 +21,7 @@ from .animation import (
 )
 
 from . import global_
-from .__init__ import init  # noqa
+from .global_ import init   # noqa
 
 # TODO: Fix game reset bug
 # TODO: Replace movement direction process to use angle
@@ -780,7 +780,7 @@ class GameScene(Scene):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.gameworld = Level(AssetFilePath.level("debug1"), self)
+        self.gameworld = Level(AssetFilePath.level("stage1"), self)
         self.gameworld.set_background()
         self.gameworld.enemy_factory["scoutdisk"] = ScoutDiskEnemy
         self.gameworld.enemy_factory["trumpla"] = TrumplaEnemy
