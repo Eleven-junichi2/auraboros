@@ -48,6 +48,7 @@ class UIElement:
 class UILayout(UIElement):
     def __init__(self):
         self.layout = [[]]
+
         self.margin_top = 0
         self.margin_bottom = 0
         self.margin_right = 0
@@ -57,9 +58,28 @@ class UILayout(UIElement):
         self.padding_right = 0
         self.padding_left = 0
 
-    def set_ui_element(self, ui_element: UIElement, row, column):
-        # is column prepared
-        if len(self.layout) >= column:
-            if len(self.layout[0]) >= row:
-                pass
-        self.layout[column][row] = ui_element
+    def set_ui_element(self, ui_element: UIElement, row_index, column_index):
+        row_size_min = row_index + 1
+        column_size_min = column_index + 1
+        if len(self.layout) <= row_size_min:
+            print(row_size_min - len(self.layout))
+            for i in range(row_size_min - len(self.layout)):
+                self.layout.append([])
+            for i in range(len(self.layout)):
+                if len(self.layout[i]) <= column_size_min:
+                    self.layout[i].extend(
+                        [None for j in range(
+                            column_size_min - len(self.layout[i]))])
+
+        new_width = 0
+        new_height = 0
+        self.layout[row_index][column_index] = ui_element
+
+    # def draw(self, screen: pygame.surface.Surface):
+    #     surface =
+        # screen.blit()
+
+
+uilayout = UILayout()
+uilayout.set_ui_element(UIElement(), 6, 5)
+print(uilayout.layout)
