@@ -3,6 +3,7 @@ import copy
 from inspect import isclass
 import math
 
+
 # from typing import Any
 # from .keyboard import Keyboard
 from .entity import DeadlyObstacle, Entity, EntityList, ShooterEntity, Enemy
@@ -10,6 +11,7 @@ from .gameinput import Joystick2
 from .gamelevel import Level
 from .gamescene import Scene, SceneManager
 from .gametext import TextSurfaceFactory
+from .ui import UILayout, UIElement
 from .utilities import Arrow, ArrowToTurnToward, AssetFilePath, TextToDebug  # noqa
 from .schedule import IntervalCounter, schedule_instance_method_interval
 from .sound import SoundDict, ChannelManager
@@ -1082,6 +1084,10 @@ class TitleMenuScene(Scene):
 class UIDebugScene(Scene):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.testui = UILayout()
+
+    def draw(self, screen):
+        self.testui.draw(screen)
 
 
 def run(fps_num=fps):
