@@ -1079,6 +1079,11 @@ class TitleMenuScene(Scene):
         textfactory.render("menu_cursor_>", screen, self.menu_cursor_pos)
 
 
+class UIDebugScene(Scene):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
 def run(fps_num=fps):
     global fps
     fps = fps_num
@@ -1087,6 +1092,8 @@ def run(fps_num=fps):
     scene_manager.push(TitleMenuScene(scene_manager))
     scene_manager.push(OptionsScene(scene_manager))
     scene_manager.push(GameScene(scene_manager))
+    scene_manager.push(UIDebugScene(scene_manager))
+    scene_manager.transition_to(3)
     while running:
         dt = clock.tick(fps)/1000  # dt means delta time
 

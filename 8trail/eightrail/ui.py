@@ -70,14 +70,20 @@ class UILayout(UIElement):
                     self.layout[i].extend(
                         [None for j in range(
                             column_size_min - len(self.layout[i]))])
-
-        new_width = 0
-        new_height = 0
         self.layout[row_index][column_index] = ui_element
 
-    # def draw(self, screen: pygame.surface.Surface):
-    #     surface =
-        # screen.blit()
+    def set_entire_size_by_elements(self):
+        for row in self.layout:
+            # heights
+            for column in row:
+                pass
+
+    def draw(self, screen: pygame.surface.Surface):
+        for row in self.layout:
+            for column in row:
+                if column is not None:
+                    self.image.blit(column, column.rect)
+        super().draw(screen)
 
 
 uilayout = UILayout()
