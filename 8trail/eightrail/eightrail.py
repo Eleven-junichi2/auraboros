@@ -23,7 +23,7 @@ from .animation import (
 )
 
 from . import global_
-from .__init__ import init  # noqa
+from .global_ import init  # noqa
 
 # TODO: Fix game reset bug
 # TODO: Replace movement direction process to use angle
@@ -1085,9 +1085,18 @@ class UIDebugScene(Scene):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.testui = UILayout()
+        self.ui1 = UIElement(pygame.surface.Surface((32, 32)))
+        self.ui1.image.fill((255, 255, 0))
+        self.ui2 = UIElement(pygame.surface.Surface((26, 32)))
+        self.ui2.image.fill((0, 255, 0))
+        # print(self.ui1.height)
+        self.testui.set_ui_element(self.ui1, 2, 2)
+        self.testui.set_ui_element(self.ui2, 1, 1)
+        self.testui.resize_rect_by_entire_elements()
 
     def draw(self, screen):
         self.testui.draw(screen)
+        # self.ui1.draw(screen)
 
 
 def run(fps_num=fps):
