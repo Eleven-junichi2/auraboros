@@ -3,14 +3,17 @@ import pygame
 
 
 class UIElement:
-    def __init__(self):
+    def __init__(self, image: pygame.surface.Surface = None, ):
         self._container = None
-        self.width = 0
-        self.height = 0
         self._x = 0
         self._y = 0
-        self.image = pygame.surface.Surface((self.width, self.height))
-        self.rect = pygame.rect.Rect(self._x, self._y, self.width, self.height)
+        if image is None:
+            self.image = pygame.surface.Surface((0, 0))
+        else:
+            self.image = image
+        self.rect = self.image.get_rect()
+        self._width = self.rect.width
+        self._height = self.rect.height
 
     @property
     def x(self):
@@ -31,6 +34,24 @@ class UIElement:
         self.rect.y = self._y
 
     @property
+    def width(self):
+        return self._width
+
+    @width.setter
+    def width(self, value):
+        self._width = value
+        self.rect.width = self._width
+
+    @property
+    def height(self):
+        return self._height
+
+    @height.setter
+    def height(self, value):
+        self._height = value
+        self.rect.height = self._height
+
+    @property
     def container(self) -> Union[None, "UILayout"]:
         return self._container
 
@@ -46,7 +67,9 @@ class UIElement:
 
 
 class UILayout(UIElement):
+    # TODO resize rect to be drawable
     def __init__(self):
+        super().__init__()
         self.layout = [[]]
 
         self.margin_top = 0
@@ -57,12 +80,14 @@ class UILayout(UIElement):
         self.padding_bottom = 0
         self.padding_right = 0
         self.padding_left = 0
+        # "left" "right" "top" "bottom" "center"
+        self.anchor = "left"
 
     def set_ui_element(self, ui_element: UIElement, row_index, column_index):
         row_size_min = row_index + 1
         column_size_min = column_index + 1
         if len(self.layout) <= row_size_min:
-            print(row_size_min - len(self.layout))
+            # print(row_size_min - len(self.layout))
             for i in range(row_size_min - len(self.layout)):
                 self.layout.append([])
             for i in range(len(self.layout)):
@@ -72,18 +97,32 @@ class UILayout(UIElement):
                             column_size_min - len(self.layout[i]))])
         self.layout[row_index][column_index] = ui_element
 
-    def set_entire_size_by_elements(self):
+    def resize_rect_by_entire_elements(self):
+        heights = []
+        widths = []
         for row in self.layout:
             # heights
             for column in row:
-                pass
+                if column is None:
+                    continue
+                heights.append(column.height)
+                widths.append(column.width)
+        print("h w:", heights, widths)
+        self.print_layout()
+
+    def print_layout(self):
+        print(*self.layout, sep="\n")
 
     def draw(self, screen: pygame.surface.Surface):
         for row in self.layout:
             for column in row:
                 if column is not None:
-                    self.image.blit(column, column.rect)
-        super().draw(screen)
+                    # need surface size to draw
+                    self.image = pygame.surface.Surface((100, 100))
+                    self.image.blit(column.image, column.rect)
+                    self.rect = self.image.get_rect()
+        screen.blit(self.image, self.rect)
+        # super().draw(screen)
 
 
 uilayout = UILayout()
