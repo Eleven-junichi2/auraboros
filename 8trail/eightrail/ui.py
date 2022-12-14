@@ -151,6 +151,6 @@ class UIBoxLayout(UIElement):
         screen.blit(self.image, self.rect)
 
 
-uilayout = UILayout()
-uilayout.set_ui_element(UIElement(), 6, 5)
-print(uilayout.layout)
+# uilayout = UILayout()
+# uilayout.set_ui_element(UIElement(), 6, 5)
+# print(uilayout.layout)
