@@ -3,6 +3,7 @@ import copy
 from inspect import isclass
 import math
 
+
 # from typing import Any
 # from .keyboard import Keyboard
 from .entity import DeadlyObstacle, Entity, EntityList, ShooterEntity, Enemy
@@ -10,6 +11,7 @@ from .gameinput import Joystick2
 from .gamelevel import Level
 from .gamescene import Scene, SceneManager
 from .gametext import TextSurfaceFactory
+from .ui import UIBoxLayout, UIElement
 from .utilities import Arrow, ArrowToTurnToward, AssetFilePath, TextToDebug  # noqa
 from .schedule import IntervalCounter, schedule_instance_method_interval
 from .sound import SoundDict, ChannelManager
@@ -21,7 +23,7 @@ from .animation import (
 )
 
 from . import global_
-from .global_ import init   # noqa
+from .global_ import init  # noqa
 
 # TODO: Fix game reset bug
 # TODO: Replace movement direction process to use angle
@@ -1079,6 +1081,26 @@ class TitleMenuScene(Scene):
         textfactory.render("menu_cursor_>", screen, self.menu_cursor_pos)
 
 
+class UIDebugScene(Scene):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.testui = UIBoxLayout()
+        self.ui1 = UIElement(pygame.surface.Surface((32, 32)))
+        self.ui1.surface.fill((255, 255, 0))
+        self.ui2 = UIElement(pygame.surface.Surface((26, 32)))
+        self.ui2.surface.fill((0, 255, 0))
+        # print(self.ui1.height)
+        self.testui.add_ui_element(self.ui1)
+        self.testui.add_ui_element(self.ui2)
+        self.testui.spacing = 20
+        self.testui.x = 10
+        self.testui.y = 20
+
+    def draw(self, screen):
+        self.testui.draw(screen)
+        # self.ui1.draw(screen)
+
+
 def run(fps_num=fps):
     global fps
     fps = fps_num
@@ -1087,6 +1109,8 @@ def run(fps_num=fps):
     scene_manager.push(TitleMenuScene(scene_manager))
     scene_manager.push(OptionsScene(scene_manager))
     scene_manager.push(GameScene(scene_manager))
+    scene_manager.push(UIDebugScene(scene_manager))
+    # scene_manager.transition_to(3)
     while running:
         dt = clock.tick(fps)/1000  # dt means delta time
 

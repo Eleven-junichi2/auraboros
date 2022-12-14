@@ -1,6 +1,6 @@
 import pygame
 
-from .animation import SpriteSheet
+# from .animation import SpriteSheet
 
 
 class TerrainTile:
