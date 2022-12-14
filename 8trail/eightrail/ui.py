@@ -1,6 +1,8 @@
 from typing import Union
 import pygame
 
+from .gametext import TextSurfaceFactory
+
 
 class UIElement:
     def __init__(self, surface: pygame.surface.Surface = None, ):
@@ -64,7 +66,7 @@ class UIElement:
     def update(self, dt):
         pass
 
-    def draw(self, screen: pygame.surface.Surface):
+    def render(self, screen: pygame.surface.Surface):
         screen.blit(self.surface, self.rect)
 
 
@@ -81,47 +83,6 @@ class UILayoutBase(UIElement):
         self.padding_right = 0
         self.padding_left = 0
         self.spacing = 0
-
-#     def set_ui_element(self, ui_element: UIElement, row_index, column_index):
-#         row_size_min = row_index + 1
-#         column_size_min = column_index + 1
-#         if len(self.layout) <= row_size_min:
-#             # print(row_size_min - len(self.layout))
-#             for i in range(row_size_min - len(self.layout)):
-#                 self.layout.append([])
-#             for i in range(len(self.layout)):
-#                 if len(self.layout[i]) <= column_size_min:
-#                     self.layout[i].extend(
-#                         [None for j in range(
-#                             column_size_min - len(self.layout[i]))])
-#         self.layout[row_index][column_index] = ui_element
-
-#     def resize_rect_by_entire_elements(self):
-#         heights = []
-#         widths = []
-#         for row in self.layout:
-#             # heights
-#             for column in row:
-#                 if column is None:
-#                     continue
-#                 heights.append(column.height)
-#                 widths.append(column.width)
-#         print("h w:", heights, widths)
-#         self.print_layout()
-
-#     def print_layout(self):
-#         print(*self.layout, sep="\n")
-
-#     def draw(self, screen: pygame.surface.Surface):
-#         for row in self.layout:
-#             for column in row:
-#                 if column is not None:
-#                     # need surface size to draw
-#                     self.image = pygame.surface.Surface((100, 100))
-#                     self.image.blit(column.image, column.rect)
-#                     self.rect = self.image.get_rect()
-#         screen.blit(self.image, self.rect)
-#         # super().draw(screen)
 
 
 class UIBoxLayout(UILayoutBase):
@@ -142,7 +103,7 @@ class UIBoxLayout(UILayoutBase):
             self.height = height
             self.width = max(widths)
 
-    def draw(self, screen: pygame.surface.Surface):
+    def render(self, screen: pygame.surface.Surface):
         self.stretch_to_fit_entire()
         if self.orientation == "vertical":
             i = 0
@@ -158,6 +119,14 @@ class UIBoxLayout(UILayoutBase):
                 i += 1
         screen.blit(self.surface, self.rect)
 
+
+class UIGameText(UIElement):
+    def __init__(self, text_surface_factory: TextSurfaceFactory):
+        self.text_surf_factory = text_surface_factory
+
+    def render(self, screen, *args, **kwargs):
+        self.text_surf_factory.render(
+            surface_to_draw=screen, *args, **kwargs)
 
 # uilayout = UILayout()
 # uilayout.set_ui_element(UIElement(), 6, 5)

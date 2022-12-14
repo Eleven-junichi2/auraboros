@@ -11,7 +11,7 @@ pygame.font.init()
 class TextSurfaceFactory:
     def __init__(self):
         self.current_font_key = None
-        self._text_dict: dict[Any, TextDictItem] = {}
+        self._text_dict: dict[Any, GameText] = {}
         self._font_dict = FontDict()
 
     @property
@@ -24,8 +24,8 @@ class TextSurfaceFactory:
 
     def register_text(self, key, text: str = "", pos=[0, 0],
                       color_rgb=[255, 255, 255]):
-        self.text_dict[key] = TextDictItem(
-            {"text": text, "pos": pos, "rgb": color_rgb})
+        self.text_dict[key] = GameText(
+            {"text": text, "pos": pos, "rgb": color_rgb, "surface": None})
 
     def rewrite_text(self, key, text: str):
         self.text_dict[key]["text"] = text
@@ -92,10 +92,11 @@ class TextSurfaceFactory:
             surface_to_draw.blit(text_surf, pos_)
 
 
-class TextDictItem(TypedDict):
+class GameText(TypedDict):
     text: str
     pos: list
     rgb: list
+    surface: pygame.surface.Surface
 
 
 class FontDict(UserDict):
