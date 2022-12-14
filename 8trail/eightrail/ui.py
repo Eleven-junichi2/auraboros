@@ -124,13 +124,25 @@ class UIGameText(UIElement):
     def __init__(self, font: pygame.font.Font, text: str):
         super().__init__()
         self.font = font
-        self.text = text
+        self._text = text
+        self.do_reset_surface_and_rect_when_update_text = True
+        self._update_surface_and_rect_by_new_text()
+
+    @property
+    def text(self):
+        return self._text
+
+    @text.setter
+    def text(self, value: str):
+        self._text = value
+        if self.do_reset_surface_and_rect_when_update_text:
+            self._update_surface_and_rect_by_new_text()
+
+    def _update_surface_and_rect_by_new_text(self):
         self.surface = self.font.render(self.text, True, (255, 255, 255))
         self.rect = self.surface.get_rect()
 
     def draw(self, screen: pygame.surface.Surface, *args, **kwargs):
-        self.surface = self.font.render(self.text, True, (255, 255, 255))
-        self.rect = self.surface.get_rect()
         screen.blit(self.surface, self.rect)
 
 # uilayout = UILayout()
