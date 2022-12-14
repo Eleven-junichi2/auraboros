@@ -11,7 +11,7 @@ from .gameinput import Joystick2
 from .gamelevel import Level
 from .gamescene import Scene, SceneManager
 from .gametext import TextSurfaceFactory
-from .ui import UILayout, UIElement
+from .ui import UIBoxLayout, UIElement
 from .utilities import Arrow, ArrowToTurnToward, AssetFilePath, TextToDebug  # noqa
 from .schedule import IntervalCounter, schedule_instance_method_interval
 from .sound import SoundDict, ChannelManager
@@ -1084,15 +1084,15 @@ class TitleMenuScene(Scene):
 class UIDebugScene(Scene):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.testui = UILayout()
+        self.testui = UIBoxLayout()
         self.ui1 = UIElement(pygame.surface.Surface((32, 32)))
-        self.ui1.image.fill((255, 255, 0))
+        self.ui1.surface.fill((255, 255, 0))
         self.ui2 = UIElement(pygame.surface.Surface((26, 32)))
-        self.ui2.image.fill((0, 255, 0))
+        self.ui2.surface.fill((0, 255, 0))
         # print(self.ui1.height)
-        self.testui.set_ui_element(self.ui1, 2, 2)
-        self.testui.set_ui_element(self.ui2, 1, 1)
-        self.testui.resize_rect_by_entire_elements()
+        self.testui.add_ui_element(self.ui1)
+        self.testui.add_ui_element(self.ui2)
+        self.testui.x = 10
 
     def draw(self, screen):
         self.testui.draw(screen)
