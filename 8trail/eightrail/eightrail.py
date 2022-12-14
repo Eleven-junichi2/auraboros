@@ -782,7 +782,7 @@ class GameScene(Scene):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.gameworld = Level(AssetFilePath.level("debug1"), self)
+        self.gameworld = Level(AssetFilePath.level("stage1"), self)
         self.gameworld.set_background()
         self.gameworld.enemy_factory["scoutdisk"] = ScoutDiskEnemy
         self.gameworld.enemy_factory["trumpla"] = TrumplaEnemy
@@ -1110,7 +1110,7 @@ def run(fps_num=fps):
     scene_manager.push(OptionsScene(scene_manager))
     scene_manager.push(GameScene(scene_manager))
     scene_manager.push(UIDebugScene(scene_manager))
-    scene_manager.transition_to(3)
+    # scene_manager.transition_to(3)
     while running:
         dt = clock.tick(fps)/1000  # dt means delta time
 
