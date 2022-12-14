@@ -1092,7 +1092,9 @@ class UIDebugScene(Scene):
         # print(self.ui1.height)
         self.testui.add_ui_element(self.ui1)
         self.testui.add_ui_element(self.ui2)
+        self.testui.spacing = 20
         self.testui.x = 10
+        self.testui.y = 20
 
     def draw(self, screen):
         self.testui.draw(screen)

@@ -80,6 +80,7 @@ class UILayoutBase(UIElement):
         self.padding_bottom = 0
         self.padding_right = 0
         self.padding_left = 0
+        self.spacing = 0
 
 #     def set_ui_element(self, ui_element: UIElement, row_index, column_index):
 #         row_size_min = row_index + 1
@@ -136,7 +137,7 @@ class UIBoxLayout(UILayoutBase):
             height = 0
             widths = list[int]()
             for element in self.layout:
-                height += element.rect.height
+                height += element.rect.height + self.spacing
                 widths.append(element.width)
             self.height = height
             self.width = max(widths)
@@ -144,8 +145,17 @@ class UIBoxLayout(UILayoutBase):
     def draw(self, screen: pygame.surface.Surface):
         self.stretch_to_fit_entire()
         if self.orientation == "vertical":
+            i = 0
+            next_y = 0
             for element in self.layout:
-                self.surface.blit(element.surface, element.rect)
+                rect = element.rect
+                if i < 1:
+                    next_y += rect.height + self.spacing
+                if 1 <= i:
+                    rect.y = next_y
+                    next_y += rect.height
+                self.surface.blit(element.surface, rect)
+                i += 1
         screen.blit(self.surface, self.rect)
 
 
