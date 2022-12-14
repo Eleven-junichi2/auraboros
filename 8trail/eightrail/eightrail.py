@@ -11,7 +11,7 @@ from .gameinput import Joystick2
 from .gamelevel import Level
 from .gamescene import Scene, SceneManager
 from .gametext import TextSurfaceFactory
-from .ui import UIBoxLayout, UIElement
+from .ui import UIBoxLayout, UIElement, UIGameText
 from .utilities import Arrow, ArrowToTurnToward, AssetFilePath, TextToDebug  # noqa
 from .schedule import IntervalCounter, schedule_instance_method_interval
 from .sound import SoundDict, ChannelManager
@@ -1048,6 +1048,10 @@ class TitleMenuScene(Scene):
         self.keyboard.register_keyaction(
             pygame.K_z,
             0, 20, self.command_menu_item)
+        self.gamemenuui = UIBoxLayout()
+        self.ui_text_start = UIElement()
+        self.ui_text_option = UIElement()
+        self.ui_text_ex = UIElement()
 
     def process_menu_cursor(self):
         if self.arrow_for_menu_cursor.is_up:
@@ -1089,9 +1093,13 @@ class UIDebugScene(Scene):
         self.ui1.surface.fill((255, 255, 0))
         self.ui2 = UIElement(pygame.surface.Surface((26, 32)))
         self.ui2.surface.fill((0, 255, 0))
+        self.ui3 = UIGameText(textfactory.font(), "test1")
+        self.ui4 = UIGameText(textfactory.font(), "test2")
         # print(self.ui1.height)
         self.testui.add_ui_element(self.ui1)
         self.testui.add_ui_element(self.ui2)
+        self.testui.add_ui_element(self.ui3)
+        self.testui.add_ui_element(self.ui4)
         self.testui.spacing = 20
         self.testui.x = 10
         self.testui.y = 20
@@ -1110,7 +1118,7 @@ def run(fps_num=fps):
     scene_manager.push(OptionsScene(scene_manager))
     scene_manager.push(GameScene(scene_manager))
     scene_manager.push(UIDebugScene(scene_manager))
-    # scene_manager.transition_to(3)
+    scene_manager.transition_to(3)
     while running:
         dt = clock.tick(fps)/1000  # dt means delta time
 

@@ -66,7 +66,7 @@ class UIElement:
     def update(self, dt):
         pass
 
-    def render(self, screen: pygame.surface.Surface):
+    def draw(self, screen: pygame.surface.Surface):
         screen.blit(self.surface, self.rect)
 
 
@@ -103,7 +103,7 @@ class UIBoxLayout(UILayoutBase):
             self.height = height
             self.width = max(widths)
 
-    def render(self, screen: pygame.surface.Surface):
+    def draw(self, screen: pygame.surface.Surface):
         self.stretch_to_fit_entire()
         if self.orientation == "vertical":
             i = 0
@@ -121,12 +121,17 @@ class UIBoxLayout(UILayoutBase):
 
 
 class UIGameText(UIElement):
-    def __init__(self, text_surface_factory: TextSurfaceFactory):
-        self.text_surf_factory = text_surface_factory
+    def __init__(self, font: pygame.font.Font, text: str):
+        super().__init__()
+        self.font = font
+        self.text = text
+        self.surface = self.font.render(self.text, True, (255, 255, 255))
+        self.rect = self.surface.get_rect()
 
-    def render(self, screen, *args, **kwargs):
-        self.text_surf_factory.render(
-            surface_to_draw=screen, *args, **kwargs)
+    def draw(self, screen: pygame.surface.Surface, *args, **kwargs):
+        self.surface = self.font.render(self.text, True, (255, 255, 255))
+        self.rect = self.surface.get_rect()
+        screen.blit(self.surface, self.rect)
 
 # uilayout = UILayout()
 # uilayout.set_ui_element(UIElement(), 6, 5)
