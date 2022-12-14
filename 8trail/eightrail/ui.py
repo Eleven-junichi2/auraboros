@@ -80,7 +80,7 @@ class UILayout(UIElement):
         self.padding_bottom = 0
         self.padding_right = 0
         self.padding_left = 0
-        # "left" "right" "top" "bottom" "center"
+        # "left" "right" "top" "bottom"
         self.anchor = "left"
 
     def set_ui_element(self, ui_element: UIElement, row_index, column_index):
@@ -123,6 +123,12 @@ class UILayout(UIElement):
                     self.rect = self.image.get_rect()
         screen.blit(self.image, self.rect)
         # super().draw(screen)
+
+
+class UIBoxLayout(UILayout):
+    def __init__(self):
+        super().__init__()
+        self.orientation = "vertical"  # vertical | horizontal
 
 
 uilayout = UILayout()
