@@ -66,69 +66,89 @@ class UIElement:
         screen.blit(self.image, self.rect)
 
 
-class UILayout(UIElement):
-    # TODO resize rect to be drawable
+# class UILayout(UIElement):
+#     # TODO resize rect to be drawable
+#     def __init__(self):
+#         super().__init__()
+#         self.layout = [[]]
+
+#         self.margin_top = 0
+#         self.margin_bottom = 0
+#         self.margin_right = 0
+#         self.margin_left = 0
+#         self.padding_top = 0
+#         self.padding_bottom = 0
+#         self.padding_right = 0
+#         self.padding_left = 0
+#         # "left" "right" "top" "bottom"
+#         self.anchor = "left"
+
+#     def set_ui_element(self, ui_element: UIElement, row_index, column_index):
+#         row_size_min = row_index + 1
+#         column_size_min = column_index + 1
+#         if len(self.layout) <= row_size_min:
+#             # print(row_size_min - len(self.layout))
+#             for i in range(row_size_min - len(self.layout)):
+#                 self.layout.append([])
+#             for i in range(len(self.layout)):
+#                 if len(self.layout[i]) <= column_size_min:
+#                     self.layout[i].extend(
+#                         [None for j in range(
+#                             column_size_min - len(self.layout[i]))])
+#         self.layout[row_index][column_index] = ui_element
+
+#     def resize_rect_by_entire_elements(self):
+#         heights = []
+#         widths = []
+#         for row in self.layout:
+#             # heights
+#             for column in row:
+#                 if column is None:
+#                     continue
+#                 heights.append(column.height)
+#                 widths.append(column.width)
+#         print("h w:", heights, widths)
+#         self.print_layout()
+
+#     def print_layout(self):
+#         print(*self.layout, sep="\n")
+
+#     def draw(self, screen: pygame.surface.Surface):
+#         for row in self.layout:
+#             for column in row:
+#                 if column is not None:
+#                     # need surface size to draw
+#                     self.image = pygame.surface.Surface((100, 100))
+#                     self.image.blit(column.image, column.rect)
+#                     self.rect = self.image.get_rect()
+#         screen.blit(self.image, self.rect)
+#         # super().draw(screen)
+
+
+class UIBoxLayout(UIElement):
     def __init__(self):
         super().__init__()
-        self.layout = [[]]
+        self.layout = list[UIElement]()
+        self.orientation = "vertical"  # vertical | horizontal
 
-        self.margin_top = 0
-        self.margin_bottom = 0
-        self.margin_right = 0
-        self.margin_left = 0
-        self.padding_top = 0
-        self.padding_bottom = 0
-        self.padding_right = 0
-        self.padding_left = 0
-        # "left" "right" "top" "bottom"
-        self.anchor = "left"
+    def add_ui_element(self, ui_element: UIElement):
+        self.layout.append(UIBoxLayout)
 
-    def set_ui_element(self, ui_element: UIElement, row_index, column_index):
-        row_size_min = row_index + 1
-        column_size_min = column_index + 1
-        if len(self.layout) <= row_size_min:
-            # print(row_size_min - len(self.layout))
-            for i in range(row_size_min - len(self.layout)):
-                self.layout.append([])
-            for i in range(len(self.layout)):
-                if len(self.layout[i]) <= column_size_min:
-                    self.layout[i].extend(
-                        [None for j in range(
-                            column_size_min - len(self.layout[i]))])
-        self.layout[row_index][column_index] = ui_element
-
-    def resize_rect_by_entire_elements(self):
-        heights = []
-        widths = []
-        for row in self.layout:
-            # heights
-            for column in row:
-                if column is None:
-                    continue
-                heights.append(column.height)
-                widths.append(column.width)
-        print("h w:", heights, widths)
-        self.print_layout()
-
-    def print_layout(self):
-        print(*self.layout, sep="\n")
+    def stretch_to_fit_entire(self):
+        if self.orientation == "vertical":
+            height = 0
+            widths = list[int]()
+            for element in self.layout:
+                height += element.rect.height
+                widths.append(element.width)
+            self.height = height
+            self.width = max(widths)
 
     def draw(self, screen: pygame.surface.Surface):
-        for row in self.layout:
-            for column in row:
-                if column is not None:
-                    # need surface size to draw
-                    self.image = pygame.surface.Surface((100, 100))
-                    self.image.blit(column.image, column.rect)
-                    self.rect = self.image.get_rect()
+        self.stretch_to_fit_entire()
+        for element in self.layout:
+            self.image.blit(element.image, element.rect)
         screen.blit(self.image, self.rect)
-        # super().draw(screen)
-
-
-class UIBoxLayout(UILayout):
-    def __init__(self):
-        super().__init__()
-        self.orientation = "vertical"  # vertical | horizontal
 
 
 uilayout = UILayout()
