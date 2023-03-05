@@ -69,7 +69,7 @@ class ArrowToTurnToward:
 class AssetFilePath:
     root_dirname = "assets"
     root_dir_parent = Path(sys.argv[0]).parent
-    root = root_dir_parent / root_dirname
+    __root = root_dir_parent / root_dirname
     img_dirname = "imgs"
     font_dirname = "fonts"
     sound_dirname = "sounds"
@@ -95,6 +95,16 @@ class AssetFilePath:
     @ classmethod
     def sound(cls, filename):
         return cls.pyinstaller_path(Path(cls.sound_dirname) / filename)
+
+    @ classmethod
+    def set_asset_root(cls, root_dir_path: str):
+        cls.__root = root_dir_path
+        cls.root_dir_parent = Path(root_dir_path).parent
+        cls.root_dirname = Path(root_dir_path).name
+
+    @ classmethod
+    def root(cls):
+        return cls.__root
 
 
 # class TextToDebug:
