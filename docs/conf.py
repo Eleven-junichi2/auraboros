@@ -6,7 +6,7 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = '8trail'
+project = 'auraboros'
 copyright = '2022, eleven-junichi2'
 author = 'eleven-junichi2'
 
