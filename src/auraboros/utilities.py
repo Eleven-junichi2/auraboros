@@ -70,6 +70,7 @@ class AssetFilePath:
     root_dirname = "assets"
     root_dir_parent = Path(sys.argv[0]).parent
     __root = root_dir_parent / root_dirname
+    root = Path(__root)
     img_dirname = "imgs"
     font_dirname = "fonts"
     sound_dirname = "sounds"
@@ -101,10 +102,6 @@ class AssetFilePath:
         cls.__root = root_dir_path
         cls.root_dir_parent = Path(root_dir_path).parent
         cls.root_dirname = Path(root_dir_path).name
-
-    @ classmethod
-    def root(cls):
-        return cls.__root
 
 
 # class TextToDebug:
