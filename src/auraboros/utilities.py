@@ -68,8 +68,8 @@ class ArrowToTurnToward:
 
 class AssetFilePath:
     root_dirname = "assets"
-    root = Path(sys.argv[0]).parent
-    # root = Path(sys.argv[0]).parent / root_dirname
+    root_dir_parent = Path(sys.argv[0]).parent
+    root = root_dir_parent / root_dirname
     img_dirname = "imgs"
     font_dirname = "fonts"
     sound_dirname = "sounds"
