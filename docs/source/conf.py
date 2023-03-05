@@ -7,8 +7,9 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'auraboros'
-copyright = '2022, eleven-junichi2'
-author = 'eleven-junichi2'
+copyright = '2023, Eleven-junichi2'
+author = 'Eleven-junichi2'
+release = '0.1'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -16,12 +17,12 @@ author = 'eleven-junichi2'
 extensions = []
 
 templates_path = ['_templates']
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = []
 
 language = 'ja'
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'alabaster'
+html_theme = 'sphinx-rtd-theme'
 html_static_path = ['_static']
