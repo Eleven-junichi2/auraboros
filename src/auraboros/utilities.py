@@ -7,7 +7,7 @@ import sys
 
 # import pygame
 
-from . import global_
+# from . import global_
 
 
 def open_json_file(filepath):
@@ -67,8 +67,8 @@ class ArrowToTurnToward:
 
 
 class AssetFilePath:
-    root_dirname = global_.asset_root_dir_name
-    root = global_.asset_root
+    root_dirname = "assets"
+    root = Path(sys.argv[0]).parent
     # root = Path(sys.argv[0]).parent / root_dirname
     img_dirname = "imgs"
     font_dirname = "fonts"
