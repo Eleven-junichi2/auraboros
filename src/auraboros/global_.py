@@ -4,13 +4,13 @@ You can reflect changes of global variables in a module to
 other modules using them.
 """
 from pathlib import Path
-# import sys
+import sys
 
 import pygame
 
 
 def init(window_size=(960, 640), caption="", icon_filepath=None,
-         pixel_scale=2, asset_root=Path(__file__).parent,
+         pixel_scale=2, asset_root=Path(sys.argv[0]).parent,
          asset_root_dir_name="assets"):
     """This function initialize pygame and game engine.
     Where to configure settings of game system is here."""
