@@ -3,9 +3,11 @@ from pathlib import Path
 import json
 import sys
 
-from .gametext import TextSurfaceFactory
+# from .gametext import TextSurfaceFactory
 
-import pygame
+# import pygame
+
+from . import global_
 
 
 def open_json_file(filepath):
@@ -65,12 +67,12 @@ class ArrowToTurnToward:
 
 
 class AssetFilePath:
-    root_dirname = "assets"
-    root = Path(sys.argv[0]).parent / root_dirname
+    root_dirname = global_.asset_root_dir_name
+    root = global_.asset_root
+    # root = Path(sys.argv[0]).parent / root_dirname
     img_dirname = "imgs"
     font_dirname = "fonts"
     sound_dirname = "sounds"
-    level_dirname = "level_data"
 
     @ classmethod
     def pyinstaller_path(cls, filepath):
@@ -93,10 +95,6 @@ class AssetFilePath:
     @ classmethod
     def sound(cls, filename):
         return cls.pyinstaller_path(Path(cls.sound_dirname) / filename)
-
-    @ classmethod
-    def level(cls, filename):
-        return cls.pyinstaller_path(Path(cls.level_dirname) / filename)
 
 
 # class TextToDebug:
