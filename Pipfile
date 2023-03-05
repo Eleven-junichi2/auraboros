@@ -5,13 +5,14 @@ name = "pypi"
 
 [packages]
 pygame = "*"
-sphinx-rtd-theme = "*"
+sphinx-autobuild = "*"
 
 [dev-packages]
 flake8 = "*"
 autopep8 = "*"
 sphinx = "*"
 pyinstaller = "*"
+sphinx-rtd-theme = "*"
 
 [requires]
 python_version = "3.10.8"
