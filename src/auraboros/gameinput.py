@@ -3,6 +3,8 @@ from typing import Callable, TypedDict
 
 import pygame
 
+# TODO:mouse input
+
 
 class Keyboard:
     def __init__(self):
