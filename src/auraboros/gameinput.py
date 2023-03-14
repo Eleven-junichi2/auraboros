@@ -59,6 +59,10 @@ class Keyboard:
             self.keyaction_dict[key_const]["_interval_counter"] = 0
             self.keyaction_dict[key_const]["_first_input_finished"] = False
             do_keyup = True
+        if self.keyaction_dict[key_const]["keydown_deactivated"]:
+            do_keydown = False
+        if self.keyaction_dict[key_const]["keyup_deactivated"]:
+            do_keyup = False
         if do_keydown:
             return self.keyaction_dict[key_const]["keydown"]()
         elif do_keyup:
@@ -75,7 +79,21 @@ class Keyboard:
             "delay": delay, "interval": interval,
             "is_pressed": False,
             "_delay_counter": 0, "_interval_counter": 0,
-            "_first_input_finished": False})
+            "_first_input_finished": False,
+            "keydown_deactivated": False,
+            "keyup_deactivated": False})
+    
+    def deactivate_keyup(self, key_const):
+        self.keyaction_dict[key_const]["keyup_deactivated"] = True
+    
+    def activate_keyup(self, key_const):
+        self.keyaction_dict[key_const]["keyup_deactivated"] = False
+
+    def deactivate_keydown(self, key_const):
+        self.keyaction_dict[key_const]["keydown_deactivated"] = True
+
+    def activate_keydown(self, key_const):
+        self.keyaction_dict[key_const]["keydown_deactivated"] = False
 
 
 class KeyActionItem(TypedDict):
@@ -87,6 +105,8 @@ class KeyActionItem(TypedDict):
     _delay_counter: int
     _interval_counter: int
     _first_input_finished: bool
+    keydown_deactivated: bool
+    keyup_deactivated: bool
 
 
 class KeyboardSetupDict(UserDict):

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "auraboros"
-version = "0.5.0-alpha"
+version = "0.5.5-alpha"
 dependencies = ["pygame"]
 requires-python = ">=3.10.8"
 
