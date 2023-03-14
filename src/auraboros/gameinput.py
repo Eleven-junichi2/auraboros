@@ -7,6 +7,7 @@ import pygame
 
 
 class Keyboard:
+    # TODO: inplement non repeat input
     def __init__(self):
         self.keyaction_dict: dict[int, KeyActionItem] = {}
 
@@ -82,10 +83,10 @@ class Keyboard:
             "_first_input_finished": False,
             "keydown_deactivated": False,
             "keyup_deactivated": False})
-    
+
     def deactivate_keyup(self, key_const):
         self.keyaction_dict[key_const]["keyup_deactivated"] = True
-    
+
     def activate_keyup(self, key_const):
         self.keyaction_dict[key_const]["keyup_deactivated"] = False
 
@@ -118,6 +119,9 @@ class KeyboardSetupDict(UserDict):
             self.data[key] = item
         else:
             raise TypeError("The value must be Keyboard object.")
+
+    def __getitem__(self, key) -> Keyboard:
+        return self.data[key]
 
 
 class Joystick2:
