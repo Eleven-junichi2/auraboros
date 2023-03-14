@@ -1,9 +1,9 @@
-# from collections import UserDict
+from collections import UserDict
 from typing import Callable, TypedDict
 
 import pygame
 
-# TODO:mouse input
+# TODO: mouse input
 
 
 class Keyboard:
@@ -87,6 +87,17 @@ class KeyActionItem(TypedDict):
     _delay_counter: int
     _interval_counter: int
     _first_input_finished: bool
+
+
+class KeyboardSetupDict(UserDict):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def __setitem__(self, key, item: Keyboard):
+        if isinstance(item, Keyboard):
+            self.data[key] = item
+        else:
+            raise TypeError("The value must be Keyboard object.")
 
 
 class Joystick2:
