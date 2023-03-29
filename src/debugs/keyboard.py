@@ -4,7 +4,7 @@ import sys
 
 import pygame
 
-import init  # noqa
+import init_for_dev  # noqa
 from auraboros.utilities import AssetFilePath
 from auraboros.gametext import TextSurfaceFactory
 from auraboros import engine
