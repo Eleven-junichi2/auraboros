@@ -5,9 +5,9 @@ import sys
 import pygame
 
 import init_for_dev  # noqa
+from auraboros import engine
 from auraboros.utilities import AssetFilePath
 from auraboros.gametext import TextSurfaceFactory
-from auraboros import engine
 from auraboros.gamescene import Scene, SceneManager
 
 AssetFilePath.set_asset_root(Path(sys.argv[0]).parent / "assets")
