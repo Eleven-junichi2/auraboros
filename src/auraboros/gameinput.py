@@ -129,12 +129,7 @@ class KeyboardManager(KeyboardSetupDict):
         super().__init__(*args, **kwargs)
         self.current_setup: Keyboard = None
 
-    def __setitem__(self, key, item: Keyboard):
-        super().__init__(key, item)
-        if self.current_setup is None:
-            self.current_setup = item
-
-    def switch_current_setup(self, key):
+    def set_current_setup(self, key):
         self.current_setup = self.data[key]
 
 
