@@ -5,7 +5,7 @@ from typing import Optional, Union
 import pygame
 
 from .animation import AnimationImage
-from .gameinput import Keyboard, Joystick2
+from .gameinput import KeyboardManager, Joystick2
 
 
 @dataclass
@@ -15,7 +15,7 @@ class Scene(object):
         from .gamelevel import Level
         self.manager = manager
         self.gameworld: Level = None
-        self.keyboard: Keyboard = Keyboard()
+        self.keyboard: KeyboardManager = KeyboardManager()
         self._joystick: Joystick2 = None
         self.visual_effects: list[AnimationImage] = []
         attrs_of_class = set(dir(self.__class__)) - set(dir(Scene))
@@ -64,7 +64,8 @@ class SceneManager:
         if self.current == -1:
             return False
         self.scenes[self.current].event(event)
-        self.scenes[self.current].keyboard.event(event)
+        if self.scenes[self.current].keyboard.current_setup is not None:
+            self.scenes[self.current].keyboard.current_setup.event(event)
         if self.scenes[self.current].joystick is not None:
             self.scenes[self.current].joystick.event(event)
         return True

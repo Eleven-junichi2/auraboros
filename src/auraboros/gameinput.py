@@ -124,6 +124,20 @@ class KeyboardSetupDict(UserDict):
         return self.data[key]
 
 
+class KeyboardManager(KeyboardSetupDict):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.current_setup: Keyboard = None
+
+    def __setitem__(self, key, item: Keyboard):
+        super().__init__(key, item)
+        if self.current_setup is None:
+            self.current_setup = item
+
+    def switch_current_setup(self, key):
+        self.current_setup = self.data[key]
+
+
 class Joystick2:
     def __init__(self, joystick: pygame.joystick.Joystick):
         self.joystick = joystick
