@@ -1,15 +1,16 @@
 """
 """
 
+# from typing import TYPE_CHECKING
+# if TYPE_CHECKING:
+
 import pygame
 
-from gamescene import SceneManager
-from global_ import init  # noqa
-from schedule import IntervalCounter
-import global_
+from .global_ import init  # noqa
+from .schedule import IntervalCounter
+from .gamescene import SceneManager
+from . import global_
 
-
-pygame.init()
 
 clock = pygame.time.Clock()
 

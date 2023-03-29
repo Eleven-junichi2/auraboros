@@ -5,6 +5,8 @@ other modules using them.
 """
 import pygame
 
+pygame.init()
+
 
 def init(window_size=(960, 640), caption="", icon_filepath=None,
          pixel_scale=2):

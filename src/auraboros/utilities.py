@@ -100,6 +100,7 @@ class AssetFilePath:
     @ classmethod
     def set_asset_root(cls, root_dir_path: str):
         cls.__root = root_dir_path
+        cls.root = Path(cls.__root)
         cls.root_dir_parent = Path(root_dir_path).parent
         cls.root_dirname = Path(root_dir_path).name
 
