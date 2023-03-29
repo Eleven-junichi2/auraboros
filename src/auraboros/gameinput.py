@@ -28,8 +28,11 @@ class Keyboard:
         for key in self.keyaction_dict.keys():
             self.keyaction_dict[key]["is_pressed"] = False
 
-    def do_action_by_keyinput(self, key_const):
+    def do_action_by_keyinput(self, key_const, ignore_inregistered_key=False):
         # TODO: refactor this
+        if self.keyaction_dict.get(key_const) is None\
+                and ignore_inregistered_key:
+            return
         IS_PRESSED = self.keyaction_dict[key_const]["is_pressed"]
         DELAY = self.keyaction_dict[key_const]["delay"]
         INTERVAL = self.keyaction_dict[key_const]["interval"]
@@ -128,9 +131,11 @@ class KeyboardManager(KeyboardSetupDict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.current_setup: Keyboard = None
+        self.current_setup_key = None
 
     def set_current_setup(self, key):
         self.current_setup = self.data[key]
+        self.current_setup_key = key
 
 
 class Joystick2:
