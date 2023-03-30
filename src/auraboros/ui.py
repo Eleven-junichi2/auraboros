@@ -1,7 +1,10 @@
 from typing import Callable, Union
 import pygame
+
+
 class MenuHasNoItemError(Exception):
     pass
+
 
 class GameMenuSystem:
     def __init__(self):
