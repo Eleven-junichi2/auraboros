@@ -134,6 +134,8 @@ class KeyboardManager(KeyboardSetupDict):
         self.current_setup_key = None
 
     def set_current_setup(self, key):
+        if self.current_setup is not None:
+            self.current_setup.release_all_of_keys()
         self.current_setup = self.data[key]
         self.current_setup_key = key
 

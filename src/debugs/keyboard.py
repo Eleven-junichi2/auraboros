@@ -66,7 +66,7 @@ class KeyboardDebugScene(Scene):
         textfactory.register_text("recent_pressed", f"{key}")
 
     def switch_keyboard_layout(self, layout_name, key):
-        # print(key)
+        print(key)
         self.keyboard.set_current_setup(layout_name)
 
     def update(self, dt):
@@ -111,7 +111,6 @@ class KeyboardDebugScene(Scene):
         textinput_homepos = (0, char_size[1]*6)
         if textinput_size[0] > global_.w_size[0]:
             num_of_chars = global_.w_size[0] // char_size[0]
-        # num_of_lines = len(self.textinput) // num_of_chars
             textinput_lines = [
                 self.textinput[i:i+num_of_chars]
                 for i in range(0, len(self.textinput), num_of_chars)]
