@@ -138,4 +138,4 @@ class AssetFilePath:
 
 #     @classmethod
 #     def fps(cls, clock: pygame.time.Clock):
-#         cls._debug_text_factory.register_text("fps", f"FPS:{clock.get_fps()}")
+#        cls._debug_text_factory.register_text("fps", f"FPS:{clock.get_fps()}")

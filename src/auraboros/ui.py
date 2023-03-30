@@ -1,7 +1,38 @@
-from typing import Union
+from typing import Callable, Union
 import pygame
+class MenuHasNoItemError(Exception):
+    pass
 
-from .gametext import TextSurfaceFactory
+class GameMenuSystem:
+    def __init__(self):
+        self.menu_selected_index = 0
+        self.menu_option_keys = []
+        self.option_actions = {}
+
+    def add_menu_item(self, option_key, action: Callable):
+        self.menu_option_keys.append(option_key)
+        self.option_actions[option_key] = action
+
+    def menu_cursor_up(self):
+        if 0 < self.menu_selected_index:
+            self.menu_selected_index -= 1
+
+    def menu_cursor_down(self):
+        if self.menu_selected_index < len(self.menu_option_keys)-1:
+            self.menu_selected_index += 1
+
+    def do_selected_action(self):
+        if len(self.menu_option_keys) == 0:
+            raise MenuHasNoItemError(
+                "At least one menu item is required to take action.")
+        return self.option_actions[
+            self.menu_option_keys[self.menu_selected_index]]()
+
+    def select_action_by_index(self, index):
+        if 0 <= index < len(self.menu_option_keys):
+            self.menu_selected_index = index
+        else:
+            raise ValueError("Given index is out of range in the menu.")
 
 
 class UIElement:

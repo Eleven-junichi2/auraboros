@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 pygame = "*"
 sphinx-autobuild = "*"
+pytest-ordering = "*"
 
 [dev-packages]
 flake8 = "*"
