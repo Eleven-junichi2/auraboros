@@ -12,7 +12,7 @@ from auraboros.utilities import AssetFilePath, draw_grid_background
 from auraboros.gametext import TextSurfaceFactory
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.gameinput import Keyboard
-from auraboros.ui import GameMenuSystem
+from auraboros.ui import GameMenuSystem, GameMenuUI
 from auraboros import global_
 
 engine.init()
@@ -34,37 +34,22 @@ class GameMenuDebugScene(Scene):
         textfactory.set_current_font("misaki_gothic")
         self.keyboard["menu"] = Keyboard()
         self.keyboard.set_current_setup("menu")
-        self.gamemenu = GameMenuSystem()
+        self.menusystem = GameMenuSystem()
         self.keyboard["menu"].register_keyaction(
-            pygame.K_UP, 0, 10, self.gamemenu.menu_cursor_up)
+            pygame.K_UP, 0, 10, self.menusystem.menu_cursor_up)
         self.keyboard["menu"].register_keyaction(
-            pygame.K_DOWN, 0, 10, self.gamemenu.menu_cursor_down)
+            pygame.K_DOWN, 0, 10, self.menusystem.menu_cursor_down)
         self.keyboard["menu"].register_keyaction(
-            pygame.K_z, 0, 0, self.gamemenu.do_selected_action)
-        self.gamemenu.add_menu_item("red", self.turn_red, "RED")
-        self.gamemenu.add_menu_item("green", self.turn_green, "GREEN")
-        self.gamemenu.add_menu_item("blue", self.turn_blue, "BLUE")
-        self.menu_size = [
-            self.gamemenu.max_option_text_length()*textfactory.char_size()[0],
-            self.gamemenu.count_menu_items()*textfactory.char_size()[1]]
-        self.menu_pos = [
-            global_.w_size[0]//2-self.menu_size[0]//2,
-            global_.w_size[1]//2-self.menu_size[1]//2]
-        self.menu_frame_color = (200, 200, 200)
-        for i, (key, text) in enumerate(
-            zip(self.gamemenu.menu_option_keys,
-                self.gamemenu.menu_option_texts)):
-            # print(i, key, text)
-            textfactory.register_text(
-                key, text,
-                (self.menu_pos[0],
-                 self.menu_pos[1]+textfactory.char_size()[1]*i))
+            pygame.K_z, 0, 0, self.menusystem.do_selected_action)
+        self.menusystem.add_menu_item("red", self.turn_red, "RED")
+        self.menusystem.add_menu_item("green", self.turn_green, "GREEN")
+        self.menusystem.add_menu_item("blue", self.turn_blue, "BLUE")
+        self.menuui = GameMenuUI(self.menusystem, textfactory)
+        self.menuui.pos = [
+            global_.w_size[0]//2-self.menuui.size[0]//2,
+            global_.w_size[1]//2-self.menuui.size[1]//2]
         self.turn_red()
         self.box_size = (24, 24)
-        self.menu_cursor_size = textfactory.char_size()
-        self.menu_cursor_pos = [
-            self.menu_pos[0]-self.menu_cursor_size[0],
-            self.menu_pos[1]]
 
     def turn_red(self):
         self.box_color = (255, 0, 0)
@@ -81,28 +66,12 @@ class GameMenuDebugScene(Scene):
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_z)
 
     def draw(self, screen):
-        print(self.gamemenu.menu_selected_index)
         draw_grid_background(screen, 16, (78, 78, 78))
         pygame.draw.rect(
-            screen, self.menu_frame_color,
-            self.menu_pos + self.menu_size, 1)
-        pygame.draw.rect(
             screen, self.box_color,
-            tuple(map(sum, zip(self.menu_pos, self.menu_size))) +
+            tuple(map(sum, zip(self.menuui.pos, self.menuui.size))) +
             self.box_size)
-        for key in self.gamemenu.menu_option_keys:
-            textfactory.render(key, screen)
-        pygame.draw.polygon(
-            screen, self.menu_frame_color,
-            ((self.menu_cursor_pos[0],
-              self.menu_cursor_pos[1]+self.menu_cursor_size[1]
-              * self.gamemenu.menu_selected_index),
-             (self.menu_cursor_pos[0]+self.menu_cursor_size[0],
-              (self.menu_cursor_pos[1]+self.menu_cursor_size[1]//2)
-              + self.menu_cursor_size[1]*self.gamemenu.menu_selected_index),
-             (self.menu_cursor_pos[0],
-              (self.menu_cursor_pos[1]+self.menu_cursor_size[1])
-              + self.menu_cursor_size[1]*self.gamemenu.menu_selected_index)))
+        self.menuui.draw(screen)
 
 
 scene_manager = SceneManager()

@@ -1,4 +1,3 @@
-from collections import UserDict
 from dataclasses import dataclass
 from typing import Any, Tuple
 
