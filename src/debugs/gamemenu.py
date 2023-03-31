@@ -41,30 +41,47 @@ class GameMenuDebugScene(Scene):
             pygame.K_DOWN, 0, 10, self.menusystem.menu_cursor_down)
         self.keyboard["menu"].register_keyaction(
             pygame.K_z, 0, 0, self.menusystem.do_selected_action)
-        self.menusystem.add_menu_item("red", self.turn_red, "RED")
-        self.menusystem.add_menu_item("green", self.turn_green, "GREEN")
-        self.menusystem.add_menu_item("blue", self.turn_blue, "BLUE")
+        self.menusystem.add_menu_item(
+            "red", self.turn_red,
+            lambda: self.msgwindow.rewrite_text("Red"),
+            text="RED")
+        self.menusystem.add_menu_item(
+            "green", self.turn_green,
+            lambda: self.msgwindow.rewrite_text("Green"),
+            text="GREEN")
+        self.menusystem.add_menu_item(
+            "blue", self.turn_blue,
+            lambda: self.msgwindow.rewrite_text("Blue"),
+            text="BLUE")
         self.menuui = GameMenuUI(self.menusystem, textfactory, )
         self.menuui.pos = [
             global_.w_size[0]//2-self.menuui.size[0]//2,
             global_.w_size[1]//2-self.menuui.size[1]//2]
+        self.menuui.padding = 4
+        self.msgwindow = MsgWindow(textfactory.font())
+        self.msgwindow.pos = [
+            global_.w_size[0]//2-self.msgwindow.min_size[0],
+            global_.w_size[1]//2+self.menuui.size[1]]
         self.turn_red()
         self.box_size = (24, 24)
-        self.msgwindow = MsgWindow(textfactory)
 
     def turn_red(self):
         self.box_color = (255, 0, 0)
+        self.msgwindow.text = "Red"
 
     def turn_green(self):
         self.box_color = (0, 255, 0)
+        self.msgwindow.text = "Green"
 
     def turn_blue(self):
         self.box_color = (0, 0, 255)
+        self.msgwindow.text = "Blue"
 
     def update(self, dt):
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_UP)
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_DOWN)
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_z)
+        self.menusystem.update()
 
     def draw(self, screen):
         draw_grid_background(screen, 16, (78, 78, 78))

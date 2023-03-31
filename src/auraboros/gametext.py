@@ -8,6 +8,17 @@ from . import global_
 pygame.font.init()
 
 
+@dataclass
+class GameText:
+    text: str
+    pos: list
+    rgb: list
+    surface: pygame.surface.Surface = None
+
+    def draw(self, screen: pygame.surface.Surface):
+        screen.blit(self.surface, self.pos)
+
+
 class TextSurfaceFactory:
     def __init__(self):
         self.current_font_key = None
@@ -15,7 +26,7 @@ class TextSurfaceFactory:
         self._font_dict = FontDict()
 
     @property
-    def text_dict(self):
+    def text_dict(self) -> dict[Any, GameText]:
         return self._text_dict
 
     @property
@@ -97,17 +108,6 @@ class TextSurfaceFactory:
 
     def generate_gametext(self, text_key):
         return self.text_dict[text_key]
-
-
-@dataclass
-class GameText:
-    text: str
-    pos: list
-    rgb: list
-    surface: pygame.surface.Surface = None
-
-    def draw(self, screen: pygame.surface.Surface):
-        screen.blit(self.surface, self.pos)
 
 
 class FontDict(dict):

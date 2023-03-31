@@ -1,4 +1,6 @@
 from typing import Callable
+import abc
+
 import pygame
 
 from .gametext import TextSurfaceFactory
@@ -13,33 +15,55 @@ class GameMenuSystem:
         self.menu_selected_index = 0
         self.menu_option_keys = []
         self.menu_option_texts = []
-        self.option_actions = {}
+        self.option_actions_on_select = {}
+        self.option_actions_on_highlight = {}
         self.loop_cursor = True
+        self.action_on_cursor_up = lambda: None
+        self.action_on_cursor_down = lambda: None
 
-    def add_menu_item(self, option_key, action: Callable, text: str = None):
+    def add_menu_item(
+            self, option_key,
+            action_on_select: Callable,
+            action_on_highlight: Callable = lambda: None, text: str = None):
         if text is None:
             text = option_key
         self.menu_option_keys.append(option_key)
         self.menu_option_texts.append(text)
-        self.option_actions[option_key] = action
+        self.option_actions_on_select[option_key] = action_on_select
+        self.option_actions_on_highlight[option_key] = action_on_highlight
+
+    def set_action_on_cursor_up(self, action: Callable):
+        self.action_on_cursor_up = action
+
+    def set_action_on_cursor_down(self, action: Callable):
+        self.action_on_cursor_down = action
 
     def menu_cursor_up(self):
         if 0 < self.menu_selected_index:
             self.menu_selected_index -= 1
         elif self.loop_cursor:
             self.menu_selected_index = self.count_menu_items() - 1
+        self.action_on_cursor_up()
 
     def menu_cursor_down(self):
         if self.menu_selected_index < len(self.menu_option_keys)-1:
             self.menu_selected_index += 1
         elif self.loop_cursor:
             self.menu_selected_index = 0
+        self.action_on_cursor_down()
 
     def do_selected_action(self):
         if len(self.menu_option_keys) == 0:
             raise MenuHasNoItemError(
                 "At least one menu item is required to take action.")
-        return self.option_actions[
+        return self.option_actions_on_select[
+            self.menu_option_keys[self.menu_selected_index]]()
+
+    def action_on_highlight(self):
+        if len(self.menu_option_keys) == 0:
+            raise MenuHasNoItemError(
+                "At least one menu item is required to take action.")
+        return self.option_actions_on_highlight[
             self.menu_option_keys[self.menu_selected_index]]()
 
     def select_action_by_index(self, index):
@@ -54,8 +78,23 @@ class GameMenuSystem:
     def max_option_text_length(self) -> int:
         return max([len(i) for i in self.menu_option_texts])
 
+    def update(self):
+        self.action_on_highlight()
 
-class GameMenuUI:
+
+class UIElement(metaclass=abc.ABCMeta):
+    @property
+    @abc.abstractmethod
+    def min_size(self):
+        self.resize_min_size_to_suit()
+        return self.__min_size
+
+    @abc.abstractmethod
+    def resize_min_size_to_suit(self):
+        self.__min_size = [0, 0]
+
+
+class GameMenuUI(UIElement):
     """option_highlight_style = "cursor"(default) or "filled_box" """
 
     def __init__(self, menu_system: GameMenuSystem,
@@ -63,7 +102,7 @@ class GameMenuUI:
                  option_highlight_style="cursor"):
         self.system = menu_system
         self.textfactory = textfactory
-        self.resize_menu_min_size_to_suit()
+        self.resize_min_size_to_suit()
         self._pos = [0, 0]
         self.frame_color = (255, 255, 255)
         self.option_highlight_color = (222, 222, 222)
@@ -71,7 +110,7 @@ class GameMenuUI:
         self.cursor_size = textfactory.char_size()
         self.reposition_cursor()
         self.option_highlight_style = option_highlight_style
-        self.padding = 4
+        self.padding = 0
         self.locate_cursor_inside_window = True
 
     @property
@@ -85,14 +124,10 @@ class GameMenuUI:
 
     @property
     def min_size(self):
-        self.resize_menu_min_size_to_suit()
+        self.resize_min_size_to_suit()
         return self.__min_size
 
-    # def resize_menu_to_suit(self):
-    #     """ailias of resize_menu_min_size_to_suit()"""
-    #     self.resize_menu_min_size_to_suit()
-
-    def resize_menu_min_size_to_suit(self):
+    def resize_min_size_to_suit(self):
         self.__min_size = [
             self.system.max_option_text_length(
             )*self.textfactory.char_size()[0],
@@ -178,13 +213,14 @@ class GameMenuUI:
             self.textfactory.render(key, screen)
 
 
-class MsgWindow:
-    def __init__(self, textfactory: TextSurfaceFactory):
+class MsgWindow(UIElement):
+    def __init__(self, font: pygame.font.Font):
         self.text = ""
-        self.textfactory = textfactory
+        # self.textfactory = textfactory
+        self.font = font
+        self.resize_min_size_to_suit()
         # self.resize_window_to_suit_text()
         self._pos = [0, 0]
-        self.min_size = [32, 32]
         self.frame_color = (255, 255, 255)
         # self.cursor_size = textfactory.char_size()
         # self.reposition_cursor()
@@ -197,10 +233,24 @@ class MsgWindow:
     def pos(self, value):
         self._pos = value
 
-    def draw(self, screen):
+    @property
+    def min_size(self):
+        self.resize_min_size_to_suit()
+        return self.__min_size
+
+    def resize_min_size_to_suit(self):
+        self.__min_size = list(self.font.size(self.text))
+
+    def rewrite_text(self, text):
+        self.text = text
+
+    def draw(self, screen: pygame.surface.Surface):
+        frame_rect = self.pos + self.min_size
         pygame.draw.rect(
             screen, self.frame_color,
-            self.pos + self.min_size, 1)
+            frame_rect, 1)
+        screen.blit(self.font.render(
+            self.text, True, (255, 255, 255)), self.pos)
 
 
 # class UIElement:
