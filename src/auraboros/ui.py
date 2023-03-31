@@ -60,6 +60,7 @@ class GameMenuUI:
         self.frame_color = (255, 255, 255)
         self.cursor_size = textfactory.char_size()
         self.reposition_cursor()
+        self.selection_marker_type = "cursor"
 
     @property
     def pos(self):
@@ -105,6 +106,31 @@ class GameMenuUI:
              (self.cursor_pos[0],
               (self.cursor_pos[1]+self.cursor_size[1])
               + self.cursor_size[1]*self.system.menu_selected_index)))
+
+
+class MsgWindow:
+    def __init__(self, textfactory: TextSurfaceFactory):
+        self.text = ""
+        self.textfactory = textfactory
+        # self.resize_window_to_suit_text()
+        self._pos = [0, 0]
+        self.size = [32, 32]
+        self.frame_color = (255, 255, 255)
+        # self.cursor_size = textfactory.char_size()
+        # self.reposition_cursor()
+
+    @property
+    def pos(self):
+        return self._pos
+
+    @pos.setter
+    def pos(self, value):
+        self._pos = value
+
+    def draw(self, screen):
+        pygame.draw.rect(
+            screen, self.frame_color,
+            self.pos + self.size, 1)
 
 
 # class UIElement:
