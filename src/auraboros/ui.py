@@ -10,10 +10,14 @@ class GameMenuSystem:
     def __init__(self):
         self.menu_selected_index = 0
         self.menu_option_keys = []
+        self.menu_option_texts = []
         self.option_actions = {}
 
-    def add_menu_item(self, option_key, action: Callable):
+    def add_menu_item(self, option_key, action: Callable, text: str = None):
+        if text is None:
+            text = option_key
         self.menu_option_keys.append(option_key)
+        self.menu_option_texts.append(text)
         self.option_actions[option_key] = action
 
     def menu_cursor_up(self):
@@ -36,6 +40,12 @@ class GameMenuSystem:
             self.menu_selected_index = index
         else:
             raise ValueError("Given index is out of range in the menu.")
+
+    def count_menu_items(self) -> int:
+        return len(self.menu_option_keys)
+
+    def max_option_text_length(self) -> int:
+        return max([len(i) for i in self.menu_option_texts])
 
 
 class UIElement:

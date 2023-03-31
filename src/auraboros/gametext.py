@@ -1,6 +1,6 @@
 from collections import UserDict
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Tuple
 
 import pygame
 
@@ -51,7 +51,11 @@ class TextSurfaceFactory:
         return self.font_dict[key]
 
     def font(self) -> pygame.font.Font:
+        """Return Font object that is currently being used"""
         return self.font_dict[self.current_font_key]
+
+    def char_size(self) -> Tuple[int, int]:
+        return self.font_dict[self.current_font_key].size(" ")
 
     def set_text_pos(self, key, pos):
         self.text_dict[key].pos = pos
@@ -107,12 +111,15 @@ class GameText:
         screen.blit(self.surface, self.pos)
 
 
-class FontDict(UserDict):
+class FontDict(dict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def __setitem__(self, key, item: pygame.font.Font):
-        if isinstance(item, pygame.font.Font):
-            self.data[key] = item
+    def __setitem__(self, key, value: pygame.font.Font):
+        if isinstance(value, pygame.font.Font):
+            super().__setitem__(key, value)
         else:
             raise TypeError("The value must be Font object of pygame.")
+
+    def __getitem__(self, key) -> pygame.font.Font:
+        return super().__getitem__(key)
