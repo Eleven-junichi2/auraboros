@@ -3,6 +3,10 @@ from pathlib import Path
 import json
 import sys
 
+import pygame
+
+from auraboros import global_
+
 # from .gametext import TextSurfaceFactory
 
 # import pygame
@@ -103,6 +107,15 @@ class AssetFilePath:
         cls.root = Path(cls.__root)
         cls.root_dir_parent = Path(root_dir_path).parent
         cls.root_dirname = Path(root_dir_path).name
+
+
+def draw_grid_background(
+        screen: pygame.surface.Surface, grid_size: int, color: int):
+    [pygame.draw.rect(
+        screen, color,
+        (x*grid_size, y*grid_size) + (grid_size, grid_size), 1)
+        for x in range(global_.w_size[0]//grid_size)
+        for y in range(global_.w_size[1]//grid_size)]
 
 
 # class TextToDebug:

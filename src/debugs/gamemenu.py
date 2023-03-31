@@ -8,12 +8,14 @@ import pygame
 
 import init_for_dev  # noqa
 from auraboros import engine
-from auraboros.utilities import AssetFilePath
+from auraboros.utilities import AssetFilePath, draw_grid_background
 from auraboros.gametext import TextSurfaceFactory
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.gameinput import Keyboard
 from auraboros.ui import GameMenuSystem
-# from auraboros import global_
+from auraboros import global_
+
+engine.init()
 
 AssetFilePath.set_asset_root(Path(sys.argv[0]).parent / "assets")
 
@@ -42,11 +44,13 @@ class GameMenuDebugScene(Scene):
         self.gamemenu.add_menu_item("red", self.turn_red, "RED")
         self.gamemenu.add_menu_item("green", self.turn_green, "GREEN")
         self.gamemenu.add_menu_item("blue", self.turn_blue, "BLUE")
-        self.menu_pos = [16, 16]
         self.menu_size = [
             self.gamemenu.max_option_text_length()*textfactory.char_size()[0],
             self.gamemenu.count_menu_items()*textfactory.char_size()[1]]
-        self.menu_frame_color = (255, 255, 255)
+        self.menu_pos = [
+            global_.w_size[0]//2-self.menu_size[0]//2,
+            global_.w_size[1]//2-self.menu_size[1]//2]
+        self.menu_frame_color = (200, 200, 200)
         for i, (key, text) in enumerate(
             zip(self.gamemenu.menu_option_keys,
                 self.gamemenu.menu_option_texts)):
@@ -78,6 +82,7 @@ class GameMenuDebugScene(Scene):
 
     def draw(self, screen):
         print(self.gamemenu.menu_selected_index)
+        draw_grid_background(screen, 16, (78, 78, 78))
         pygame.draw.rect(
             screen, self.menu_frame_color,
             self.menu_pos + self.menu_size, 1)
@@ -87,11 +92,21 @@ class GameMenuDebugScene(Scene):
             self.box_size)
         for key in self.gamemenu.menu_option_keys:
             textfactory.render(key, screen)
+        pygame.draw.polygon(
+            screen, self.menu_frame_color,
+            ((self.menu_cursor_pos[0],
+              self.menu_cursor_pos[1]+self.menu_cursor_size[1]
+              * self.gamemenu.menu_selected_index),
+             (self.menu_cursor_pos[0]+self.menu_cursor_size[0],
+              (self.menu_cursor_pos[1]+self.menu_cursor_size[1]//2)
+              + self.menu_cursor_size[1]*self.gamemenu.menu_selected_index),
+             (self.menu_cursor_pos[0],
+              (self.menu_cursor_pos[1]+self.menu_cursor_size[1])
+              + self.menu_cursor_size[1]*self.gamemenu.menu_selected_index)))
 
 
 scene_manager = SceneManager()
 scene_manager.push(GameMenuDebugScene(scene_manager))
 
 if __name__ == "__main__":
-    engine.init()
     engine.run(scene_manager=scene_manager)
