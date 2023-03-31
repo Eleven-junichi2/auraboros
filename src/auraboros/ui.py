@@ -14,6 +14,7 @@ class GameMenuSystem:
         self.menu_option_keys = []
         self.menu_option_texts = []
         self.option_actions = {}
+        self.loop_cursor = True
 
     def add_menu_item(self, option_key, action: Callable, text: str = None):
         if text is None:
@@ -25,10 +26,14 @@ class GameMenuSystem:
     def menu_cursor_up(self):
         if 0 < self.menu_selected_index:
             self.menu_selected_index -= 1
+        elif self.loop_cursor:
+            self.menu_selected_index = self.count_menu_items() - 1
 
     def menu_cursor_down(self):
         if self.menu_selected_index < len(self.menu_option_keys)-1:
             self.menu_selected_index += 1
+        elif self.loop_cursor:
+            self.menu_selected_index = 0
 
     def do_selected_action(self):
         if len(self.menu_option_keys) == 0:
@@ -51,16 +56,23 @@ class GameMenuSystem:
 
 
 class GameMenuUI:
+    """option_highlight_style = "cursor"(default) or "filled_box" """
+
     def __init__(self, menu_system: GameMenuSystem,
-                 textfactory: TextSurfaceFactory):
+                 textfactory: TextSurfaceFactory,
+                 option_highlight_style="cursor"):
         self.system = menu_system
         self.textfactory = textfactory
-        self.resize_menu_to_suit()
+        self.resize_menu_min_size_to_suit()
         self._pos = [0, 0]
         self.frame_color = (255, 255, 255)
+        self.option_highlight_color = (222, 222, 222)
+        self.option_highlight_bg_color = (122, 122, 122)
         self.cursor_size = textfactory.char_size()
         self.reposition_cursor()
-        self.selection_marker_type = "cursor"
+        self.option_highlight_style = option_highlight_style
+        self.padding = 4
+        self.locate_cursor_inside_window = True
 
     @property
     def pos(self):
@@ -71,16 +83,40 @@ class GameMenuUI:
         self._pos = value
         self.reposition_cursor()
 
+    @property
+    def min_size(self):
+        self.resize_menu_min_size_to_suit()
+        return self.__min_size
+
+    # def resize_menu_to_suit(self):
+    #     """ailias of resize_menu_min_size_to_suit()"""
+    #     self.resize_menu_min_size_to_suit()
+
+    def resize_menu_min_size_to_suit(self):
+        self.__min_size = [
+            self.system.max_option_text_length(
+            )*self.textfactory.char_size()[0],
+            self.system.count_menu_items()*self.textfactory.char_size()[1]]
+
+    @property
+    def size(self):
+        """ailias of calculate_finally_size()"""
+        return self.calculate_finally_size()
+
+    def calculate_finally_size(self) -> list[int, int]:
+        if (self.option_highlight_style == "cursor" and
+                self.locate_cursor_inside_window):
+            size = [self.min_size[0]+self.padding*3+self.cursor_size[0],
+                    self.min_size[1]+self.padding*2]
+        else:
+            size = [self.min_size[0]+self.padding*2,
+                    self.min_size[1]+self.padding*2]
+        return size
+
     def reposition_cursor(self):
         self.cursor_pos = [
             self.pos[0]-self.cursor_size[0],
             self.pos[1]]
-
-    def resize_menu_to_suit(self):
-        self.size = [
-            self.system.max_option_text_length(
-            )*self.textfactory.char_size()[0],
-            self.system.count_menu_items()*self.textfactory.char_size()[1]]
 
     def draw(self, screen):
         pygame.draw.rect(
@@ -89,23 +125,57 @@ class GameMenuUI:
         for i, (key, text) in enumerate(
             zip(self.system.menu_option_keys,
                 self.system.menu_option_texts)):
+            if (self.option_highlight_style == "cursor" and
+                    self.locate_cursor_inside_window):
+                text_pos = (
+                    self.pos[0]+self.padding+self.cursor_size[0]+self.padding,
+                    self.pos[1]+self.textfactory.char_size()[1]*i+self.padding)
+            else:
+                text_pos = (
+                    self.pos[0]+self.padding,
+                    self.pos[1]+self.textfactory.char_size()[1]*i+self.padding)
             self.textfactory.register_text(
-                key, text,
-                (self.pos[0],
-                 self.pos[1]+self.textfactory.char_size()[1]*i))
+                key, text, text_pos)
+        if self.option_highlight_style == "cursor":
+            if (self.option_highlight_style == "cursor" and
+                    self.locate_cursor_inside_window):
+                cursor_polygon_points = ((
+                    self.cursor_pos[0]+self.cursor_size[0]+self.padding,
+                    self.cursor_pos[1]+self.cursor_size[1]
+                    * self.system.menu_selected_index+self.padding),
+                    (self.cursor_pos[0]+self.cursor_size[0]*2+self.padding,
+                     (self.cursor_pos[1]+self.cursor_size[1]//2)
+                     + self.cursor_size[1]*self.system.menu_selected_index
+                     + self.padding),
+                    (self.cursor_pos[0]+self.cursor_size[0]+self.padding,
+                     (self.cursor_pos[1]+self.cursor_size[1])
+                     + self.cursor_size[1]*self.system.menu_selected_index
+                     + self.padding))
+            else:
+                cursor_polygon_points = ((
+                    self.cursor_pos[0],
+                    self.cursor_pos[1]+self.cursor_size[1]
+                    * self.system.menu_selected_index+self.padding),
+                    (self.cursor_pos[0]+self.cursor_size[0],
+                     (self.cursor_pos[1]+self.cursor_size[1]//2)
+                     + self.cursor_size[1]*self.system.menu_selected_index
+                     + self.padding),
+                    (self.cursor_pos[0],
+                     (self.cursor_pos[1]+self.cursor_size[1])
+                     + self.cursor_size[1]*self.system.menu_selected_index
+                     + self.padding))
+            pygame.draw.polygon(
+                screen, self.option_highlight_color,
+                cursor_polygon_points)
+        elif self.option_highlight_style == "filled_box":
+            pygame.draw.rect(
+                screen, self.option_highlight_bg_color,
+                ((self.pos[0]+self.padding, self.pos[1]+self.cursor_size[1]
+                  * self.system.menu_selected_index+self.padding),
+                 (self.min_size[0], self.cursor_size[1])))
+            pass
         for key in self.system.menu_option_keys:
             self.textfactory.render(key, screen)
-        pygame.draw.polygon(
-            screen, self.frame_color,
-            ((self.cursor_pos[0],
-              self.cursor_pos[1]+self.cursor_size[1]
-              * self.system.menu_selected_index),
-             (self.cursor_pos[0]+self.cursor_size[0],
-              (self.cursor_pos[1]+self.cursor_size[1]//2)
-              + self.cursor_size[1]*self.system.menu_selected_index),
-             (self.cursor_pos[0],
-              (self.cursor_pos[1]+self.cursor_size[1])
-              + self.cursor_size[1]*self.system.menu_selected_index)))
 
 
 class MsgWindow:
@@ -114,7 +184,7 @@ class MsgWindow:
         self.textfactory = textfactory
         # self.resize_window_to_suit_text()
         self._pos = [0, 0]
-        self.size = [32, 32]
+        self.min_size = [32, 32]
         self.frame_color = (255, 255, 255)
         # self.cursor_size = textfactory.char_size()
         # self.reposition_cursor()
@@ -130,7 +200,7 @@ class MsgWindow:
     def draw(self, screen):
         pygame.draw.rect(
             screen, self.frame_color,
-            self.pos + self.size, 1)
+            self.pos + self.min_size, 1)
 
 
 # class UIElement:

@@ -12,7 +12,7 @@ from auraboros.utilities import AssetFilePath, draw_grid_background
 from auraboros.gametext import TextSurfaceFactory
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.gameinput import Keyboard
-from auraboros.ui import GameMenuSystem, GameMenuUI
+from auraboros.ui import GameMenuSystem, GameMenuUI, MsgWindow
 from auraboros import global_
 
 engine.init()
@@ -44,12 +44,13 @@ class GameMenuDebugScene(Scene):
         self.menusystem.add_menu_item("red", self.turn_red, "RED")
         self.menusystem.add_menu_item("green", self.turn_green, "GREEN")
         self.menusystem.add_menu_item("blue", self.turn_blue, "BLUE")
-        self.menuui = GameMenuUI(self.menusystem, textfactory)
+        self.menuui = GameMenuUI(self.menusystem, textfactory, )
         self.menuui.pos = [
             global_.w_size[0]//2-self.menuui.size[0]//2,
             global_.w_size[1]//2-self.menuui.size[1]//2]
         self.turn_red()
         self.box_size = (24, 24)
+        self.msgwindow = MsgWindow(textfactory)
 
     def turn_red(self):
         self.box_color = (255, 0, 0)
@@ -72,6 +73,7 @@ class GameMenuDebugScene(Scene):
             tuple(map(sum, zip(self.menuui.pos, self.menuui.size))) +
             self.box_size)
         self.menuui.draw(screen)
+        self.msgwindow.draw(screen)
 
 
 scene_manager = SceneManager()
