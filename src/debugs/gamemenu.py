@@ -36,9 +36,9 @@ class GameMenuDebugScene(Scene):
         self.keyboard.set_current_setup("menu")
         self.menusystem = GameMenuSystem()
         self.keyboard["menu"].register_keyaction(
-            pygame.K_UP, 0, 10, self.menusystem.menu_cursor_up)
+            pygame.K_UP, 0, 8, self.menusystem.menu_cursor_up)
         self.keyboard["menu"].register_keyaction(
-            pygame.K_DOWN, 0, 10, self.menusystem.menu_cursor_down)
+            pygame.K_DOWN, 0, 8, self.menusystem.menu_cursor_down)
         self.keyboard["menu"].register_keyaction(
             pygame.K_z, 0, 0, self.menusystem.do_selected_action)
         self.menusystem.add_menu_item(
@@ -53,17 +53,14 @@ class GameMenuDebugScene(Scene):
             "blue", self.turn_blue,
             lambda: self.msgwindow.rewrite_text("Blue"),
             text="BLUE")
-        self.menuui = GameMenuUI(self.menusystem, textfactory, )
+        self.menuui = GameMenuUI(self.menusystem, textfactory, "filled_box")
         self.menuui.padding = 4
-        self.menuui.pos = [
-            global_.w_size[0]//2-self.menuui.ultimate_size[0]//2,
-            global_.w_size[1]//2-self.menuui.ultimate_size[1]//2]
         self.msgwindow = MsgWindow(textfactory.font())
+        self.msgwindow.padding = 4
+        self.msgwindow2 = MsgWindow(textfactory.font())
+        self.msgwindow2.padding = 10
+        self.msgwindow2.text = "Press 'Z' to turn color of the box."
         self.turn_red()
-        self.msgwindow.pos = [
-            global_.w_size[0]//2-self.msgwindow.ultimate_size[0]//2,
-            global_.w_size[1]//2*1.5]
-        print(self.msgwindow.ultimate_size[0])
         self.box_size = (24, 24)
 
     def turn_red(self):
@@ -82,6 +79,9 @@ class GameMenuDebugScene(Scene):
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_UP)
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_DOWN)
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_z)
+        self.menuui.set_pos_to_center()
+        self.msgwindow.set_x_to_center()
+        self.msgwindow.pos[1] = global_.w_size[1]//3*2
         self.menusystem.update()
 
     def draw(self, screen):
@@ -92,6 +92,7 @@ class GameMenuDebugScene(Scene):
             self.box_size)
         self.menuui.draw(screen)
         self.msgwindow.draw(screen)
+        self.msgwindow2.draw(screen)
 
 
 scene_manager = SceneManager()

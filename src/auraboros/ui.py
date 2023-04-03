@@ -4,6 +4,7 @@ import abc
 import pygame
 
 from .gametext import TextSurfaceFactory
+from . import global_
 
 
 class MenuHasNoItemError(Exception):
@@ -95,7 +96,12 @@ class UIElement(metaclass=abc.ABCMeta):
 
 
 class GameMenuUI(UIElement):
-    """option_highlight_style = "cursor"(default) or "filled_box" """
+    """
+    option_highlight_style = "cursor" or "filled_box"
+    "cursor" is default
+    anchor(unused) = "top_left" or "center_fixed" or "center"
+    "top_left" is default
+    """
 
     def __init__(self, menu_system: GameMenuSystem,
                  textfactory: TextSurfaceFactory,
@@ -112,6 +118,7 @@ class GameMenuUI(UIElement):
         self.option_highlight_style = option_highlight_style
         self.padding = 0
         self.locate_cursor_inside_window = True
+        # self.anchor = "top-left"
 
     @property
     def pos(self):
@@ -151,6 +158,18 @@ class GameMenuUI(UIElement):
         self.cursor_pos = [
             self.pos[0]-self.cursor_size[0],
             self.pos[1]]
+
+    def set_x_to_center(self):
+        self.pos[0] = global_.w_size[0]//2-self.ultimate_size[0]//2
+        self.reposition_cursor()
+
+    def set_y_to_center(self):
+        self.pos[1] = global_.w_size[1]//2-self.ultimate_size[1]//2
+        self.reposition_cursor()
+
+    def set_pos_to_center(self):
+        self.set_x_to_center()
+        self.set_y_to_center()
 
     def draw(self, screen):
         pygame.draw.rect(
@@ -213,7 +232,11 @@ class GameMenuUI(UIElement):
 
 
 class MsgWindow(UIElement):
-    """type_of_sizing = "min"(default) or "fixed" """
+    """
+    type_of_sizing = "min"(default) or "fixed"
+    anchor(unused) = "top_left" or "center_fixed" or "center"
+    "top_left" is default
+    """
 
     def __init__(self, font: pygame.font.Font, type_of_sizing="min"):
         self.text = ""
@@ -226,7 +249,7 @@ class MsgWindow(UIElement):
         self.type_of_sizing = type_of_sizing
         self._size = [0, 0]
         self.resize_on_type_of_sizing()
-        self.padding = 4
+        self.padding = 0
 
     @property
     def pos(self):
@@ -262,7 +285,6 @@ class MsgWindow(UIElement):
                 self._size[1] = self.min_size[1]
         elif self.type_of_sizing == "min":
             self._size = self.min_size
-            print("mins", self._size)
 
     @property
     def ultimate_size(self):
@@ -273,6 +295,16 @@ class MsgWindow(UIElement):
 
     def rewrite_text(self, text):
         self.text = text
+
+    def set_x_to_center(self):
+        self.pos[0] = global_.w_size[0]//2-self.ultimate_size[0]//2
+
+    def set_y_to_center(self):
+        self.pos[1] = global_.w_size[1]//2-self.ultimate_size[1]//2
+
+    def set_pos_to_center(self):
+        self.set_x_to_center()
+        self.set_y_to_center()
 
     def draw(self, screen: pygame.surface.Surface):
         frame_rect = self.pos + self.ultimate_size
