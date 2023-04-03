@@ -85,7 +85,7 @@ class GameMenuSystem:
 class UIElement(metaclass=abc.ABCMeta):
     @property
     @abc.abstractmethod
-    def min_size(self):
+    def min_size(self) -> list[int]:
         self.resize_min_size_to_suit()
         return self.__min_size
 
@@ -134,11 +134,10 @@ class GameMenuUI(UIElement):
             self.system.count_menu_items()*self.textfactory.char_size()[1]]
 
     @property
-    def size(self):
-        """ailias of calculate_finally_size()"""
-        return self.calculate_finally_size()
+    def ultimate_size(self):
+        return self.calculate_ultimate_size()
 
-    def calculate_finally_size(self) -> list[int, int]:
+    def calculate_ultimate_size(self) -> list[int, int]:
         if (self.option_highlight_style == "cursor" and
                 self.locate_cursor_inside_window):
             size = [self.min_size[0]+self.padding*3+self.cursor_size[0],
@@ -156,7 +155,7 @@ class GameMenuUI(UIElement):
     def draw(self, screen):
         pygame.draw.rect(
             screen, self.frame_color,
-            self.pos + self.size, 1)
+            self.pos + self.ultimate_size, 1)
         for i, (key, text) in enumerate(
             zip(self.system.menu_option_keys,
                 self.system.menu_option_texts)):
@@ -214,7 +213,9 @@ class GameMenuUI(UIElement):
 
 
 class MsgWindow(UIElement):
-    def __init__(self, font: pygame.font.Font):
+    """type_of_sizing = "min"(default) or "fixed" """
+
+    def __init__(self, font: pygame.font.Font, type_of_sizing="min"):
         self.text = ""
         # self.textfactory = textfactory
         self.font = font
@@ -222,8 +223,10 @@ class MsgWindow(UIElement):
         # self.resize_window_to_suit_text()
         self._pos = [0, 0]
         self.frame_color = (255, 255, 255)
-        # self.cursor_size = textfactory.char_size()
-        # self.reposition_cursor()
+        self.type_of_sizing = type_of_sizing
+        self._size = [0, 0]
+        self.resize_on_type_of_sizing()
+        self.padding = 4
 
     @property
     def pos(self):
@@ -241,16 +244,44 @@ class MsgWindow(UIElement):
     def resize_min_size_to_suit(self):
         self.__min_size = list(self.font.size(self.text))
 
+    @property
+    def size(self):
+        self.resize_on_type_of_sizing()
+        return self._size
+
+    @size.setter
+    def size(self, value):
+        self._size = value
+        self.resize_on_type_of_sizing()
+
+    def resize_on_type_of_sizing(self):
+        if self.type_of_sizing == "fixed":
+            if self.min_size[0] > self._size[0]:
+                self._size[0] = self.min_size[0]
+            if self.min_size[1] > self._size[1]:
+                self._size[1] = self.min_size[1]
+        elif self.type_of_sizing == "min":
+            self._size = self.min_size
+            print("mins", self._size)
+
+    @property
+    def ultimate_size(self):
+        return self.calculate_ultimate_size()
+
+    def calculate_ultimate_size(self) -> list[int, int]:
+        return list(map(sum, zip(self.size, [self.padding*2, self.padding*2])))
+
     def rewrite_text(self, text):
         self.text = text
 
     def draw(self, screen: pygame.surface.Surface):
-        frame_rect = self.pos + self.min_size
+        frame_rect = self.pos + self.ultimate_size
         pygame.draw.rect(
             screen, self.frame_color,
             frame_rect, 1)
         screen.blit(self.font.render(
-            self.text, True, (255, 255, 255)), self.pos)
+            self.text, True, (255, 255, 255)),
+            tuple(map(sum, zip(self.pos, [self.padding, self.padding]))))
 
 
 # class UIElement:

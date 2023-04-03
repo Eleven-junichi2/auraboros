@@ -54,15 +54,16 @@ class GameMenuDebugScene(Scene):
             lambda: self.msgwindow.rewrite_text("Blue"),
             text="BLUE")
         self.menuui = GameMenuUI(self.menusystem, textfactory, )
-        self.menuui.pos = [
-            global_.w_size[0]//2-self.menuui.size[0]//2,
-            global_.w_size[1]//2-self.menuui.size[1]//2]
         self.menuui.padding = 4
+        self.menuui.pos = [
+            global_.w_size[0]//2-self.menuui.ultimate_size[0]//2,
+            global_.w_size[1]//2-self.menuui.ultimate_size[1]//2]
         self.msgwindow = MsgWindow(textfactory.font())
-        self.msgwindow.pos = [
-            global_.w_size[0]//2-self.msgwindow.min_size[0],
-            global_.w_size[1]//2+self.menuui.size[1]]
         self.turn_red()
+        self.msgwindow.pos = [
+            global_.w_size[0]//2-self.msgwindow.ultimate_size[0]//2,
+            global_.w_size[1]//2*1.5]
+        print(self.msgwindow.ultimate_size[0])
         self.box_size = (24, 24)
 
     def turn_red(self):
@@ -87,7 +88,7 @@ class GameMenuDebugScene(Scene):
         draw_grid_background(screen, 16, (78, 78, 78))
         pygame.draw.rect(
             screen, self.box_color,
-            tuple(map(sum, zip(self.menuui.pos, self.menuui.size))) +
+            tuple(map(sum, zip(self.menuui.pos, self.menuui.ultimate_size))) +
             self.box_size)
         self.menuui.draw(screen)
         self.msgwindow.draw(screen)
