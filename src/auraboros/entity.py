@@ -56,6 +56,7 @@ class Entity(pygame.sprite.Sprite):
             angle_to_target (float):
                 The angle to the target of the entity's movement.
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.gameworld: Level = None
@@ -117,8 +118,13 @@ class Entity(pygame.sprite.Sprite):
         else:
             self.hitbox.y = self._y
 
-    def move_by_arrow(self, dt):
-        self.is_moving = True
+    def set_move_direction(self, direction: Arrow):
+        self.arrow_of_move.set(direction)
+
+    def cancel_move_direction(self, direction: Arrow):
+        self.arrow_of_move.unset(direction)
+
+    def move_by_arrow(self):
         # diagonal movement
         if ((self.arrow_of_move.is_up and
             self.arrow_of_move.is_right) or
@@ -132,7 +138,8 @@ class Entity(pygame.sprite.Sprite):
             movement_speed = self.movement_speed / sqrt(2)
         else:
             movement_speed = self.movement_speed
-        movement_speed = movement_speed * dt * global_.TARGET_FPS
+        # movement_speed = movement_speed * dt * global_.TARGET_FPS
+        movement_speed = movement_speed
         if self.arrow_of_move.is_up:
             self.y -= movement_speed
         if self.arrow_of_move.is_down:
@@ -141,6 +148,10 @@ class Entity(pygame.sprite.Sprite):
             self.x += movement_speed
         if self.arrow_of_move.is_left:
             self.x -= movement_speed
+        if self.arrow_of_move.is_set_any():
+            self.is_moving = True
+        else:
+            self.is_moving = False
 
     def move_by_angle(self, dt, radians):
         self.is_moving = True

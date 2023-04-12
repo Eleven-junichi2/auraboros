@@ -22,10 +22,10 @@ def open_json_file(filepath):
 @dataclass
 class Arrow:
     """Arrow symbol"""
-    up = 0
-    down = 1
-    right = 2
-    left = 3
+    LEFT = 0
+    UP = 1
+    RIGHT = 2
+    DOWN = 3
 
 
 @dataclass
@@ -37,23 +37,23 @@ class ArrowToTurnToward:
     is_left: bool = field(default=False)
 
     def set(self, direction: Arrow):
-        if direction is Arrow.up:
+        if direction is Arrow.UP:
             self.is_up = True
-        elif direction is Arrow.down:
+        elif direction is Arrow.DOWN:
             self.is_down = True
-        elif direction is Arrow.right:
+        elif direction is Arrow.RIGHT:
             self.is_right = True
-        elif direction is Arrow.left:
+        elif direction is Arrow.LEFT:
             self.is_left = True
 
     def unset(self, direction: Arrow):
-        if direction is Arrow.up:
+        if direction is Arrow.UP:
             self.is_up = False
-        elif direction is Arrow.down:
+        elif direction is Arrow.DOWN:
             self.is_down = False
-        elif direction is Arrow.right:
+        elif direction is Arrow.RIGHT:
             self.is_right = False
-        elif direction is Arrow.left:
+        elif direction is Arrow.LEFT:
             self.is_left = False
 
     # def switch(self, direction: Arrow):
