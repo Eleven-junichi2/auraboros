@@ -43,7 +43,7 @@ class TestAnimImg(AnimationImage):
         self.loop_count = 2
 
 
-class GameMenuDebugScene(Scene):
+class DebugScene(Scene):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         textfactory.set_current_font("misaki_gothic")
@@ -144,7 +144,7 @@ class GameMenuDebugScene(Scene):
 
 
 scene_manager = SceneManager()
-scene_manager.push(GameMenuDebugScene(scene_manager))
+scene_manager.push(DebugScene(scene_manager))
 
 if __name__ == "__main__":
     engine.run(scene_manager=scene_manager, fps_num=60)
