@@ -13,10 +13,10 @@ from auraboros.gametext import TextSurfaceFactory
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.gameinput import Keyboard
 from auraboros.ui import GameMenuSystem, GameMenuUI, MsgWindow
-from auraboros.animation import AnimationImage, SpriteSheet
+from auraboros.animation2 import AnimationImage, SpriteSheet
 from auraboros import global_
 
-engine.init()
+engine.init(caption="Test Animation System")
 
 AssetFilePath.set_asset_root(Path(sys.argv[0]).parent / "assets")
 
@@ -26,7 +26,7 @@ textfactory.register_font(
     pygame.font.Font(AssetFilePath.font("misaki_gothic.ttf"), 16))
 
 
-class TestSpriteIdle(AnimationImage):
+class TestAnimImg(AnimationImage):
     def __init__(self):
         super().__init__()
         self.sprite_sheet = SpriteSheet(AssetFilePath.img("testsprite.png"))
@@ -39,13 +39,14 @@ class TestSpriteIdle(AnimationImage):
             self.sprite_sheet.image_by_area(0, 32*3, 32, 32),
             self.sprite_sheet.image_by_area(0, 32*2, 32, 32),
             self.sprite_sheet.image_by_area(0, 32, 32, 32)]
+        self.anim_interval = 32
 
 
 class GameMenuDebugScene(Scene):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         textfactory.set_current_font("misaki_gothic")
-        self.testsprite_animimg = TestSpriteIdle()
+        self.test_anim_img = TestAnimImg()
         self.keyboard["menu"] = Keyboard()
         self.keyboard.set_current_setup("menu")
         self.menusystem = GameMenuSystem()
@@ -60,27 +61,36 @@ class GameMenuDebugScene(Scene):
             lambda: self.msgwindow.rewrite_text("[]"),
             text="Play")
         self.menusystem.add_menu_item(
-            "green", self.stop_animation,
+            "stop", self.stop_animation,
             lambda: self.msgwindow.rewrite_text("|>"),
             text="STOP")
+        self.menusystem.add_menu_item(
+            "reset", self.reset_animation,
+            text="RESET")
         self.menuui = GameMenuUI(self.menusystem, textfactory, "filled_box")
         self.menuui.padding = 4
         self.msgwindow = MsgWindow(textfactory.font())
         self.msgwindow.padding = 4
         self.msgwindow2 = MsgWindow(textfactory.font())
         self.msgwindow2.padding = 10
-        self.msgwindow2.text = "Press 'Z' to Play/Stop"
-        self.box_size = (24, 24)
+        self.msgwindow2.text = "Press 'Z'"
+        self.anim_frame_id_msgbox = MsgWindow(textfactory.font())
+        self.anim_frame_id_msgbox.padding = 10
+        self.anim_frame_id_msgbox.pos[1] =\
+            self.anim_frame_id_msgbox.calculate_ultimate_size()[1]
+        self.is_playing_msgbox = MsgWindow(textfactory.font())
+        self.is_playing_msgbox.padding = 10
+        self.is_playing_msgbox.pos[1] =\
+            self.is_playing_msgbox.calculate_ultimate_size()[1] * 2
 
     def play_animation(self):
-        self.testsprite_animimg.let_play_animation()
+        self.test_anim_img.let_continue_animation()
 
     def stop_animation(self):
-        self.testsprite_animimg.let_stop_animation()
+        self.test_anim_img.let_stop_animation()
 
-    def turn_blue(self):
-        self.box_color = (0, 0, 255)
-        self.msgwindow.text = "Blue"
+    def reset_animation(self):
+        self.test_anim_img.reset_animation()
 
     def update(self, dt):
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_UP)
@@ -90,15 +100,24 @@ class GameMenuDebugScene(Scene):
         self.msgwindow.set_x_to_center()
         self.msgwindow.pos[1] = global_.w_size[1]//3*2
         self.menusystem.update()
-        self.testsprite_animimg.update(dt)
+        self.test_anim_img.update(dt)
+        self.anim_frame_id_msgbox.text = \
+            f"anim_frame_id:{self.test_anim_img.anim_frame_id}"
+        # self.is_playing_msgbox.text = \
+        #     f"is_playing:{self.test_anim_img.is_playing}"
 
     def draw(self, screen):
         draw_grid_background(screen, 16, (78, 78, 78))
-        # self.testsprite_animimg.draw(screen)
-        screen.blit(self.testsprite_animimg.image, (100, 100))
+        # self.test_anim_img.draw(screen)
+        screen.blit(
+            self.test_anim_img.image,
+            (global_.w_size[0]//2-self.test_anim_img.image.get_width()//2,
+             self.menuui.pos[1]-self.test_anim_img.image.get_height()))
         self.menuui.draw(screen)
         self.msgwindow.draw(screen)
         self.msgwindow2.draw(screen)
+        self.anim_frame_id_msgbox.draw(screen)
+        self.is_playing_msgbox.draw(screen)
 
 
 scene_manager = SceneManager()
