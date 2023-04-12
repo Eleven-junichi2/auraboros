@@ -19,7 +19,7 @@ def run(scene_manager: SceneManager, fps_num=60):
     fps = fps_num
     running = True
     while running:
-        clock.tick(fps)/1000  # dt means delta time
+        clock.tick(fps)
         Schedule.execute()
         global_.screen.fill((0, 0, 0))
         for event in pygame.event.get():

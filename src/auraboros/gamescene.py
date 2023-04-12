@@ -1,11 +1,11 @@
 
 from dataclasses import dataclass
-from typing import Optional, Union
+# from typing import Optional, Union
 
 import pygame
 
 from .animation import AnimationImage
-from .gameinput import KeyboardManager, Joystick2
+from .gameinput2 import KeyboardManager
 
 
 @dataclass
@@ -16,7 +16,7 @@ class Scene(object):
         self.manager = manager
         self.gameworld: Level = None
         self.keyboard: KeyboardManager = KeyboardManager()
-        self._joystick: Joystick2 = None
+        # self._joystick: Joystick2 = None
         self.visual_effects: list[AnimationImage] = []
         attrs_of_class = set(dir(self.__class__)) - set(dir(Scene))
         for attr_name in attrs_of_class:
@@ -26,13 +26,13 @@ class Scene(object):
             if is_gameworld:
                 getattr(self, attr_name).scene = self
 
-    @property
-    def joystick(self) -> Optional[Joystick2]:
-        return self._joystick
+    # @property
+    # def joystick(self) -> Optional[Joystick2]:
+    #     return self._joystick
 
-    @joystick.setter
-    def joystick(self, value: Union[Joystick2, None]):
-        self._joystick = value
+    # @joystick.setter
+    # def joystick(self, value: Union[Joystick2, None]):
+    #     self._joystick = value
 
     def event(self, event: pygame.event):
         pass
@@ -66,8 +66,8 @@ class SceneManager:
         self.scenes[self.current].event(event)
         if self.scenes[self.current].keyboard.current_setup is not None:
             self.scenes[self.current].keyboard.current_setup.event(event)
-        if self.scenes[self.current].joystick is not None:
-            self.scenes[self.current].joystick.event(event)
+        # if self.scenes[self.current].joystick is not None:
+        #     self.scenes[self.current].joystick.event(event)
         return True
 
     def is_current_scene_has_gameworld(self) -> bool:
