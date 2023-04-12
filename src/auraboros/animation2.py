@@ -14,6 +14,8 @@ class AnimationImage:
         anim_interval (int): アニメーションの更新間隔（ミリ秒）
         image (pygame.surface.Surface): 現在のフレームの画像
         is_playing (bool): アニメーションが再生中かどうかを示すフラグ
+        loop_count (int): アニメーションのループ回数。-1で無限ループ指定
+        loop_counter (int): 現在のループ回数
     """
 
     def __init__(self):
@@ -23,6 +25,8 @@ class AnimationImage:
         self._anim_interval = 1
         self.image = self.anim_frames[self.anim_frame_id]
         self.is_playing = False
+        self.loop_count = -1
+        self.loop_counter = 0
 
     @property
     def anim_frames(self):
@@ -43,13 +47,17 @@ class AnimationImage:
 
     @anim_interval.setter
     def anim_interval(self, value):
-        # Schedule.remove(self.anim_interval)
-        print("aaa")
+        Schedule.remove(self.anim_interval)
         self._anim_interval = value
         Schedule.add(self.update_animation, self.anim_interval)
 
+    def is_all_loop_finished(self):
+        return self.loop_count > 0 and self.loop_counter >= self.loop_count
+
     def let_play(self):
         self.is_playing = True
+        if self.is_all_loop_finished():
+            self.loop_counter = 0
 
     def let_stop(self):
         self.is_playing = False
@@ -63,10 +71,15 @@ class AnimationImage:
         self.image = self._anim_frames[self.anim_frame_id]
 
     def update_animation(self):
-        if self.is_playing:
+        if self.is_playing and (self.loop_counter < self.loop_count or
+                                self.loop_count < 0):
             self.anim_frame_id = (self.anim_frame_id + 1) % len(
                 self._anim_frames)
             self.image = self._anim_frames[self.anim_frame_id]
+            if self.anim_frame_id == 0:
+                self.loop_counter += 1
+                if self.is_all_loop_finished():
+                    self.is_playing = False
 
 
 class AnimationFactory(MutableMapping):
