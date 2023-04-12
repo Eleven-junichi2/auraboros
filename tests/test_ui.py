@@ -32,3 +32,8 @@ class TestGameMenuSystem:
     def test_do_action_when_menu_is_empty(self):
         with pytest.raises(MenuHasNoItemError):
             self.gamemenu2.do_selected_action()
+
+    def test_add_menu_item(self):
+        self.gamemenu2.add_menu_item("test1", lambda: True)
+        assert self.gamemenu2.menu_option_keys == ["test1"]
+        assert self.gamemenu2.menu_option_texts == ["test1"]
