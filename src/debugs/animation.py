@@ -11,9 +11,9 @@ from auraboros import engine
 from auraboros.utilities import AssetFilePath, draw_grid_background
 from auraboros.gametext import TextSurfaceFactory
 from auraboros.gamescene import Scene, SceneManager
-from auraboros.gameinput2 import Keyboard
+from auraboros.gameinput import Keyboard
 from auraboros.ui import GameMenuSystem, GameMenuUI, MsgWindow
-from auraboros.animation2 import AnimationImage, SpriteSheet
+from auraboros.animation import AnimationImage, SpriteSheet
 from auraboros import global_
 
 engine.init(caption="Test Animation System")
@@ -105,7 +105,7 @@ class GameMenuDebugScene(Scene):
         self.is_playing_msgbox.text = \
             f"is_playing:{self.test_anim_img.is_playing}"
         self.loop_counter_msgbox.text = \
-            f"loop_counter:{self.test_anim_img.loop_counter}"    
+            f"loop_counter:{self.test_anim_img.loop_counter}"
         self.loop_count_msgbox.pos[1] = \
             self.msgbox.calculate_ultimate_size()[1]
         self.anim_interval_msgbox.pos[1] = \

@@ -7,7 +7,7 @@
 import pygame
 
 from .global_ import init  # noqa
-from .schedule2 import Schedule
+from .schedule import Schedule
 from .gamescene import SceneManager
 from . import global_
 

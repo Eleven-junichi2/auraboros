@@ -3,24 +3,30 @@ from typing import Any, MutableMapping
 
 import pygame
 
-from .schedule import schedule_instance_method_interval
+from .schedule import Schedule
 
 
 class AnimationImage:
+    """アニメーションのある画像を設定・描写するためのクラス
+
+    Attributes:
+        anim_frame_id (int): 現在のフレームを示すインデックス
+        anim_interval (int): アニメーションの更新間隔（ミリ秒）
+        image (pygame.surface.Surface): 現在のフレームの画像
+        is_playing (bool): アニメーションが再生中かどうかを示すフラグ
+        loop_count (int): アニメーションのループ回数。-1で無限ループ指定
+        loop_counter (int): 現在のループ回数
+    """
+
     def __init__(self):
         self._anim_frames: list[pygame.surface.Surface] = [
             pygame.surface.Surface((0, 0)), ]
         self.anim_frame_id = 0
-        self.anim_interval = 1
-        self.loop_count = -1  # -1 means unset loop count
-        self.is_playing = False
-        self.is_loop = True
+        self._anim_interval = 1
         self.image = self.anim_frames[self.anim_frame_id]
-        self.was_played_once = False  # to notify for garbage collection
-        self.is_finished = False
-        self._frame_num = len(self.anim_frames)
-        self._do_reset_anim_interval_counter = False
-        self._loop_counter = 0
+        self.is_playing = False
+        self.loop_count = -1
+        self.loop_counter = 0
 
     @property
     def anim_frames(self):
@@ -35,65 +41,50 @@ class AnimationImage:
     def frame_num(self):
         return len(self.anim_frames)
 
-    # def draw_while_playing(self, screen: pygame.surface.Surface):
-    #     if self.is_playing:
-    #         screen.blit(self.image, self.rect)
+    @property
+    def anim_interval(self):
+        return self._anim_interval
 
-    @schedule_instance_method_interval(
-        "anim_interval",
-    )
-    def update_frame_at_interval(self):
-        self.update_frame()
+    @anim_interval.setter
+    def anim_interval(self, value):
+        Schedule.remove(self.anim_interval)
+        self._anim_interval = value
+        Schedule.add(self.update_animation, self.anim_interval)
 
-    def update_frame(self):
-        if self.loop_count > 0:
-            if self._loop_counter > self.loop_count and self.was_played_once:
-                return
-        if self.is_playing:
-            if self.anim_frame_id < len(self.anim_frames):
-                self.image = self.anim_frames[self.anim_frame_id]
-                self.anim_frame_id += 1
-            if self.anim_frame_id == len(self.anim_frames):
-                if self.is_loop:
-                    self.reset_animation()
-                    self._loop_counter += 1
-                    self.is_finished = True
-                self.was_played_once = True
+    def is_all_loop_finished(self):
+        return self.loop_count > 0 and self.loop_counter >= self.loop_count
 
-    def set_current_frame_to_image(self):
+    def let_play(self):
+        self.is_playing = True
+        if self.is_all_loop_finished():
+            self.loop_counter = 0
+
+    def let_stop(self):
+        self.is_playing = False
+
+    def seek(self, frame_id: int):
+        self.anim_frame_id = frame_id
         self.image = self.anim_frames[self.anim_frame_id]
 
-    def set_current_frame_id(self, id: int):
-        self.anim_frame_id = id
-
-    def let_play_animation(self):
-        """Active update and draw function WITH RESET animation"""
-        self.is_playing = True
-        self.is_finished = False
-        self.reset_animation()
-
-    def let_continue_animation(self):
-        """Active update and draw function without reset animation"""
-        self.is_playing = True
-
-    def let_stop_animation(self):
-        self.is_playing = False
+    def reset_current_loop(self):
+        self.anim_frame_id = 0
+        self.image = self._anim_frames[self.anim_frame_id]
 
     def reset_animation(self):
         self.anim_frame_id = 0
-        self._anim_frame_progress = 0
-        self._loop_counter = 0
-        self._do_reset_anim_interval_counter = True
-        self.set_current_frame_to_image()
+        self.image = self._anim_frames[self.anim_frame_id]
+        self.loop_counter = 0
 
-    # def draw(self, screen):
-    #     self.draw_while_playing(screen)
-
-    def update(self, dt):
-        self.update_frame_at_interval()
-
-    def render_current_frame(self) -> pygame.surface.Surface:
-        return self.anim_frames[self.anim_frame_id]
+    def update_animation(self):
+        if self.is_playing and (self.loop_counter < self.loop_count or
+                                self.loop_count < 0):
+            self.anim_frame_id = (self.anim_frame_id + 1) % len(
+                self._anim_frames)
+            self.image = self._anim_frames[self.anim_frame_id]
+            if self.anim_frame_id == 0:
+                self.loop_counter += 1
+                if self.is_all_loop_finished():
+                    self.is_playing = False
 
 
 class AnimationFactory(MutableMapping):
