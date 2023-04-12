@@ -1,25 +1,6 @@
 import pygame
 
 
-# class Clock:
-#     """時間の経過を管理するためのクロック機能を提供するクラス"""
-
-#     def __init__(self, clock: pygame.time.Clock):
-#         self.clock = clock
-#         self._start_time = pygame.time.get_ticks()
-#         self._last_tick_time = self._start_time
-
-#     def tick(self):
-#         """前回のtickからの経過時間を返す"""
-#         elapsed_time = pygame.time.get_ticks() - self._last_tick_time
-#         self._last_tick_time = pygame.time.get_ticks()
-#         return elapsed_time
-
-#     def get_time(self):
-#         """開始からの経過時間を返す"""
-#         return pygame.time.get_ticks() - self._start_time
-
-
 class Schedule:
     """指定した時間間隔で関数を実行するためのスケジュール機能を提供するクラス"""
 
@@ -27,7 +8,11 @@ class Schedule:
 
     @classmethod
     def add(cls, func, interval):
-        """関数をスケジュールに追加する"""
+        """関数をスケジュールに追加する。
+        Args:
+            func (function): 定期的に呼び出す関数
+            interval (int): 関数を呼び出す間隔(milliseconds)
+        """
         cls._schedule_list.append((func, interval, pygame.time.get_ticks()))
 
     @classmethod

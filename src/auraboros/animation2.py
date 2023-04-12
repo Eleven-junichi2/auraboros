@@ -66,9 +66,14 @@ class AnimationImage:
         self.anim_frame_id = frame_id
         self.image = self.anim_frames[self.anim_frame_id]
 
+    def reset_current_loop(self):
+        self.anim_frame_id = 0
+        self.image = self._anim_frames[self.anim_frame_id]
+
     def reset_animation(self):
         self.anim_frame_id = 0
         self.image = self._anim_frames[self.anim_frame_id]
+        self.loop_counter = 0
 
     def update_animation(self):
         if self.is_playing and (self.loop_counter < self.loop_count or

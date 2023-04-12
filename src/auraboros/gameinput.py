@@ -77,7 +77,12 @@ class Keyboard:
             key_const,
             delay, interval,
             keydown: Callable = lambda: None, keyup: Callable = lambda: None):
-
+        """
+        Args:
+            key_const: pygame.localsから参照する登録するキーの定数。
+            delay (int): milliseconds
+            interval (int): milliseconds
+        """
         self.keyaction_dict[key_const] = KeyActionItem({
             "keydown": keydown, "keyup": keyup,
             "delay": delay, "interval": interval,
