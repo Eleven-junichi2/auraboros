@@ -18,6 +18,44 @@ from . import global_
 
 
 class Entity(pygame.sprite.Sprite):
+    """
+    Attributes:
+            gameworld (Level):
+                The game level that the entity belongs to.
+            entity_container (EntityList):
+                The container that holds the entity.
+            arrow_of_move (ArrowToTurnToward):
+                The arrow of movement for the entity.
+            movement_speed (int):
+                The movement speed of the entity.
+            image (pygame.surface.Surface):
+                The image of the entity.
+            rect (pygame.Rect):
+                The rectangle that encloses the entity's image.
+            hitbox (pygame.Rect):
+                The rectangle that encloses the entity's hitbox.
+            is_visible_hitbox (bool):
+                Whether the hitbox of the entity is visible or not.
+            is_hitbox_on_center (bool):
+                Whether the hitbox of the entity is on the center of the
+                entity or not.
+            invincible_to_entity (bool):
+                Whether the entity is invincible to other entities or not.
+            x (float):
+                The x-coordinate of the entity.
+            y (float):
+                The y-coordinate of the entity.
+            angle (float):
+                The angle of the entity.
+            is_moving (bool):
+                Whether the entity is moving or not.
+            move_dest_x (int):
+                The x-coordinate of the destination of the entity's movement.
+            move_dest_y (int):
+                The y-coordinate of the destination of the entity's movement.
+            angle_to_target (float):
+                The angle to the target of the entity's movement.
+    """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.gameworld: Level = None
