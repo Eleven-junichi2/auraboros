@@ -40,7 +40,7 @@ class Scene(object):
     def draw(self, screen: pygame.surface.Surface):
         pass
 
-    def update(self, dt):
+    def update(self, ):
         pass
 
 
@@ -76,13 +76,13 @@ class SceneManager:
         else:
             return True
 
-    def update(self, dt):
-        self.scenes[self.current].update(dt)
+    def update(self):
+        self.scenes[self.current].update()
         if self.is_current_scene_has_gameworld():
             if not self.scenes[self.current].gameworld.pause:
-                [entity.update(dt)
+                [entity.update()
                  for entity in self.scenes[self.current].gameworld.entities]
-        [visual_effect.update(dt)
+        [visual_effect.update()
          for visual_effect in self.scenes[self.current].visual_effects]
 
     def draw(self, screen: pygame.surface.Surface):

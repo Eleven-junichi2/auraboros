@@ -39,7 +39,7 @@ class TestAnimImg(AnimationImage):
             self.sprite_sheet.image_by_area(0, 32*3, 32, 32),
             self.sprite_sheet.image_by_area(0, 32*2, 32, 32),
             self.sprite_sheet.image_by_area(0, 32, 32, 32)]
-        self.anim_interval = 32
+        self.anim_interval = 500
 
 
 class GameMenuDebugScene(Scene):
@@ -84,15 +84,16 @@ class GameMenuDebugScene(Scene):
             self.is_playing_msgbox.calculate_ultimate_size()[1] * 2
 
     def play_animation(self):
-        self.test_anim_img.let_continue_animation()
+        self.test_anim_img.let_play()
 
     def stop_animation(self):
-        self.test_anim_img.let_stop_animation()
+        self.test_anim_img.let_stop()
 
     def reset_animation(self):
         self.test_anim_img.reset_animation()
+        pass
 
-    def update(self, dt):
+    def update(self, ):
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_UP)
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_DOWN)
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_z)
@@ -100,7 +101,7 @@ class GameMenuDebugScene(Scene):
         self.msgwindow.set_x_to_center()
         self.msgwindow.pos[1] = global_.w_size[1]//3*2
         self.menusystem.update()
-        self.test_anim_img.update(dt)
+        # self.test_anim_img
         self.anim_frame_id_msgbox.text = \
             f"anim_frame_id:{self.test_anim_img.anim_frame_id}"
         # self.is_playing_msgbox.text = \
@@ -124,4 +125,4 @@ scene_manager = SceneManager()
 scene_manager.push(GameMenuDebugScene(scene_manager))
 
 if __name__ == "__main__":
-    engine.run(scene_manager=scene_manager)
+    engine.run(scene_manager=scene_manager, fps_num=60)
