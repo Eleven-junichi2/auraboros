@@ -1,96 +1,49 @@
-import functools
-from typing import Callable
+import pygame
 
 
-from . import global_
+class Schedule:
+    """指定した時間間隔で関数を実行するためのスケジュール機能を提供するクラス"""
 
-# TODO: make clock count reset feature
-
-
-class IntervalCounter:
-    """This is used to implement intervals for scheduling functions."""
-    counters = []
-
-    def __init__(self):
-        self.counters.append(self)
-        self.count = 0
-
-    def increment_count(self, dt):
-        self.count += round(1 * dt * global_.TARGET_FPS, 3)
-        # self.count += 1 * dt * global_.TARGET_FPS
+    _schedule_list = []
 
     @classmethod
-    def tick(cls, dt):
-        [counter.increment_count(dt) for counter in cls.counters]
+    def add(cls, func, interval):
+        """関数をスケジュールに追加する。
+        Args:
+            func (function): 定期的に呼び出す関数
+            interval (int): 関数を呼び出す間隔(milliseconds)
+        """
+        cls._schedule_list.append((func, interval, pygame.time.get_ticks()))
+
+    @classmethod
+    def execute(cls):
+        """スケジュールに登録された関数を実行する"""
+        current_time = pygame.time.get_ticks()
+        for i, (func, interval, last_time) in enumerate(cls._schedule_list):
+            if current_time - last_time >= interval:
+                func()
+                cls._schedule_list[i] = (func, interval, current_time)
+
+    @classmethod
+    def remove(cls, func):
+        """スケジュールから関数を削除する"""
+        cls._schedule_list = [(f, i, t)
+                              for f, i, t in cls._schedule_list if f != func]
+
+    @classmethod
+    def schedule(cls, interval):
+        """スケジュールを登録するデコレータ"""
+        def decorator(func):
+            cls.add(func, interval)
+            return func
+        return decorator
 
 
-class _ScheduleManager:
-    funcs: dict[Callable, IntervalCounter] = {}
-
-    def __init__(self):
-        pass
-
-    def register(self, func_name: str, clock: IntervalCounter):
-        self.funcs[func_name] = clock
+def seconds_to_milliseconds(seconds):
+    """秒をミリ秒に変換する"""
+    return seconds * 1000
 
 
-def schedule_instance_method_interval(
-        variable_as_interval: str, interval_ignorerer=None):
-    """This decorator is for method of object.
-    Args:
-        variable_as_interval:
-            The name of the variable as interval.
-        times:
-            Indicates how many times the decorated function is executed.
-        interval_ignorerer:
-            The name of the bool variable that is the condition for ignoring
-            interval.
-            If interval_ignorer is True, the decorated function is executed
-            regardless of the interval.
-
-    Examples:
-        class ClassA:
-            def __init__(self):
-                self.interval_a = 3
-
-            @schedule_instance_method_interval("interval_a")
-            def func_a(self):
-                pass
-
-        while True:
-            instance_a = ClassA()
-            instance_a.func_a()
-            if clock_counter < 60:
-                clock_counter += 1
-            else:
-                clock_counter = 0
-    """
-    def _decorator(func):
-        _decorator.schedule_manager = _ScheduleManager()
-
-        @functools.wraps(func)
-        def _wrapper(self, *args, **kwargs):
-            execute_func = False
-            method_id = str(id(self)) + str(func.__name__)
-            if not (method_id in _decorator.schedule_manager.funcs):
-                _decorator.schedule_manager.funcs[
-                    method_id] = IntervalCounter()
-                _decorator.schedule_manager.funcs[
-                    method_id].count = getattr(self, variable_as_interval)
-            if interval_ignorerer:
-                bool_from_interval_ignorerer = getattr(
-                    self, interval_ignorerer)
-            else:
-                bool_from_interval_ignorerer = False
-            count = _decorator.schedule_manager.funcs[method_id].count
-            interval = float(getattr(self, variable_as_interval))
-            if ((count >= interval)
-                    or bool_from_interval_ignorerer):
-                execute_func = True
-            if (count > interval):
-                _decorator.schedule_manager.funcs[method_id].count = 0
-            if execute_func:
-                return func(self, *args, **kwargs)
-        return _wrapper
-
-    return _decorator
+def milliseconds_to_seconds(milliseconds):
+    """ミリ秒を秒に変換する"""
+    return milliseconds / 1000

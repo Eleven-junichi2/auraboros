@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import pygame
 
 from .animation import AnimationImage
-from .gameinput2 import KeyboardManager
+from .gameinput import KeyboardManager
 
 
 @dataclass
