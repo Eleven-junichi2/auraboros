@@ -119,13 +119,39 @@ class Entity(pygame.sprite.Sprite):
             self.hitbox.y = self._y
 
     def set_move_direction(self, direction: Arrow):
+        """
+        Set the arrow of movement to the specified direction.
+
+        Args:
+            direction (Arrow):
+                The direction to set the arrow of movement to.
+        """
         self.arrow_of_move.set(direction)
 
     def cancel_move_direction(self, direction: Arrow):
+        """
+        Unset the arrow of movement from the specified direction.
+
+        Args:
+            direction (Arrow):
+                The direction to unset the arrow of movement from.
+        """
         self.arrow_of_move.unset(direction)
 
     def move_by_arrow(self):
-        # diagonal movement
+        """
+        Move the entity according to the arrow of movement.
+
+        If the arrow of movement is set to up, down, right, or left,
+        the entity moves in that direction at the speed of movement.
+        If the arrow of movement is set to up and right, up and left,
+        down and right, or down and left, the entity moves diagonally
+        at the speed of movement divided by the square root of 2.
+
+        The entity's position is updated accordingly, and the is_moving
+        attribute is set to True if the entity is moving, or False
+        otherwise.
+        """
         if ((self.arrow_of_move.is_up and
             self.arrow_of_move.is_right) or
             (self.arrow_of_move.is_up and
