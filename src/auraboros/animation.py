@@ -35,9 +35,9 @@ class AnimationImage:
     def frame_num(self):
         return len(self.anim_frames)
 
-    def draw_while_playing(self, screen: pygame.surface.Surface):
-        if self.is_playing:
-            screen.blit(self.image, self.rect)
+    # def draw_while_playing(self, screen: pygame.surface.Surface):
+    #     if self.is_playing:
+    #         screen.blit(self.image, self.rect)
 
     @schedule_instance_method_interval(
         "anim_interval",
@@ -85,11 +85,14 @@ class AnimationImage:
         self._loop_counter = 0
         self._do_reset_anim_interval_counter = True
 
-    def draw(self, screen):
-        self.draw_while_playing(screen)
+    # def draw(self, screen):
+    #     self.draw_while_playing(screen)
 
     def update(self, dt):
         self.update_frame_at_interval()
+
+    def render_current_frame(self) -> pygame.surface.Surface:
+        return self.anim_frames[self.anim_frame_id]
 
 
 class AnimationFactory(MutableMapping):
