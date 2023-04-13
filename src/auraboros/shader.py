@@ -28,7 +28,7 @@ class Shader2D:
         self.vaos[program_name] = self.ctx.vertex_array(
             program, [(self.buffer, "2f 2f", "in_vert", "in_texcoord")])
 
-    def surface_to_texture(self, surface: pygame.surface.Surface):
+    def _surface_to_texture(self, surface: pygame.surface.Surface):
         texture = self.ctx.texture(surface.get_size(), 4)
         texture.filter = (moderngl.NEAREST, moderngl.NEAREST)
         # texture.swizzle = "BGRA" if windows
@@ -37,7 +37,7 @@ class Shader2D:
     def register_surface_as_texture(
             self, surface: pygame.surface.Surface, texture_name):
         if texture_name not in self.textures:
-            texture = self.surface_to_texture(surface)
+            texture = self._surface_to_texture(surface)
             self.textures[texture_name] = texture
         buffer = surface.get_view("1")
         self.textures[texture_name].write(buffer)

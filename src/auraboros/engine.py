@@ -6,6 +6,7 @@ import pygame
 from .global_ import init  # noqa
 from .gamescene import SceneManager
 from .schedule import Schedule
+from .shader import Shader2D
 from . import global_
 
 clock = pygame.time.Clock()
@@ -21,26 +22,19 @@ def surface_to_texture(ctx: moderngl.Context, surface: pygame.surface.Surface):
 def run(scene_manager: SceneManager, fps=60):
     display_flags = pygame.display.get_surface().get_flags()
     if display_flags & (pygame.DOUBLEBUF | pygame.OPENGL):
+        shader2d = Shader2D()
         opengl_is_used = True
-        # - prepare for convert pygame surface to opengl texture -
-        ctx = moderngl.create_context()
-        buffer = ctx.buffer(data=array("f", [
-            # x, y, u ,v
-            -1.0, 1.0, 0.0, 0.0,  # top left
-            1.0, 1.0, 1.0, 0.0,  # top right
-            -1.0, -1.0, 0.0, 1.0,  # bottom left
-            1.0, -1.0, 1.0, 1.0,  # bottom right
-        ]))
+        # - prepare for convert display surface to opengl texture -
         vertex_shader = """
         #version 330 core
 
-        in vec2 vert;
-        in vec2 texcoord;
+        in vec2 in_vert;
+        in vec2 in_texcoord;
         out vec2 uvs;
 
         void main() {
-            uvs = texcoord;
-            gl_Position = vec4(vert, 0.0, 1.0);
+            uvs = in_texcoord;
+            gl_Position = vec4(in_vert, 0.0, 1.0);
         }
         """
         fragment_shader = """
@@ -56,11 +50,8 @@ def run(scene_manager: SceneManager, fps=60):
                 texture(entire_screen_texture, uvs).rgb, 1.0);
         }
         """
-        program = ctx.program(
-            vertex_shader=vertex_shader, fragment_shader=fragment_shader)
-        vao = ctx.vertex_array(
-            program, [(buffer, "2f 2f", "vert", "texcoord")])
-        texture: moderngl.Texture = None
+        shader2d.compile_and_register_program(
+            vertex_shader, fragment_shader, "display")
         # ---
     else:
         opengl_is_used = False
@@ -79,13 +70,8 @@ def run(scene_manager: SceneManager, fps=60):
         pygame.transform.scale(global_.screen, global_.w_size_unscaled,
                                pygame.display.get_surface())
         if opengl_is_used:
-            if texture is None:
-                texture = surface_to_texture(ctx, global_.screen)
-            else:
-                texture.write(global_.screen.get_view("1"))
-            texture.use(0)
-            program["entire_screen_texture"].value = 0
-            vao.render(mode=moderngl.TRIANGLE_STRIP)
+            shader2d.register_surface_as_texture(global_.screen, "display")
+            shader2d.render("display", "display", "entire_screen_texture")
             pygame.display.flip()
         else:
             pygame.display.update()
