@@ -6,18 +6,42 @@ import pygame
 
 
 class Shader2D:
-    def __init__(self):
-        self.ctx = moderngl.create_context()
-        self.textures: dict[Any, moderngl.Texture] = {}
-        self.programs: dict[Any, moderngl.Program] = {}
-        self.vaos: dict[Any, moderngl.VertexArray] = {}
-        self.buffer = self.ctx.buffer(data=array("f", [
-            # x, y, u ,v
-            -1.0, 1.0, 0.0, 0.0,  # top left
-            1.0, 1.0, 1.0, 0.0,  # top right
-            -1.0, -1.0, 0.0, 1.0,  # bottom left
-            1.0, -1.0, 1.0, 1.0,  # bottom right
-        ]))
+
+    # def __init__(self):
+    #     self.ctx = moderngl.create_context()
+    #     self.textures: dict[Any, moderngl.Texture] = {}
+    #     self.programs: dict[Any, moderngl.Program] = {}
+    #     self.vaos: dict[Any, moderngl.VertexArray] = {}
+    #     self.buffer = self.ctx.buffer(data=array("f", [
+    #         # x, y, u ,v
+    #         -1.0, 1.0, 0.0, 0.0,  # top left
+    #         1.0, 1.0, 1.0, 0.0,  # top right
+    #         -1.0, -1.0, 0.0, 1.0,  # bottom left
+    #         1.0, -1.0, 1.0, 1.0,  # bottom right
+    #     ]))
+
+    _instance = None
+    ctx: moderngl.Context
+    textures: dict[Any, moderngl.Texture]
+    programs: dict[Any, moderngl.Program]
+    vaos: dict[Any, moderngl.VertexArray]
+    buffer: moderngl.Buffer
+
+    def __new__(cls) -> "Shader2D":
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance.ctx = moderngl.create_context()
+            cls._instance.textures = {}
+            cls._instance.programs = {}
+            cls._instance.vaos = {}
+            cls._instance.buffer = cls._instance.ctx.buffer(data=array("f", [
+                # x, y, u ,v
+                -1.0, 1.0, 0.0, 0.0,  # top left
+                1.0, 1.0, 1.0, 0.0,  # top right
+                -1.0, -1.0, 0.0, 1.0,  # bottom left
+                1.0, -1.0, 1.0, 1.0,  # bottom right
+            ]))
+        return cls._instance
 
     def compile_and_register_program(self, vertex, fragment, program_name):
         vert_raw = vertex
