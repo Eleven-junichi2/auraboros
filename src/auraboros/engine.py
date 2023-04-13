@@ -71,7 +71,7 @@ def run(scene_manager: SceneManager, fps=60):
                                pygame.display.get_surface())
         if opengl_is_used:
             shader2d.register_surface_as_texture(global_.screen, "display")
-            shader2d.render("display", "display", "entire_screen_texture")
+            shader2d.render("display", "entire_screen_texture")
             pygame.display.flip()
         else:
             pygame.display.update()
