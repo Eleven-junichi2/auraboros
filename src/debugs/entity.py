@@ -2,6 +2,7 @@ from pathlib import Path
 import sys
 
 import pygame
+import moderngl
 
 import init_for_dev  # noqa
 from auraboros import engine
