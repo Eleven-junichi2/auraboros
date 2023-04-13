@@ -4,7 +4,6 @@
 # from typing import TYPE_CHECKING
 # if TYPE_CHECKING:
 
-from OpenGL import GL
 import pygame
 
 from .global_ import init  # noqa
@@ -27,7 +26,7 @@ def run(scene_manager: SceneManager, fps_num=60):
         for event in pygame.event.get():
             running = scene_manager.event(event)
         if display_flags & (pygame.DOUBLEBUF | pygame.OPENGL):
-            GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
+            pass
         scene_manager.update()
         scene_manager.draw(global_.screen)
         pygame.transform.scale(global_.screen, global_.w_size_unscaled,

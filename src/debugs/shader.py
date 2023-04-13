@@ -1,12 +1,10 @@
 from pathlib import Path
 import sys
 
-from OpenGL import GL
-from OpenGL import GLU
 import pygame
 
 import init_for_dev  # noqa
-from auraboros import global_
+# from auraboros import global_
 from auraboros import engine
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.entity import Entity
@@ -90,11 +88,11 @@ class DebugScene(Scene):
     def draw(self, screen):
         draw_grid_background(screen, 32, (178, 178, 178))
         self.testentity.draw(screen)
-        GL.glBegin(GL.GL_TRIANGLES)
-        GL.glVertex3f(-1, -1, 0)
-        GL.glVertex3f(0, 1, 0)
-        GL.glVertex3f(1, -1, 0)
-        GL.glEnd()
+        # GL.glBegin(GL.GL_TRIANGLES)
+        # GL.glVertex3f(-1, -1, 0)
+        # GL.glVertex3f(0, 1, 0)
+        # GL.glVertex3f(1, -1, 0)
+        # GL.glEnd()
 
 
 scene_manager = SceneManager()

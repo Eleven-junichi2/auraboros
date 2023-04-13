@@ -7,8 +7,7 @@ name = "pypi"
 pygame = "*"
 sphinx-autobuild = "*"
 pytest-ordering = "*"
-pyopengl = "*"
-pyopengl-accelerate = "*"
+moderngl = "*"
 
 [dev-packages]
 flake8 = "*"
