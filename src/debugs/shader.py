@@ -1,9 +1,9 @@
 from pathlib import Path
-from array import array
+# from array import array
 import sys
 
 import pygame
-import moderngl
+# import moderngl
 
 import init_for_dev  # noqa
 # from auraboros import global_

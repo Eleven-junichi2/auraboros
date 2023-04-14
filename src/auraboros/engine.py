@@ -1,5 +1,3 @@
-from array import array
-
 import moderngl
 import pygame
 
