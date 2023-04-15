@@ -1,47 +1,44 @@
 from array import array
-from typing import Any
+from pathlib import Path
 
 import moderngl
 import pygame
 
+# from . import global_
 
-class Shader2D:
 
-    # def __init__(self):
-    #     self.ctx = moderngl.create_context()
-    #     self.textures: dict[Any, moderngl.Texture] = {}
-    #     self.programs: dict[Any, moderngl.Program] = {}
-    #     self.vaos: dict[Any, moderngl.VertexArray] = {}
-    #     self.buffer = self.ctx.buffer(data=array("f", [
-    #         # x, y, u ,v
-    #         -1.0, 1.0, 0.0, 0.0,  # top left
-    #         1.0, 1.0, 1.0, 0.0,  # top right
-    #         -1.0, -1.0, 0.0, 1.0,  # bottom left
-    #         1.0, -1.0, 1.0, 1.0,  # bottom right
-    #     ]))
+class Singleton(type):
+    _instances = {}
 
-    _instance = None
-    ctx: moderngl.Context
-    textures: dict[Any, moderngl.Texture]
-    programs: dict[Any, moderngl.Program]
-    vaos: dict[Any, moderngl.VertexArray]
-    buffer: moderngl.Buffer
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super().__call__(*args, **kwargs)
+        return cls._instances[cls]
 
-    def __new__(cls) -> "Shader2D":
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-            cls._instance.ctx = moderngl.create_context()
-            cls._instance.textures = {}
-            cls._instance.programs = {}
-            cls._instance.vaos = {}
-            cls._instance.buffer = cls._instance.ctx.buffer(data=array("f", [
-                # x, y, u ,v
-                -1.0, 1.0, 0.0, 0.0,  # top left
-                1.0, 1.0, 1.0, 0.0,  # top right
-                -1.0, -1.0, 0.0, 1.0,  # bottom left
-                1.0, -1.0, 1.0, 1.0,  # bottom right
-            ]))
-        return cls._instance
+
+class Shader2D(metaclass=Singleton):
+
+    def __init__(self):
+        self.ctx = moderngl.create_context()
+        self.textures = {}
+        self.programs = {}
+        self.vaos = {}
+        self.buffer = self.ctx.buffer(data=array("f", [
+            # x, y, u ,v
+            -1.0, 1.0, 0.0, 0.0,  # top left
+            1.0, 1.0, 1.0, 0.0,  # top right
+            -1.0, -1.0, 0.0, 1.0,  # bottom left
+            1.0, -1.0, 1.0, 1.0,  # bottom right
+        ]))
+        vertex, fragment = None, None
+        with open(Path(__file__).parent / "default.vert", "r") as f:
+            vertex = f.read()
+        with open(Path(__file__).parent / "default.frag", "r") as f:
+            fragment = f.read()
+        self.compile_and_register_program(
+            vertex=vertex,
+            fragment=fragment,
+            program_name="display_surface")
 
     def compile_and_register_program(self, vertex, fragment, program_name):
         vert_raw = vertex
@@ -55,7 +52,6 @@ class Shader2D:
     def _surface_to_texture(self, surface: pygame.surface.Surface):
         texture = self.ctx.texture(surface.get_size(), 4)
         texture.filter = (moderngl.NEAREST, moderngl.NEAREST)
-        # texture.swizzle = "BGRA" if windows
         return texture
 
     def register_surface_as_texture(
@@ -66,21 +62,15 @@ class Shader2D:
         buffer = surface.get_view("1")
         self.textures[texture_name].write(buffer)
 
-    # def update_shader(self, program_name, uniform):
-    #     texture_id = 0
-    #     for texture_name in self.textures:
-    #         self.textures[texture_name].use(texture_id)
-    #         self.programs[program_name][uniform].value = texture_id
-    #         texture_id += 1
-
     def use_texture(self, texture_name, id):
         self.textures[texture_name].use(id)
 
     def set_uniform(self, program_name, uniform, value):
         self.programs[program_name][uniform].value = value
 
-    def render(self, program_name, uniform):
-        # self.textures[texture_name].use(0)
-        # self.programs[program_name][uniform].value = 0
-        # self.update_shader(program_name, uniform)
-        self.vaos[program_name].render(mode=moderngl.TRIANGLE_STRIP)
+    def let_render(self, program_name):
+        pass
+
+    def render(self):
+        for program_name in self.programs:
+            self.vaos[program_name].render(mode=moderngl.TRIANGLE_STRIP)

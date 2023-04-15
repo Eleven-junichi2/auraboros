@@ -13,12 +13,36 @@
             "justMyCode": true
         },
         {
-            "name": "Python: main.py",
+            "name": "Python: example shader",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/8trail/main.py",
+            "program": "${workspaceFolder}/src/debugs/shader.py",
             "console": "integratedTerminal",
             "justMyCode": true
-        }
+        },
+        {
+            "name": "Python: example particle",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/debugs/particle.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Python: example gamemenu",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/debugs/gamemenu.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Python: example keyboard.",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/debugs/keyboard.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
     ]
 }

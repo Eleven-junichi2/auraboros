@@ -5,7 +5,7 @@ import pygame
 
 pygame.init()
 
-base_display_vertex = """
+display_default_vertex = """
 #version 330 core
 
 in vec2 in_vert;
@@ -17,40 +17,42 @@ void main() {
     gl_Position = vec4(in_vert, 0.0, 1.0);
 }
 """
-base_display_fragment = """
-#version 330 core
-
-in vec2 uvs;
-out vec4 out_color;
-
-uniform sampler2D display_texture;
-uniform vec2 resolution;
-uniform float radius;
-uniform float softness;
-
-void main() {
-    vec2 uv = uvs;
-    vec4 color = texture(display_texture, uv);
-
-    float dist = length(uv - vec2(0.5));
-    float vignette = smoothstep(radius, radius - softness, dist);
-
-    out_color = color * vignette;
-}
-"""
-# base_display_fragment = """
+# display_default_fragment = """
 # #version 330 core
 
-# uniform sampler2D entire_screen_texture;
-
 # in vec2 uvs;
-# out vec4 entire_screen_color;
+# out vec4 out_color;
+
+# uniform sampler2D display_texture;
+# uniform vec2 resolution;
+# uniform float radius;
+# uniform float softness;
 
 # void main() {
-#     entire_screen_color = vec4(
-#         texture(entire_screen_texture, uvs).rgb, 1.0);
+#     vec4 color = texture(display_texture, uvs);
+
+#     float dist = length(uvs - vec2(0.5));
+#     float vignette = smoothstep(radius, radius - softness, dist);
+
+#     out_color = color * vignette;
 # }
 # """
+display_default_fragment = """
+#version 330 core
+
+uniform sampler2D display_surface;
+
+in vec2 uvs;
+out vec4 entire_screen_color;
+
+void main() {
+    entire_screen_color = vec4(
+        texture(display_surface, uvs).rgb, 1.0);
+}
+"""
+
+screen: pygame.surface.Surface
+# shader: Shader2D
 
 
 def init(window_size=(960, 640), caption="", icon_filepath=None,
@@ -68,3 +70,6 @@ def init(window_size=(960, 640), caption="", icon_filepath=None,
     if icon_filepath:
         icon_surf = pygame.image.load(icon_filepath)
         pygame.display.set_icon(icon_surf)
+    # if set_mode_flags & (pygame.DOUBLEBUF | pygame.OPENGL):
+    #     Shader2D.init()
+    #     global_.shader = Shader2D()
