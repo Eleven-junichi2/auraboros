@@ -76,8 +76,8 @@ class SceneManager:
         else:
             return True
 
-    def update(self):
-        self.scenes[self.current].update()
+    def update(self, dt):
+        self.scenes[self.current].update(dt)
         if self.is_current_scene_has_gameworld():
             if not self.scenes[self.current].gameworld.pause:
                 [entity.update()

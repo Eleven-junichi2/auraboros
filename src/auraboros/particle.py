@@ -41,9 +41,15 @@ class Emitter:
         self.emitted_counter = 0
         self._spawn_time = None
         self.is_emitting = False
+        self.is_pausing = False
 
     def let_emit(self):
         self.is_emitting = True
+        self.is_pausing = False
+
+    def let_pause(self):
+        self.is_emitting = False
+        self.is_pausing = True
 
     def is_lifetime_end(self):
         if self._spawn_time:
@@ -75,10 +81,11 @@ class Emitter:
                     self.emitted_counter += 1
             else:
                 self.is_emitting = False
-        for particle in self.particles:
-            particle.update()
-            if _current_time - particle._spawn_time >= particle.lifetime:
-                self.particles.remove(particle)
+        if not self.is_pausing:
+            for particle in self.particles:
+                particle.update()
+                if _current_time - particle._spawn_time >= particle.lifetime:
+                    self.particles.remove(particle)
 
     def draw(self, screen: pygame.surface.Surface):
         for particle in self.particles:

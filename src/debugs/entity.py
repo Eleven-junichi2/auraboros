@@ -78,7 +78,7 @@ class DebugScene(Scene):
             lambda: self.testentity.cancel_move_direction(Arrow.DOWN))
         self.keyboard.set_current_setup("player")
 
-    def update(self):
+    def update(self, dt):
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_LEFT)
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_UP)
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_RIGHT)

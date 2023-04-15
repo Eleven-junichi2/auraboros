@@ -57,13 +57,14 @@ def run(scene_manager: SceneManager, fps=60):
     running = True
 
     while running:
+        dt = clock.tick(fps)
         Schedule.execute()
         global_.screen.fill((0, 0, 0))
         if opengl_is_used:
             pass
         for event in pygame.event.get():
             running = scene_manager.event(event)
-        scene_manager.update()
+        scene_manager.update(dt)
         scene_manager.draw(global_.screen)
         pygame.transform.scale(global_.screen, global_.w_size_unscaled,
                                pygame.display.get_surface())
@@ -73,5 +74,5 @@ def run(scene_manager: SceneManager, fps=60):
             pygame.display.flip()
         else:
             pygame.display.update()
-        clock.tick(fps)
+        
     pygame.quit()

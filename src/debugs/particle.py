@@ -61,7 +61,7 @@ class DebugScene(Scene):
         self.menusystem.add_menu_item(
             "play", self.run_emitter, text="Play")
         self.menusystem.add_menu_item(
-            "stop", self.stop_animation, text="STOP")
+            "stop", self.pause_emitter, text="STOP")
         self.menusystem.add_menu_item(
             "reset", self.reset_animation, text="RESET")
         self.menuui = GameMenuUI(self.menusystem, textfactory, "filled_box")
@@ -88,14 +88,14 @@ class DebugScene(Scene):
         if self.testemitter.is_lifetime_end():
             self.testemitter.respawn()
 
-    def stop_animation(self):
-        self.test_anim_img.let_stop()
+    def pause_emitter(self):
+        self.testemitter.let_pause()
 
     def reset_animation(self):
         self.test_anim_img.reset_animation()
         pass
 
-    def update(self, ):
+    def update(self, dt):
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_UP)
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_DOWN)
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_z)
