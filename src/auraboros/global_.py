@@ -5,6 +5,53 @@ import pygame
 
 pygame.init()
 
+base_display_vertex = """
+#version 330 core
+
+in vec2 in_vert;
+in vec2 in_texcoord;
+out vec2 uvs;
+
+void main() {
+    uvs = in_texcoord;
+    gl_Position = vec4(in_vert, 0.0, 1.0);
+}
+"""
+base_display_fragment = """
+#version 330 core
+
+in vec2 uvs;
+out vec4 out_color;
+
+uniform sampler2D display_texture;
+uniform vec2 resolution;
+uniform float radius;
+uniform float softness;
+
+void main() {
+    vec2 uv = uvs;
+    vec4 color = texture(display_texture, uv);
+
+    float dist = length(uv - vec2(0.5));
+    float vignette = smoothstep(radius, radius - softness, dist);
+
+    out_color = color * vignette;
+}
+"""
+# base_display_fragment = """
+# #version 330 core
+
+# uniform sampler2D entire_screen_texture;
+
+# in vec2 uvs;
+# out vec4 entire_screen_color;
+
+# void main() {
+#     entire_screen_color = vec4(
+#         texture(entire_screen_texture, uvs).rgb, 1.0);
+# }
+# """
+
 
 def init(window_size=(960, 640), caption="", icon_filepath=None,
          pixel_scale=2, set_mode_flags=0):

@@ -23,33 +23,9 @@ def run(scene_manager: SceneManager, fps=60):
         shader2d = Shader2D()
         opengl_is_used = True
         # - prepare for convert display surface to opengl texture -
-        vertex_shader = """
-        #version 330 core
-
-        in vec2 in_vert;
-        in vec2 in_texcoord;
-        out vec2 uvs;
-
-        void main() {
-            uvs = in_texcoord;
-            gl_Position = vec4(in_vert, 0.0, 1.0);
-        }
-        """
-        fragment_shader = """
-        #version 330 core
-
-        uniform sampler2D entire_screen_texture;
-
-        in vec2 uvs;
-        out vec4 entire_screen_color;
-
-        void main() {
-            entire_screen_color = vec4(
-                texture(entire_screen_texture, uvs).rgb, 1.0);
-        }
-        """
         shader2d.compile_and_register_program(
-            vertex_shader, fragment_shader, "display")
+            global_.base_display_vertex,
+            global_.base_display_fragment, "display")
         # ---
     else:
         opengl_is_used = False
@@ -69,8 +45,11 @@ def run(scene_manager: SceneManager, fps=60):
         pygame.transform.scale(global_.screen, global_.w_size_unscaled,
                                pygame.display.get_surface())
         if opengl_is_used:
+            shader2d.set_uniform("display", "radius", 0.8)
+            shader2d.set_uniform("display", "softness", 0.5)
             shader2d.register_surface_as_texture(global_.screen, "display")
-            shader2d.render("display", "entire_screen_texture")
+            shader2d.use_texture("display", 0)
+            shader2d.render("display", "display_texture")
             pygame.display.flip()
         else:
             pygame.display.update()

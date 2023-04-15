@@ -66,15 +66,21 @@ class Shader2D:
         buffer = surface.get_view("1")
         self.textures[texture_name].write(buffer)
 
-    def update_shader(self, program_name, uniform):
-        texture_id = 0
-        for texture_name in self.textures:
-            self.textures[texture_name].use(texture_id)
-            self.programs[program_name][uniform].value = texture_id
-            texture_id += 1
+    # def update_shader(self, program_name, uniform):
+    #     texture_id = 0
+    #     for texture_name in self.textures:
+    #         self.textures[texture_name].use(texture_id)
+    #         self.programs[program_name][uniform].value = texture_id
+    #         texture_id += 1
+
+    def use_texture(self, texture_name, id):
+        self.textures[texture_name].use(id)
+
+    def set_uniform(self, program_name, uniform, value):
+        self.programs[program_name][uniform].value = value
 
     def render(self, program_name, uniform):
         # self.textures[texture_name].use(0)
         # self.programs[program_name][uniform].value = 0
-        self.update_shader(program_name, uniform)
+        # self.update_shader(program_name, uniform)
         self.vaos[program_name].render(mode=moderngl.TRIANGLE_STRIP)

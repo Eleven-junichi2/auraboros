@@ -7,12 +7,13 @@ import pygame
 
 import init_for_dev  # noqa
 # from auraboros import global_
-from auraboros import engine
-from auraboros.gamescene import Scene, SceneManager
-from auraboros.entity import Entity
-from auraboros.utilities import Arrow, AssetFilePath, draw_grid_background
+from auraboros import engine, global_
 from auraboros.animation import AnimationImage, SpriteSheet, AnimationDict
+from auraboros.entity import Entity
 from auraboros.gameinput import Keyboard
+from auraboros.gamescene import Scene, SceneManager
+from auraboros.shader import Shader2D
+from auraboros.utilities import Arrow, AssetFilePath, draw_grid_background
 
 engine.init(pixel_scale=1, set_mode_flags=pygame.DOUBLEBUF | pygame.OPENGL)
 
@@ -80,7 +81,7 @@ class DebugScene(Scene):
             lambda: self.testentity.cancel_move_direction(Arrow.DOWN))
         self.keyboard.set_current_setup("player")
 
-    def update(self):
+    def update(self, dt):
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_LEFT)
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_UP)
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_RIGHT)
