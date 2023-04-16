@@ -1,6 +1,8 @@
 from array import array
 from pathlib import Path
 from typing import Any
+import os
+
 
 import moderngl
 import pygame
@@ -71,7 +73,9 @@ class Shader2D(metaclass=Singleton):
     def _surface_to_texture(self, surface: pygame.surface.Surface):
         texture = self.ctx.texture(surface.get_size(), 4)
         texture.filter = (moderngl.NEAREST, moderngl.NEAREST)
-        texture.swizzle = 'BGRA'  # for windows
+        if os.name == 'nt':
+            # Windows
+            texture.swizzle = 'BGRA'
         return texture
 
     def register_surface_as_texture(
