@@ -80,7 +80,7 @@ class DebugScene(Scene):
             lambda: self.testentity.cancel_move_direction(Arrow.DOWN))
         self.keyboard.set_current_setup("player")
         shader2d = Shader2D()
-        with open(Path(__file__).parent / "vignette.frag", "r") as f:
+        with open(Path(sys.argv[0]).parent / "vignette.frag", "r") as f:
             vignette_frag = f.read()
         shader2d.compile_and_register_program(
             VERTEX_DEFAULT,
