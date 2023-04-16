@@ -1,6 +1,7 @@
 from pathlib import Path
 import subprocess
-import sys
+# import sys
+import inspect
 
 import click
 
@@ -10,7 +11,9 @@ import click
               help="navigate to choose example scripts.")
 def cli(example):
     if example:
-        example_dir = Path(sys.argv[0]) / "debugs"
+        __main__py_path = Path(inspect.getfile(inspect.currentframe()))
+        example_dir = __main__py_path.parent / "debugs"
+        print(__main__py_path)
         example_scripts = [f for f in example_dir.glob(
             "*.py") if f.name not in ("init_for_dev.py", "__init__.py")]
         click.echo(f"Here are {len(example_scripts)} examples:")
