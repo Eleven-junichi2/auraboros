@@ -1,10 +1,16 @@
 from array import array
 from pathlib import Path
+from typing import Any
 
 import moderngl
 import pygame
 
 # from . import global_
+
+with open(Path(__file__).parent / "default.vert", "r") as f:
+    VERTEX_DEFAULT = f.read()
+with open(Path(__file__).parent / "default.frag", "r") as f:
+    FRAGMENT_DEFAULT = f.read()
 
 
 class Singleton(type):
@@ -29,24 +35,20 @@ class Shader2D(metaclass=Singleton):
 
     def __init__(self):
         self.ctx = moderngl.create_context()
-        self.textures = {}
-        self.programs = {}
-        self.vaos = {}
-        self.buffer = self.ctx.buffer(data=array("f", [
+        self.textures: dict[Any, moderngl.Texture] = {}
+        self.programs: dict[Any, moderngl.Program] = {}
+        self.vaos: dict[Any, moderngl.VertexArray] = {}
+        self.buffer: dict[Any, moderngl.Buffer] = self.ctx.buffer(data=array("f", [
             # x, y, u ,v
             -1.0, 1.0, 0.0, 0.0,  # top left
             1.0, 1.0, 1.0, 0.0,  # top right
             -1.0, -1.0, 0.0, 1.0,  # bottom left
             1.0, -1.0, 1.0, 1.0,  # bottom right
         ]))
-        vertex, fragment = None, None
-        with open(Path(__file__).parent / "default.vert", "r") as f:
-            vertex = f.read()
-        with open(Path(__file__).parent / "default.frag", "r") as f:
-            fragment = f.read()
+
         self.compile_and_register_program(
-            vertex=vertex,
-            fragment=fragment,
+            vertex=VERTEX_DEFAULT,
+            fragment=FRAGMENT_DEFAULT,
             program_name="display_surface")
 
     def compile_and_register_program(self, vertex, fragment, program_name):
@@ -91,7 +93,8 @@ class Shader2D(metaclass=Singleton):
         self.textures[texture_name].write(buffer)
 
     def use_texture(self, texture_name, id):
-        """
+        """texture_nameでtextures辞書に登録されたテクスチャを指定し、使用を切り替えます。
+        renderメソッドを実行した際、これで指定したテクスチャに描画されます。
 
         Args:
             texture_name (str): テクスチャの名前。
@@ -108,9 +111,6 @@ class Shader2D(metaclass=Singleton):
             value (any): uniform変数に設定する値。
         """
         self.programs[program_name][uniform].value = value
-
-    def let_render(self, program_name):
-        pass
 
     def render(self):
         for program_name in self.programs:

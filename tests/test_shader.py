@@ -15,3 +15,5 @@ def test_shader_singleton(mock_ctx):
     shader1 = Shader2D()
     shader2 = Shader2D()
     assert shader1 is shader2
+    shader1.test_attr = "test"
+    assert shader2.test_attr is shader1.test_attr

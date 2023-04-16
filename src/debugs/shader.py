@@ -11,6 +11,7 @@ from auraboros.animation import AnimationImage, SpriteSheet, AnimationDict
 from auraboros.entity import Entity
 from auraboros.gameinput import Keyboard
 from auraboros.gamescene import Scene, SceneManager
+from auraboros.shader import Shader2D, VERTEX_DEFAULT
 from auraboros.utilities import Arrow, AssetFilePath, draw_grid_background
 
 engine.init(pixel_scale=1, set_mode_flags=pygame.DOUBLEBUF | pygame.OPENGL)
@@ -78,12 +79,14 @@ class DebugScene(Scene):
             lambda: self.testentity.set_move_direction(Arrow.DOWN),
             lambda: self.testentity.cancel_move_direction(Arrow.DOWN))
         self.keyboard.set_current_setup("player")
-        # Shader2D.compile_and_register_program(
-        #     global_.display_default_vertex,
-        #     vignette_fragment, "display_surface")
-        # Shader2D.tas = "aaaa"
-        # Shader2D.set_uniform("display_surface", "radius", 0.5)
-        # Shader2D.set_uniform("display_surface", "softness", 0.2)
+        shader2d = Shader2D()
+        with open(Path(__file__).parent / "vignette.frag", "r") as f:
+            vignette_frag = f.read()
+        shader2d.compile_and_register_program(
+            VERTEX_DEFAULT,
+            vignette_frag, "vignette")
+        shader2d.set_uniform("vignette", "radius", 0.67)
+        shader2d.set_uniform("vignette", "softness", 0.33)
 
     def update(self, dt):
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_LEFT)
