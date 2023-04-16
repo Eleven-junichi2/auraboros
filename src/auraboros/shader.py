@@ -71,6 +71,7 @@ class Shader2D(metaclass=Singleton):
     def _surface_to_texture(self, surface: pygame.surface.Surface):
         texture = self.ctx.texture(surface.get_size(), 4)
         texture.filter = (moderngl.NEAREST, moderngl.NEAREST)
+        texture.swizzle = 'BGRA'  # for windows
         return texture
 
     def register_surface_as_texture(
