@@ -10,9 +10,9 @@ import click
               help="navigate to choose example scripts.")
 def cli(example):
     if example:
-        example_dir = Path(sys.argv[0]).parent.parent / "debugs"
+        example_dir = Path(sys.argv[0]) / "debugs"
         example_scripts = [f for f in example_dir.glob(
-            "*.py") if not f.name == "init_for_dev.py"]
+            "*.py") if f.name not in ("init_for_dev.py", "__init__.py")]
         click.echo(f"Here are {len(example_scripts)} examples:")
         for i, file_name in enumerate(example_scripts):
             click.echo(f"{i} {file_name.name} ({file_name})")
