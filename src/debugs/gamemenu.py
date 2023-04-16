@@ -36,11 +36,11 @@ class GameMenuDebugScene(Scene):
         self.keyboard.set_current_setup("menu")
         self.menusystem = GameMenuSystem()
         self.keyboard["menu"].register_keyaction(
-            pygame.K_UP, 0, 8, self.menusystem.menu_cursor_up)
+            pygame.K_UP, 0, 122, self.menusystem.menu_cursor_up)
         self.keyboard["menu"].register_keyaction(
-            pygame.K_DOWN, 0, 8, self.menusystem.menu_cursor_down)
+            pygame.K_DOWN, 0, 122, self.menusystem.menu_cursor_down)
         self.keyboard["menu"].register_keyaction(
-            pygame.K_z, 0, 0, self.menusystem.do_selected_action)
+            pygame.K_z, 0, 122, self.menusystem.do_selected_action)
         self.menusystem.add_menu_item(
             "red", self.turn_red,
             lambda: self.msgwindow.rewrite_text("Red"),
