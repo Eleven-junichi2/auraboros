@@ -4,11 +4,20 @@
     // 詳細情報は次を確認してください: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
         {
             "name": "Python: 現在のファイル",
             "type": "python",
             "request": "launch",
             "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Python: example animation",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/debugs/animation.py",
             "console": "integratedTerminal",
             "justMyCode": true
         },

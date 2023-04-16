@@ -38,13 +38,14 @@ class Shader2D(metaclass=Singleton):
         self.textures: dict[Any, moderngl.Texture] = {}
         self.programs: dict[Any, moderngl.Program] = {}
         self.vaos: dict[Any, moderngl.VertexArray] = {}
-        self.buffer: dict[Any, moderngl.Buffer] = self.ctx.buffer(data=array("f", [
-            # x, y, u ,v
-            -1.0, 1.0, 0.0, 0.0,  # top left
-            1.0, 1.0, 1.0, 0.0,  # top right
-            -1.0, -1.0, 0.0, 1.0,  # bottom left
-            1.0, -1.0, 1.0, 1.0,  # bottom right
-        ]))
+        self.buffer: dict[Any, moderngl.Buffer] = self.ctx.buffer(
+            data=array("f", [
+                # x, y, u ,v
+                -1.0, 1.0, 0.0, 0.0,  # top left
+                1.0, 1.0, 1.0, 0.0,  # top right
+                -1.0, -1.0, 0.0, 1.0,  # bottom left
+                1.0, -1.0, 1.0, 1.0,  # bottom right
+            ]))
 
         self.compile_and_register_program(
             vertex=VERTEX_DEFAULT,

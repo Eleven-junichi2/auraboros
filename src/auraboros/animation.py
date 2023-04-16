@@ -47,7 +47,7 @@ class AnimationImage:
 
     @anim_interval.setter
     def anim_interval(self, value):
-        Schedule.remove(self.anim_interval)
+        Schedule.remove(self.update_animation)
         self._anim_interval = value
         Schedule.add(self.update_animation, self.anim_interval)
 
@@ -55,6 +55,8 @@ class AnimationImage:
         return self.loop_count > 0 and self.loop_counter >= self.loop_count
 
     def let_play(self):
+        if not self.is_playing:
+            Schedule.activate_schedule(self.update_animation)
         self.is_playing = True
         if self.is_all_loop_finished():
             self.loop_counter = 0

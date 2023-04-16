@@ -39,8 +39,8 @@ class TestAnimImg(AnimationImage):
             self.sprite_sheet.image_by_area(0, 32*3, 32, 32),
             self.sprite_sheet.image_by_area(0, 32*2, 32, 32),
             self.sprite_sheet.image_by_area(0, 32, 32, 32)]
-        self.anim_interval = 500
-        self.loop_count = 2
+        self.anim_interval = 1000
+        self.loop_count = 1
 
 
 class DebugScene(Scene):
@@ -48,6 +48,7 @@ class DebugScene(Scene):
         super().__init__(*args, **kwargs)
         textfactory.set_current_font("misaki_gothic")
         self.test_anim_img = TestAnimImg()
+        self.test_anim_img2 = TestAnimImg()
         self.keyboard["menu"] = Keyboard()
         self.keyboard.set_current_setup("menu")
         self.menusystem = GameMenuSystem()
@@ -68,64 +69,90 @@ class DebugScene(Scene):
         self.msgbox = MsgWindow(textfactory.font())
         self.msgbox.padding = 4
         self.msgbox.text = "Press 'Z'"
-        self.loop_count_msgbox = MsgWindow(textfactory.font())
-        self.loop_count_msgbox.padding = 4
-        self.anim_interval_msgbox = MsgWindow(textfactory.font())
-        self.anim_interval_msgbox.padding = 4
-        self.anim_frame_id_msgbox = MsgWindow(textfactory.font())
-        self.anim_frame_id_msgbox.padding = 4
-        self.is_playing_msgbox = MsgWindow(textfactory.font())
-        self.is_playing_msgbox.padding = 4
-        self.loop_counter_msgbox = MsgWindow(textfactory.font())
-        self.loop_counter_msgbox.padding = 4
+        self.msgbox2 = MsgWindow(textfactory.font())
+        self.msgbox2.padding = 4
+        self.msgbox3 = MsgWindow(textfactory.font())
+        self.msgbox3.padding = 4
+        self.msgbox4 = MsgWindow(textfactory.font())
+        self.msgbox4.padding = 4
+        self.msgbox5 = MsgWindow(textfactory.font())
+        self.msgbox5.padding = 4
+        self.msgbox6 = MsgWindow(textfactory.font())
+        self.msgbox6.padding = 4
+        self.msgbox7 = MsgWindow(textfactory.font())
+        self.msgbox7.padding = 4
+        self.elapsed_time = 0
+        self.start_time = 0
+        self.stopwatch_is_running = False
 
     def play_animation(self):
         self.test_anim_img.let_play()
+        self.test_anim_img2.let_play()
+        self.start_time = pygame.time.get_ticks()
+        self.stopwatch_is_running = True
 
     def stop_animation(self):
         self.test_anim_img.let_stop()
+        self.test_anim_img2.let_stop()
+        self.stopwatch_is_running = False
 
     def reset_animation(self):
         self.test_anim_img.reset_animation()
-        pass
+        self.test_anim_img2.reset_animation()
+        self.elapsed_time += pygame.time.get_ticks() - self.start_time
+        self.start_time = pygame.time.get_ticks()
+        self.elapsed_time = 0
 
-    def update(self, ):
+    def update(self, dt):
+        if self.stopwatch_is_running:
+            self.elapsed_time = pygame.time.get_ticks() - self.start_time
+        if self.test_anim_img.is_all_loop_finished():
+            self.stopwatch_is_running = False
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_UP)
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_DOWN)
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_z)
         self.menuui.set_pos_to_center()
         self.menusystem.update()
         # self.test_anim_img
-        self.loop_count_msgbox.text = \
+        self.msgbox2.text = \
             f"loop_count:{self.test_anim_img.loop_count}"
-        self.anim_interval_msgbox.text = \
+        self.msgbox3.text = \
             f"anim_interval:{self.test_anim_img.anim_interval} milliseconds"
-        self.anim_frame_id_msgbox.text = \
+        self.msgbox4.text = \
             f"anim_frame_id:{self.test_anim_img.anim_frame_id}"
-        self.is_playing_msgbox.text = \
+        self.msgbox5.text = \
             f"is_playing:{self.test_anim_img.is_playing}"
-        self.loop_counter_msgbox.text = \
+        self.msgbox6.text = \
             f"loop_counter:{self.test_anim_img.loop_counter}"
-        self.loop_count_msgbox.pos[1] = \
+        self.msgbox7.text = \
+            f"elapsed time:{self.elapsed_time/1000}"
+        self.msgbox2.pos[1] = \
             self.msgbox.calculate_ultimate_size()[1]
-        self.anim_interval_msgbox.pos[1] = \
+        self.msgbox3.pos[1] = \
             self.msgbox.calculate_ultimate_size()[1] +\
-            self.loop_count_msgbox.calculate_ultimate_size()[1]
-        self.anim_frame_id_msgbox.pos[1] = \
+            self.msgbox2.calculate_ultimate_size()[1]
+        self.msgbox4.pos[1] = \
             self.msgbox.calculate_ultimate_size()[1] +\
-            self.loop_count_msgbox.calculate_ultimate_size()[1] +\
-            self.anim_interval_msgbox.calculate_ultimate_size()[1]
-        self.is_playing_msgbox.pos[1] = \
+            self.msgbox2.calculate_ultimate_size()[1] +\
+            self.msgbox3.calculate_ultimate_size()[1]
+        self.msgbox5.pos[1] = \
             self.msgbox.calculate_ultimate_size()[1] +\
-            self.loop_count_msgbox.calculate_ultimate_size()[1] +\
-            self.anim_interval_msgbox.calculate_ultimate_size()[1] +\
-            self.is_playing_msgbox.calculate_ultimate_size()[1]
-        self.loop_counter_msgbox.pos[1] = \
+            self.msgbox2.calculate_ultimate_size()[1] +\
+            self.msgbox3.calculate_ultimate_size()[1] +\
+            self.msgbox4.calculate_ultimate_size()[1]
+        self.msgbox6.pos[1] = \
             self.msgbox.calculate_ultimate_size()[1] +\
-            self.loop_count_msgbox.calculate_ultimate_size()[1] +\
-            self.anim_interval_msgbox.calculate_ultimate_size()[1] +\
-            self.is_playing_msgbox.calculate_ultimate_size()[1] +\
-            self.is_playing_msgbox.calculate_ultimate_size()[1]
+            self.msgbox2.calculate_ultimate_size()[1] +\
+            self.msgbox3.calculate_ultimate_size()[1] +\
+            self.msgbox4.calculate_ultimate_size()[1] +\
+            self.msgbox5.calculate_ultimate_size()[1]
+        self.msgbox7.pos[1] = \
+            self.msgbox.calculate_ultimate_size()[1] +\
+            self.msgbox2.calculate_ultimate_size()[1] +\
+            self.msgbox3.calculate_ultimate_size()[1] +\
+            self.msgbox4.calculate_ultimate_size()[1] +\
+            self.msgbox5.calculate_ultimate_size()[1] +\
+            self.msgbox6.calculate_ultimate_size()[1]
 
     def draw(self, screen):
         draw_grid_background(screen, 16, (78, 78, 78))
@@ -134,17 +161,23 @@ class DebugScene(Scene):
             self.test_anim_img.image,
             (global_.w_size[0]//2-self.test_anim_img.image.get_width()//2,
              self.menuui.pos[1]-self.test_anim_img.image.get_height()))
+        screen.blit(
+            self.test_anim_img2.image,
+            (global_.w_size[0]//2-self.test_anim_img.image.get_width()//2
+             + self.test_anim_img2.image.get_size()[0],
+             self.menuui.pos[1]-self.test_anim_img.image.get_height()))
         self.menuui.draw(screen)
         self.msgbox.draw(screen)
-        self.loop_count_msgbox.draw(screen)
-        self.anim_interval_msgbox.draw(screen)
-        self.anim_frame_id_msgbox.draw(screen)
-        self.is_playing_msgbox.draw(screen)
-        self.loop_counter_msgbox.draw(screen)
+        self.msgbox2.draw(screen)
+        self.msgbox3.draw(screen)
+        self.msgbox4.draw(screen)
+        self.msgbox5.draw(screen)
+        self.msgbox6.draw(screen)
+        self.msgbox7.draw(screen)
 
 
 scene_manager = SceneManager()
 scene_manager.push(DebugScene(scene_manager))
 
 if __name__ == "__main__":
-    engine.run(scene_manager=scene_manager, fps_num=60)
+    engine.run(scene_manager=scene_manager, fps=60)
