@@ -31,7 +31,7 @@ def run(scene_manager: SceneManager, fps=60):
     while running:
         dt = clock.tick(fps) / 1000
         Schedule.execute()
-        Schedule._debug()
+        # Schedule._debug()
         global_.screen.fill((0, 0, 0))
         if opengl_is_used:
             pass

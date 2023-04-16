@@ -86,18 +86,15 @@ class DebugScene(Scene):
 
     def play_animation(self):
         self.test_anim_img.let_play()
-        self.test_anim_img2.let_play()
         self.start_time = pygame.time.get_ticks()
         self.stopwatch_is_running = True
 
     def stop_animation(self):
         self.test_anim_img.let_stop()
-        self.test_anim_img2.let_stop()
         self.stopwatch_is_running = False
 
     def reset_animation(self):
         self.test_anim_img.reset_animation()
-        self.test_anim_img2.reset_animation()
         self.elapsed_time += pygame.time.get_ticks() - self.start_time
         self.start_time = pygame.time.get_ticks()
         self.elapsed_time = 0
