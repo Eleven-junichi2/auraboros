@@ -110,7 +110,6 @@ class DebugScene(Scene):
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_z)
         self.menuui.set_pos_to_center()
         self.menusystem.update()
-        # self.test_anim_img
         self.msgbox2.text = \
             f"loop_count:{self.test_anim_img.loop_count}"
         self.msgbox3.text = \
@@ -153,7 +152,6 @@ class DebugScene(Scene):
 
     def draw(self, screen):
         draw_grid_background(screen, 16, (78, 78, 78))
-        # self.test_anim_img.draw(screen)
         screen.blit(
             self.test_anim_img.image,
             (global_.w_size[0]//2-self.test_anim_img.image.get_width()//2,
