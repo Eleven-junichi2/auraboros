@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from typing import Callable, Union
+from typing import Union
 
 import pygame
 

@@ -48,7 +48,6 @@ class DebugScene(Scene):
         super().__init__(*args, **kwargs)
         textfactory.set_current_font("misaki_gothic")
         self.test_anim_img = TestAnimImg()
-        self.test_anim_img2 = TestAnimImg()
         self.keyboard["menu"] = Keyboard()
         self.keyboard.set_current_setup("menu")
         self.menusystem = GameMenuSystem()
@@ -160,11 +159,6 @@ class DebugScene(Scene):
         screen.blit(
             self.test_anim_img.image,
             (global_.w_size[0]//2-self.test_anim_img.image.get_width()//2,
-             self.menuui.pos[1]-self.test_anim_img.image.get_height()))
-        screen.blit(
-            self.test_anim_img2.image,
-            (global_.w_size[0]//2-self.test_anim_img.image.get_width()//2
-             + self.test_anim_img2.image.get_size()[0],
              self.menuui.pos[1]-self.test_anim_img.image.get_height()))
         self.menuui.draw(screen)
         self.msgbox.draw(screen)
