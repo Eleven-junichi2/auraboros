@@ -17,6 +17,15 @@ class Singleton(type):
 
 
 class Shader2D(metaclass=Singleton):
+    """2Dシェーダーを表すシングルトンクラス。
+
+    Attributes:
+        ctx (moderngl.Context): ModernGLのコンテキストオブジェクト。
+        textures (dict): テクスチャオブジェクトを格納する辞書。
+        programs (dict): シェーダープログラムオブジェクトを格納する辞書。
+        vaos (dict): 頂点配列オブジェクトを格納する辞書。
+        buffer (moderngl.Buffer): 頂点バッファオブジェクト。
+    """
 
     def __init__(self):
         self.ctx = moderngl.create_context()
@@ -41,6 +50,13 @@ class Shader2D(metaclass=Singleton):
             program_name="display_surface")
 
     def compile_and_register_program(self, vertex, fragment, program_name):
+        """
+
+        Args:
+            vertex (str): 頂点シェーダーのソースコード。
+            fragment (str): フラグメントシェーダーのソースコード。
+            program_name (str): シェーダープログラムの名前。
+        """
         vert_raw = vertex
         frag_raw = fragment
         program = self.ctx.program(
@@ -56,6 +72,18 @@ class Shader2D(metaclass=Singleton):
 
     def register_surface_as_texture(
             self, surface: pygame.surface.Surface, texture_name):
+        """PygameのSurfaceオブジェクトをテクスチャとして登録する。
+
+        Args:
+            surface (pygame.surface.Surface): PygameのSurfaceオブジェクト。
+            texture_name (str): テクスチャの名前。
+
+        Notes:
+            テクスチャが辞書に登録されていない場合は、
+            PygameのSurfaceオブジェクトからテクスチャオブジェクトを作成し、
+            辞書に登録する。
+            テクスチャオブジェクトにSurfaceオブジェクトのデータを書き込む。
+        """
         if texture_name not in self.textures:
             texture = self._surface_to_texture(surface)
             self.textures[texture_name] = texture
@@ -63,9 +91,22 @@ class Shader2D(metaclass=Singleton):
         self.textures[texture_name].write(buffer)
 
     def use_texture(self, texture_name, id):
+        """
+
+        Args:
+            texture_name (str): テクスチャの名前。
+            id (int): テクスチャのID。
+        """
         self.textures[texture_name].use(id)
 
     def set_uniform(self, program_name, uniform, value):
+        """シェーダープログラムのuniformに値を設定する。
+
+        Args:
+            program_name (str): シェーダープログラムの名前。
+            uniform (str): uniform変数の名前。
+            value (any): uniform変数に設定する値。
+        """
         self.programs[program_name][uniform].value = value
 
     def let_render(self, program_name):
