@@ -6,33 +6,29 @@
 import os
 import sys
 
+sys.path.insert(0, os.path.abspath('../../src'))
+
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'auraboros'
-copyright = '2023, Eleven-junichi2'
-author = 'Eleven-junichi2'
-release = '0.1'
+copyright = '2023, Eleven-junchi2'
+author = 'Eleven-junchi2'
+release = '0.13.0-alpha'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-sys.path.insert(0, os.path.abspath('../src'))
-
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
 ]
-
-autodoc_member_order = 'bysource'
 
 templates_path = ['_templates']
 exclude_patterns = []
 
 language = 'ja'
-
-locale_dirs = ['locale/']   # path is example but recommended.
-gettext_compact = False     # optional.
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
