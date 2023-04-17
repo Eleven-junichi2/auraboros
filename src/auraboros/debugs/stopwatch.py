@@ -48,7 +48,6 @@ class DebugScene(Scene):
         super().__init__(*args, **kwargs)
         textfactory.set_current_font("misaki_gothic")
         self.stopwatch = Stopwatch()
-        self.stopwatch2 = Stopwatch2()
         self.keyboard["menu"] = Keyboard()
         self.keyboard.set_current_setup("menu")
         self.menusystem = GameMenuSystem()
@@ -86,15 +85,12 @@ class DebugScene(Scene):
 
     def start_stopwatch(self):
         self.stopwatch.start()
-        self.stopwatch2.start()
 
     def stop_stopwatch(self):
         self.stopwatch.stop()
-        self.stopwatch2.stop()
 
     def reset_stopwatch(self):
         self.stopwatch.reset()
-        self.stopwatch2.reset()
 
     def update(self, dt):
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_UP)
@@ -106,10 +102,6 @@ class DebugScene(Scene):
             f"1 elapsed time:{self.stopwatch.read()/1000}"
         self.msgbox3.text = \
             f"1 pausing time:{self.stopwatch.read_pausing()/1000}"
-        self.msgbox4.text = \
-            f"2 pausing time:{self.stopwatch2.read()/1000}"
-        self.msgbox5.text = \
-            f"2 pausing time:{self.stopwatch2.read_pausing()/1000}"
         self.msgbox2.pos[1] = \
             self.msgbox.calculate_ultimate_size()[1]
         self.msgbox3.pos[1] = \
@@ -152,8 +144,6 @@ class DebugScene(Scene):
         self.msgbox.draw(screen)
         self.msgbox2.draw(screen)
         self.msgbox3.draw(screen)
-        self.msgbox4.draw(screen)
-        self.msgbox5.draw(screen)
 
 
 scene_manager = SceneManager()
