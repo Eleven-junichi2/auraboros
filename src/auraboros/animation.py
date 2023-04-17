@@ -62,6 +62,8 @@ class AnimationImage:
             self.loop_counter = 0
 
     def let_stop(self):
+        if self.is_playing:
+            Schedule.deactivate_schedule(self.update_animation)
         self.is_playing = False
 
     def seek(self, frame_id: int):

@@ -8,12 +8,13 @@ import pygame
 
 import init_for_dev  # noqa
 from auraboros import engine
-from auraboros.utilities import AssetFilePath, draw_grid_background
+from auraboros.animation import AnimationImage, SpriteSheet
 from auraboros.gametext import TextSurfaceFactory
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.gameinput import Keyboard
 from auraboros.ui import GameMenuSystem, GameMenuUI, MsgWindow
-from auraboros.animation import AnimationImage, SpriteSheet
+from auraboros.utilities import AssetFilePath, draw_grid_background
+from auraboros.schedule import Schedule, Stopwatch
 from auraboros import global_
 
 engine.init(caption="Test Animation System")
@@ -80,31 +81,21 @@ class DebugScene(Scene):
         self.msgbox6.padding = 4
         self.msgbox7 = MsgWindow(textfactory.font())
         self.msgbox7.padding = 4
-        self.elapsed_time = 0
-        self.start_time = 0
-        self.stopwatch_is_running = False
+        self.msgbox8 = MsgWindow(textfactory.font())
+        self.msgbox8.padding = 4
 
     def play_animation(self):
         self.test_anim_img.let_play()
-        if not self.stopwatch_is_running:
-            self.start_time = pygame.time.get_ticks()
-        self.stopwatch_is_running = True
+        Stopwatch.start()
 
     def stop_animation(self):
         self.test_anim_img.let_stop()
-        self.stopwatch_is_running = False
+        Stopwatch.stop()
 
     def reset_animation(self):
         self.test_anim_img.reset_animation()
-        self.elapsed_time += pygame.time.get_ticks() - self.start_time
-        self.start_time = pygame.time.get_ticks()
-        self.elapsed_time = 0
 
     def update(self, dt):
-        if self.stopwatch_is_running:
-            self.elapsed_time = pygame.time.get_ticks() - self.start_time
-        if self.test_anim_img.is_all_loop_finished():
-            self.stopwatch_is_running = False
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_UP)
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_DOWN)
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_z)
@@ -121,7 +112,9 @@ class DebugScene(Scene):
         self.msgbox6.text = \
             f"loop_counter:{self.test_anim_img.loop_counter}"
         self.msgbox7.text = \
-            f"elapsed time:{self.elapsed_time/1000}"
+            f"elapsed time:{Stopwatch.read()/1000}"
+        self.msgbox8.text = \
+            f"pausing time:{Stopwatch.read_pausing()/1000}"
         self.msgbox2.pos[1] = \
             self.msgbox.calculate_ultimate_size()[1]
         self.msgbox3.pos[1] = \
@@ -149,6 +142,14 @@ class DebugScene(Scene):
             self.msgbox4.calculate_ultimate_size()[1] +\
             self.msgbox5.calculate_ultimate_size()[1] +\
             self.msgbox6.calculate_ultimate_size()[1]
+        self.msgbox8.pos[1] = \
+            self.msgbox.calculate_ultimate_size()[1] +\
+            self.msgbox2.calculate_ultimate_size()[1] +\
+            self.msgbox3.calculate_ultimate_size()[1] +\
+            self.msgbox4.calculate_ultimate_size()[1] +\
+            self.msgbox5.calculate_ultimate_size()[1] +\
+            self.msgbox6.calculate_ultimate_size()[1] +\
+            self.msgbox7.calculate_ultimate_size()[1]
 
     def draw(self, screen):
         draw_grid_background(screen, 16, (78, 78, 78))
@@ -164,6 +165,7 @@ class DebugScene(Scene):
         self.msgbox5.draw(screen)
         self.msgbox6.draw(screen)
         self.msgbox7.draw(screen)
+        self.msgbox8.draw(screen)
 
 
 scene_manager = SceneManager()

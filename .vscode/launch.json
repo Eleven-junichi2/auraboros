@@ -24,7 +24,7 @@
             "name": "Python: example animation",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/debugs/animation.py",
+            "program": "${workspaceFolder}/src/auraboros/debugs/animation.py",
             "console": "integratedTerminal",
             "justMyCode": true
         },
@@ -32,7 +32,7 @@
             "name": "Python: example shader",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/debugs/shader.py",
+            "program": "${workspaceFolder}/src/auraboros/debugs/shader.py",
             "console": "integratedTerminal",
             "justMyCode": true
         },
@@ -40,7 +40,7 @@
             "name": "Python: example particle",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/debugs/particle.py",
+            "program": "${workspaceFolder}/src/auraboros/debugs/particle.py",
             "console": "integratedTerminal",
             "justMyCode": true
         },
@@ -48,7 +48,7 @@
             "name": "Python: example gamemenu",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/debugs/gamemenu.py",
+            "program": "${workspaceFolder}/src/auraboros/debugs/gamemenu.py",
             "console": "integratedTerminal",
             "justMyCode": true
         },
@@ -56,7 +56,7 @@
             "name": "Python: example keyboard.",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/debugs/keyboard.py",
+            "program": "${workspaceFolder}/src/auraboros/debugs/keyboard.py",
             "console": "integratedTerminal",
             "justMyCode": true
         },
