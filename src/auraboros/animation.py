@@ -78,6 +78,7 @@ class AnimationImage:
         self.anim_frame_id = 0
         self.image = self._anim_frames[self.anim_frame_id]
         self.loop_counter = 0
+        Schedule.reset_interval_clock(self.update_animation)
 
     def update_animation(self):
         if self.is_playing and (self.loop_counter < self.loop_count or
@@ -89,6 +90,7 @@ class AnimationImage:
                 self.loop_counter += 1
                 if self.is_all_loop_finished():
                     self.is_playing = False
+                    Schedule.deactivate_schedule(self.update_animation)
 
 
 class AnimationFactory(MutableMapping):

@@ -68,5 +68,13 @@
             "console": "integratedTerminal",
             "justMyCode": true
         },
+        {
+            "name": "Python: example schedule",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/auraboros/debugs/schedule.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
     ]
 }

@@ -1,5 +1,6 @@
 from collections import OrderedDict
-from typing import Union
+from numbers import Number
+from typing import Callable, TypeAlias, Union
 
 import pygame
 
@@ -99,12 +100,15 @@ class Stopwatch:
             instance.update(dt)
 
 
+ItemOfScheduleList: TypeAlias = dict[str, Union[Callable, Number, Stopwatch]]
+
+
 class Schedule:
     """指定した時間間隔で関数を実行するためのスケジュール機能を提供するクラス
     _schedule_list = [func, interval, last_time, added_time, is_active]
     """
 
-    _schedule_list: list[dict] = []
+    _schedule_list: list[ItemOfScheduleList] = []
 
     @classmethod
     def add(cls, func, interval):
@@ -116,43 +120,30 @@ class Schedule:
         schedule = OrderedDict()
         schedule["func"] = func
         schedule["interval"] = interval
-        schedule["last_time"] = None
-        schedule["added_time"] = pygame.time.get_ticks()
-        schedule["is_active"] = False
-        schedule["deactivated_time"] = None
-        schedule["pausing_time"] = None
+        schedule["clock"] = Stopwatch()
         cls._schedule_list.append(schedule)
 
     @classmethod
     def execute(cls):
         """スケジュールに登録された関数を実行する"""
-        current_time = pygame.time.get_ticks()
-
         for schedule in cls._schedule_list:
-            if not schedule["is_active"]:
-                if schedule["deactivated_time"]:
-                    schedule["pausing_time"] = pygame.time.get_ticks() -\
-                        schedule["deactivated_time"]
-                continue
-            if current_time - schedule["last_time"] >= schedule["interval"]:
+            if schedule["clock"].read() >= schedule["interval"]:
                 schedule["func"]()
-                schedule["last_time"] = current_time
+                schedule["clock"].reset()
+        # current_time = pygame.time.get_ticks()
+
+        # for schedule in cls._schedule_list:
+        #     if not schedule["is_active"]:
+        #         if schedule["deactivated_time"]:
+        #             schedule["pausing_time"] = pygame.time.get_ticks() -\
+        #                 schedule["deactivated_time"]
+        #         continue
+        #     if current_time - schedule["last_time"] >= schedule["interval"]:
+        #         schedule["func"]()
+        #         schedule["last_time"] = current_time
 
     @classmethod
-    def remove(cls, func):
-        """スケジュールから関数を削除する"""
-        cls._schedule_list = [
-            schedule for schedule in cls._schedule_list
-            if schedule["func"] != func]
-
-    @classmethod
-    def is_func_scheduled(cls, func) -> bool:
-        """スケジュールに指定した関数が登録されているかどうかを判定する"""
-        return any([func == scheduled_func
-                   for scheduled_func, _, _, _, _ in cls._schedule_list])
-
-    @classmethod
-    def get_mutable_schedule(cls, func) -> Union[dict, None]:
+    def get_mutable_schedule(cls, func) -> Union[ItemOfScheduleList, None]:
         """指定した関数オブジェクトが登録されているスケジュールを取得する"""
         for schedule in cls._schedule_list:
             if schedule["func"] == func:
@@ -161,29 +152,50 @@ class Schedule:
 
     @classmethod
     def activate_schedule(cls, func):
-        """スケジュールに登録した関数のインターバル実行を開始するフラグを立てる。"""
+        """スケジュールに登録した関数のインターバルのタイマーを起動する。"""
         schedule = cls.get_mutable_schedule(func)
-        schedule["is_active"] = True
-        schedule["last_time"] = pygame.time.get_ticks()
+        schedule["clock"].start()
 
     @classmethod
     def deactivate_schedule(cls, func):
-        """スケジュールに登録した関数のインターバル実行を停止するフラグを立てる。"""
+        """スケジュールに登録した関数のインターバルのタイマーを一時停止する。"""
+        print("deactivate")
         schedule = cls.get_mutable_schedule(func)
-        schedule["is_active"] = False
-        schedule["deactivated_time"] = pygame.time.get_ticks()
+        schedule["clock"].stop()
+
+    @classmethod
+    def reset_interval_clock(cls, func):
+        """スケジュールに登録した関数のインターバルのタイマーをリセットする。
+        例えば、アニメーションの実装を考え、再生処理をこのクラスでインターバルを設定して
+        スケジュールすることで再生速度のインターバルを実装するとします。
+        リセット処理(ここでは最初のフレームにシークする処理を指す)を実装するなら、
+        最初の0フレームに戻すだけだと、インターバルのタイマーは0に戻されずに実行され続けたままになり
+        リセットしてからの次のフレームのインターバルが遅れるか早まり、ズレてしまいます。
+        そのため、この関数でインターバルのタイマーをリセットするのを忘れないでください。
+        """
+        schedule = cls.get_mutable_schedule(func)
+        schedule["clock"].reset()
+
+    @classmethod
+    def remove(cls, func):
+        """スケジュールから関数を削除する"""
+        pass
+        # cls._schedule_list = [
+        #     schedule for schedule in cls._schedule_list
+        #     if schedule["func"] != func]
 
     @classmethod
     def _debug(cls):
         for schedule in cls._schedule_list:
-            schedule = list(schedule.values())
-            print("func", id(schedule[0]),
-                  "interval", schedule[1],
-                  "elapsed", schedule[2],
-                  "added", schedule[3],
-                  "is active?", schedule[4],
-                  "deactivated", schedule[5],
-                  "pausing time", schedule[6])
+            print_end = " "
+            for key, value in zip(list(schedule), list(schedule.values())):
+                if isinstance(value, (Callable, Stopwatch)):
+                    if isinstance(value, Stopwatch):
+                        print_end = f" time: {schedule['clock'].read()}" + \
+                            f" pausing: {schedule['clock'].read_pausing()}"
+                    value = id(value)
+                print(key, value, end=print_end)
+            print(end="\n")
 
 
 class ScheduleOld:
