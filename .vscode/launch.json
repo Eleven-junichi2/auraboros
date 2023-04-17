@@ -53,10 +53,18 @@
             "justMyCode": true
         },
         {
-            "name": "Python: example keyboard.",
+            "name": "Python: example keyboard",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/src/auraboros/debugs/keyboard.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Python: example stopwatch",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/auraboros/debugs/stopwatch.py",
             "console": "integratedTerminal",
             "justMyCode": true
         },

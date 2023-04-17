@@ -3,45 +3,95 @@ from typing import Union
 
 import pygame
 
+clock = pygame.time.Clock()
+
 
 class Stopwatch:
-    _stopwatch_started: bool = False
-    _stopwatch_starttime: int = 0
-    _stopwatch_lasttime: int = 0
-    _stopwatch_pausetime: int = 0
-    _is_stopwatch_running: bool = False
+    _instances: list["Stopwatch"] = []
 
-    @classmethod
-    def start(cls):
-        if cls._stopwatch_starttime == 0:
-            cls._stopwatch_starttime = pygame.time.get_ticks()
-            cls._stopwatch_started = True
+    def __init__(self):
+        self.initialize()
+        Stopwatch._instances.append(self)
+
+    def initialize(self):
+        self._stopwatch_started: bool = False
+        self._stopwatch_starttime: int = 0
+        self._stopwatch_lasttime: int = 0
+        self._stopwatch_pausetime: int = 0
+        self._is_stopwatch_running: bool = False
+
+    def reset(self):
+        pass
+
+    def start(self):
+        if self._stopwatch_starttime == 0:
+            self._stopwatch_starttime = pygame.time.get_ticks()
+            self._stopwatch_started = True
         else:
-            cls._stopwatch_starttime += cls.read_pausing()
-        cls._is_stopwatch_running = True
+            self._stopwatch_starttime += self.read_pausing()
+        self._is_stopwatch_running = True
 
-    @classmethod
-    def update(cls):
-        if cls._is_stopwatch_running:
-            cls._stopwatch_lasttime = pygame.time.get_ticks()
-        elif cls._stopwatch_started:
-            cls._stopwatch_pausetime = pygame.time.get_ticks()
+    def update(self):
+        if self._is_stopwatch_running:
+            self._stopwatch_lasttime = pygame.time.get_ticks()
+        elif self._stopwatch_started:
+            self._stopwatch_pausetime = pygame.time.get_ticks()
 
-    @classmethod
-    def stop(cls):
-        cls._is_stopwatch_running = False
+    def stop(self):
+        self._is_stopwatch_running = False
 
-    @classmethod
-    def read(cls):
-        return cls._stopwatch_lasttime - cls._stopwatch_starttime
+    def read(self):
+        return self._stopwatch_lasttime - self._stopwatch_starttime
 
-    @classmethod
-    def read_pausing(cls):
-        if cls._is_stopwatch_running:
+    def read_pausing(self):
+        if self._is_stopwatch_running:
             time = 0
         else:
-            time = cls._stopwatch_pausetime - cls._stopwatch_lasttime
+            time = self._stopwatch_pausetime - self._stopwatch_lasttime
         return time
+
+    @classmethod
+    def update_all_stopwatch(cls):
+        for instance in cls._instances:
+            instance.update()
+
+
+class Stopwatch2:
+    _instances: list["Stopwatch"] = []
+
+    def __init__(self):
+        self.initialize()
+        Stopwatch._instances.append(self)
+
+    def initialize(self):
+        self._stopwatch_started: bool = False
+        self._stopwatch_starttime: int = 0
+        self._stopwatch_lasttime: int = 0
+        self._stopwatch_pausetime: int = 0
+        self._is_stopwatch_running: bool = False
+
+    def reset(self):
+        pass
+
+    def start(self):
+        self._is_stopwatch_running = True
+
+    def update(self):
+        pass
+
+    def stop(self):
+        self._is_stopwatch_running = False
+
+    def read(self):
+        pass
+
+    def read_pausing(self):
+        pass
+
+    @classmethod
+    def update_all_stopwatch(cls):
+        for instance in cls._instances:
+            instance.update()
 
 
 class Schedule:

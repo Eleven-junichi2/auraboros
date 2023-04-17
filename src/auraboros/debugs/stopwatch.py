@@ -14,10 +14,9 @@ from auraboros.gamescene import Scene, SceneManager
 from auraboros.gameinput import Keyboard
 from auraboros.ui import GameMenuSystem, GameMenuUI, MsgWindow
 from auraboros.utilities import AssetFilePath, draw_grid_background
-from auraboros.schedule import Schedule, Stopwatch
-from auraboros import global_
+from auraboros.schedule import Stopwatch
 
-engine.init(caption="Test Animation System")
+engine.init(caption="Test Stopwatch System")
 
 AssetFilePath.set_asset_root(Path(sys.argv[0]).parent / "assets")
 
@@ -48,7 +47,7 @@ class DebugScene(Scene):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         textfactory.set_current_font("misaki_gothic")
-        self.test_anim_img = TestAnimImg()
+        self.stopwatch = Stopwatch()
         self.keyboard["menu"] = Keyboard()
         self.keyboard.set_current_setup("menu")
         self.menusystem = GameMenuSystem()
@@ -59,11 +58,11 @@ class DebugScene(Scene):
         self.keyboard["menu"].register_keyaction(
             pygame.K_z, 0, 0, self.menusystem.do_selected_action)
         self.menusystem.add_menu_item(
-            "play", self.play_animation, text="Play")
+            "play", self.stopwatch.start, text="Play")
         self.menusystem.add_menu_item(
-            "stop", self.stop_animation, text="STOP")
+            "stop", self.stopwatch.stop, text="STOP")
         self.menusystem.add_menu_item(
-            "reset", self.reset_animation, text="RESET")
+            "reset", self.stopwatch.reset, text="RESET")
         self.menuui = GameMenuUI(self.menusystem, textfactory, "filled_box")
         self.menuui.padding = 4
         self.msgbox = MsgWindow(textfactory.font())
@@ -83,19 +82,6 @@ class DebugScene(Scene):
         self.msgbox7.padding = 4
         self.msgbox8 = MsgWindow(textfactory.font())
         self.msgbox8.padding = 4
-        self.stopwatch = Stopwatch()
-
-    def play_animation(self):
-        self.test_anim_img.let_play()
-        self.stopwatch.start()
-
-    def stop_animation(self):
-        self.test_anim_img.let_stop()
-        self.stopwatch.stop()
-
-    def reset_animation(self):
-        self.test_anim_img.reset_animation()
-        self.stopwatch.reset()
 
     def update(self, dt):
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_UP)
@@ -104,18 +90,8 @@ class DebugScene(Scene):
         self.menuui.set_pos_to_center()
         self.menusystem.update()
         self.msgbox2.text = \
-            f"loop_count:{self.test_anim_img.loop_count}"
-        self.msgbox3.text = \
-            f"anim_interval:{self.test_anim_img.anim_interval} milliseconds"
-        self.msgbox4.text = \
-            f"anim_frame_id:{self.test_anim_img.anim_frame_id}"
-        self.msgbox5.text = \
-            f"is_playing:{self.test_anim_img.is_playing}"
-        self.msgbox6.text = \
-            f"loop_counter:{self.test_anim_img.loop_counter}"
-        self.msgbox7.text = \
             f"elapsed time:{self.stopwatch.read()/1000}"
-        self.msgbox8.text = \
+        self.msgbox3.text = \
             f"pausing time:{self.stopwatch.read_pausing()/1000}"
         self.msgbox2.pos[1] = \
             self.msgbox.calculate_ultimate_size()[1]
@@ -155,19 +131,10 @@ class DebugScene(Scene):
 
     def draw(self, screen):
         draw_grid_background(screen, 16, (78, 78, 78))
-        screen.blit(
-            self.test_anim_img.image,
-            (global_.w_size[0]//2-self.test_anim_img.image.get_width()//2,
-             self.menuui.pos[1]-self.test_anim_img.image.get_height()))
         self.menuui.draw(screen)
         self.msgbox.draw(screen)
         self.msgbox2.draw(screen)
         self.msgbox3.draw(screen)
-        self.msgbox4.draw(screen)
-        self.msgbox5.draw(screen)
-        self.msgbox6.draw(screen)
-        self.msgbox7.draw(screen)
-        self.msgbox8.draw(screen)
 
 
 scene_manager = SceneManager()

@@ -4,7 +4,7 @@ import pygame
 
 from .global_ import init  # noqa
 from .gamescene import SceneManager
-from .schedule import Schedule, Stopwatch
+from .schedule import Schedule, Stopwatch, Stopwatch2
 from . import global_
 from .shader import Shader2D
 
@@ -31,7 +31,8 @@ def run(scene_manager: SceneManager, fps=60):
     while running:
         dt = clock.tick(fps) / 1000
         Schedule.execute()
-        Stopwatch.update()
+        Stopwatch.update_all_stopwatch()
+        Stopwatch2.update_all_stopwatch()
         Schedule._debug()
         global_.screen.fill((0, 0, 0))
         if opengl_is_used:
