@@ -14,7 +14,7 @@ from auraboros.gamescene import Scene, SceneManager
 from auraboros.gameinput import Keyboard
 from auraboros.ui import GameMenuSystem, GameMenuUI, MsgWindow
 from auraboros.utilities import AssetFilePath, draw_grid_background
-from auraboros.schedule import Stopwatch, Stopwatch2
+from auraboros.schedule import Stopwatch
 
 engine.init(caption="Test Stopwatch System")
 
