@@ -14,7 +14,7 @@ from auraboros.gamescene import Scene, SceneManager
 from auraboros.gameinput import Keyboard
 from auraboros.ui import GameMenuSystem, GameMenuUI, MsgWindow
 from auraboros.utilities import AssetFilePath, draw_grid_background
-from auraboros.schedule import Stopwatch
+from auraboros.schedule import Stopwatch, Stopwatch2
 
 engine.init(caption="Test Stopwatch System")
 
@@ -48,6 +48,7 @@ class DebugScene(Scene):
         super().__init__(*args, **kwargs)
         textfactory.set_current_font("misaki_gothic")
         self.stopwatch = Stopwatch()
+        self.stopwatch2 = Stopwatch2()
         self.keyboard["menu"] = Keyboard()
         self.keyboard.set_current_setup("menu")
         self.menusystem = GameMenuSystem()
@@ -58,11 +59,11 @@ class DebugScene(Scene):
         self.keyboard["menu"].register_keyaction(
             pygame.K_z, 0, 0, self.menusystem.do_selected_action)
         self.menusystem.add_menu_item(
-            "play", self.stopwatch.start, text="Play")
+            "play", self.start_stopwatch, text="Play")
         self.menusystem.add_menu_item(
-            "stop", self.stopwatch.stop, text="STOP")
+            "stop", self.stop_stopwatch, text="STOP")
         self.menusystem.add_menu_item(
-            "reset", self.stopwatch.reset, text="RESET")
+            "reset", self.reset_stopwatch, text="RESET")
         self.menuui = GameMenuUI(self.menusystem, textfactory, "filled_box")
         self.menuui.padding = 4
         self.msgbox = MsgWindow(textfactory.font())
@@ -83,6 +84,18 @@ class DebugScene(Scene):
         self.msgbox8 = MsgWindow(textfactory.font())
         self.msgbox8.padding = 4
 
+    def start_stopwatch(self):
+        self.stopwatch.start()
+        self.stopwatch2.start()
+
+    def stop_stopwatch(self):
+        self.stopwatch.stop()
+        self.stopwatch2.stop()
+
+    def reset_stopwatch(self):
+        self.stopwatch.reset()
+        self.stopwatch2.reset()
+
     def update(self, dt):
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_UP)
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_DOWN)
@@ -90,9 +103,13 @@ class DebugScene(Scene):
         self.menuui.set_pos_to_center()
         self.menusystem.update()
         self.msgbox2.text = \
-            f"elapsed time:{self.stopwatch.read()/1000}"
+            f"1 elapsed time:{self.stopwatch.read()/1000}"
         self.msgbox3.text = \
-            f"pausing time:{self.stopwatch.read_pausing()/1000}"
+            f"1 pausing time:{self.stopwatch.read_pausing()/1000}"
+        self.msgbox4.text = \
+            f"2 pausing time:{self.stopwatch2.read()/1000}"
+        self.msgbox5.text = \
+            f"2 pausing time:{self.stopwatch2.read_pausing()/1000}"
         self.msgbox2.pos[1] = \
             self.msgbox.calculate_ultimate_size()[1]
         self.msgbox3.pos[1] = \
@@ -135,6 +152,8 @@ class DebugScene(Scene):
         self.msgbox.draw(screen)
         self.msgbox2.draw(screen)
         self.msgbox3.draw(screen)
+        self.msgbox4.draw(screen)
+        self.msgbox5.draw(screen)
 
 
 scene_manager = SceneManager()

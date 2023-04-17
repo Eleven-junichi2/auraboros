@@ -57,11 +57,11 @@ class Stopwatch:
 
 
 class Stopwatch2:
-    _instances: list["Stopwatch"] = []
+    _instances: list["Stopwatch2"] = []
 
     def __init__(self):
         self.initialize()
-        Stopwatch._instances.append(self)
+        Stopwatch2._instances.append(self)
 
     def initialize(self):
         self._stopwatch_started: bool = False
@@ -76,22 +76,22 @@ class Stopwatch2:
     def start(self):
         self._is_stopwatch_running = True
 
-    def update(self):
+    def update(self, dt):
         pass
 
     def stop(self):
         self._is_stopwatch_running = False
 
     def read(self):
-        pass
+        return 0
 
     def read_pausing(self):
-        pass
+        return 0
 
     @classmethod
-    def update_all_stopwatch(cls):
+    def update_all_stopwatch(cls, dt):
         for instance in cls._instances:
-            instance.update()
+            instance.update(dt)
 
 
 class Schedule:
