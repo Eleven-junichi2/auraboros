@@ -47,9 +47,11 @@ class AnimationImage:
 
     @anim_interval.setter
     def anim_interval(self, value):
-        Schedule.remove(self.update_animation)
         self._anim_interval = value
-        Schedule.add(self.update_animation, self.anim_interval)
+        if Schedule.is_func_scheduled(self.update_animation):
+            Schedule.change_interval(self.update_animation, self.anim_interval)
+        else:
+            Schedule.add(self.update_animation, self.anim_interval)
 
     def is_all_loop_finished(self):
         return self.loop_count > 0 and self.loop_counter >= self.loop_count

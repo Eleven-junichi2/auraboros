@@ -111,7 +111,7 @@ class Schedule:
     _schedule_list: list[ItemOfScheduleList] = []
 
     @classmethod
-    def add(cls, func, interval):
+    def add(cls, func: Callable, interval: Number):
         """関数をスケジュールに追加する。
         Args:
             func (function): 定期的に呼び出す関数
@@ -130,41 +130,38 @@ class Schedule:
             if schedule["clock"].read() >= schedule["interval"]:
                 schedule["func"]()
                 schedule["clock"].reset()
-        # current_time = pygame.time.get_ticks()
-
-        # for schedule in cls._schedule_list:
-        #     if not schedule["is_active"]:
-        #         if schedule["deactivated_time"]:
-        #             schedule["pausing_time"] = pygame.time.get_ticks() -\
-        #                 schedule["deactivated_time"]
-        #         continue
-        #     if current_time - schedule["last_time"] >= schedule["interval"]:
-        #         schedule["func"]()
-        #         schedule["last_time"] = current_time
 
     @classmethod
-    def get_mutable_schedule(cls, func) -> Union[ItemOfScheduleList, None]:
+    def get_mutable_schedule(cls, scheduled_func: Callable) -> \
+            Union[ItemOfScheduleList, None]:
         """指定した関数オブジェクトが登録されているスケジュールを取得する"""
         for schedule in cls._schedule_list:
-            if schedule["func"] == func:
+            if schedule["func"] == scheduled_func:
                 return schedule
         return None
 
     @classmethod
-    def activate_schedule(cls, func):
+    def is_func_scheduled(cls, func: Callable):
+        for schedule in cls._schedule_list:
+            if schedule["func"] == func:
+                return True
+        return False
+
+    @classmethod
+    def activate_schedule(cls, scheduled_func: Callable):
         """スケジュールに登録した関数のインターバルのタイマーを起動する。"""
-        schedule = cls.get_mutable_schedule(func)
+        schedule = cls.get_mutable_schedule(scheduled_func)
         schedule["clock"].start()
 
     @classmethod
-    def deactivate_schedule(cls, func):
+    def deactivate_schedule(cls, scheduled_func):
         """スケジュールに登録した関数のインターバルのタイマーを一時停止する。"""
         print("deactivate")
-        schedule = cls.get_mutable_schedule(func)
+        schedule = cls.get_mutable_schedule(scheduled_func)
         schedule["clock"].stop()
 
     @classmethod
-    def reset_interval_clock(cls, func):
+    def reset_interval_clock(cls, scheduled_func: Callable):
         """スケジュールに登録した関数のインターバルのタイマーをリセットする。
         例えば、アニメーションの実装を考え、再生処理をこのクラスでインターバルを設定して
         スケジュールすることで再生速度のインターバルを実装するとします。
@@ -173,16 +170,20 @@ class Schedule:
         リセットしてからの次のフレームのインターバルが遅れるか早まり、ズレてしまいます。
         そのため、この関数でインターバルのタイマーをリセットするのを忘れないでください。
         """
-        schedule = cls.get_mutable_schedule(func)
+        schedule = cls.get_mutable_schedule(scheduled_func)
         schedule["clock"].reset()
 
     @classmethod
-    def remove(cls, func):
+    def remove(cls, func: Callable):
         """スケジュールから関数を削除する"""
-        pass
-        # cls._schedule_list = [
-        #     schedule for schedule in cls._schedule_list
-        #     if schedule["func"] != func]
+        cls._schedule_list = [
+            schedule for schedule in cls._schedule_list
+            if schedule["func"] != func]
+
+    @classmethod
+    def change_interval(cls, scheduled_func: Callable, new_interval: Number):
+        schedule = cls.get_mutable_schedule(scheduled_func)
+        schedule["interval"] = new_interval
 
     @classmethod
     def _debug(cls):
