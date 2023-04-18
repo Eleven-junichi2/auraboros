@@ -13,11 +13,10 @@ from auraboros.gametext import TextSurfaceFactory
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.gameinput import Keyboard
 from auraboros.ui import GameMenuSystem, GameMenuUI, MsgWindow
-from auraboros.animation import AnimationImage, SpriteSheet
-from auraboros.particle import Emitter
+from auraboros.particle import Emitter, Particle
 from auraboros import global_
 
-engine.init(caption="Test Animation System")
+engine.init(caption="Test Particle System")
 
 AssetFilePath.set_asset_root(Path(sys.argv[0]).parent / "assets")
 
@@ -27,28 +26,10 @@ textfactory.register_font(
     pygame.font.Font(AssetFilePath.font("misaki_gothic.ttf"), 16))
 
 
-class TestAnimImg(AnimationImage):
-    def __init__(self):
-        super().__init__()
-        self.sprite_sheet = SpriteSheet(AssetFilePath.img("testsprite.png"))
-        self.anim_frames: list[pygame.surface.Surface] = [
-            self.sprite_sheet.image_by_area(0, 0, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32*2, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32*3, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32*4, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32*3, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32*2, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32, 32, 32)]
-        self.anim_interval = 500
-        self.loop_count = 2
-
-
 class DebugScene(Scene):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         textfactory.set_current_font("misaki_gothic")
-        self.test_anim_img = TestAnimImg()
         self.keyboard["menu"] = Keyboard()
         self.keyboard.set_current_setup("menu")
         self.menusystem = GameMenuSystem()
@@ -63,7 +44,7 @@ class DebugScene(Scene):
         self.menusystem.add_menu_item(
             "stop", self.pause_emitter, text="STOP")
         self.menusystem.add_menu_item(
-            "reset", self.reset_animation, text="RESET")
+            "reset", self.reset_emitter, text="RESET")
         self.menuui = GameMenuUI(self.menusystem, textfactory, "filled_box")
         self.menuui.padding = 4
         self.msgbox = MsgWindow(textfactory.font())
@@ -82,18 +63,22 @@ class DebugScene(Scene):
         self.testemitter = Emitter()
         self.testemitter.x = global_.w_size[0] // 2
         self.testemitter.y = global_.w_size[1] // 2
+        # self.testparticle = Particle()
+        # self.testparticle.x = global_.w_size[0] // 2
+        # self.testparticle.y = global_.w_size[1] // 2
 
     def run_emitter(self):
+        # self.testparticle.let_move()
         self.testemitter.let_emit()
-        if self.testemitter.is_lifetime_end():
-            self.testemitter.respawn()
+        if self.testemitter.is_particles_lifetime_end():
+            self.testemitter.reset()
 
     def pause_emitter(self):
-        self.testemitter.let_pause()
+        self.testemitter.let_freeze()
+        # self.testparticle.let_freeze()
 
-    def reset_animation(self):
-        self.test_anim_img.reset_animation()
-        pass
+    def reset_emitter(self):
+        self.testemitter.reset()
 
     def update(self, dt):
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_UP)
@@ -104,14 +89,6 @@ class DebugScene(Scene):
         # self.test_anim_img
         self.msgbox2.text = \
             f"lifetime:{self.testemitter.lifetime}"
-        self.msgbox3.text = \
-            f"anim_interval:{self.test_anim_img.anim_interval} milliseconds"
-        self.msgbox4.text = \
-            f"anim_frame_id:{self.test_anim_img.anim_frame_id}"
-        self.msgbox5.text = \
-            f"is_playing:{self.test_anim_img.is_playing}"
-        self.msgbox6.text = \
-            f"loop_counter:{self.test_anim_img.loop_counter}"
         self.msgbox2.pos[1] = \
             self.msgbox.calculate_ultimate_size()[1]
         self.msgbox3.pos[1] = \
@@ -133,21 +110,14 @@ class DebugScene(Scene):
             self.msgbox5.calculate_ultimate_size()[1] +\
             self.msgbox5.calculate_ultimate_size()[1]
         self.testemitter.update()
+        self.testemitter.erase_finished_particles()
 
     def draw(self, screen):
         draw_grid_background(screen, 16, (78, 78, 78))
-        # self.test_anim_img.draw(screen)
-        screen.blit(
-            self.test_anim_img.image,
-            (global_.w_size[0]//2-self.test_anim_img.image.get_width()//2,
-             self.menuui.pos[1]-self.test_anim_img.image.get_height()))
         self.menuui.draw(screen)
         self.msgbox.draw(screen)
         self.msgbox2.draw(screen)
-        self.msgbox3.draw(screen)
-        self.msgbox4.draw(screen)
-        self.msgbox5.draw(screen)
-        self.msgbox6.draw(screen)
+        # self.testparticle.draw(screen)
         self.testemitter.draw(screen)
 
 
