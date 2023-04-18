@@ -129,6 +129,8 @@ def getasset_process():
             with open(download_to, mode="wb") as f,\
                 click.progressbar(
                     length=filesize, label="Downloading...") as bar:
+                if not Path(download_to).parent.exists():
+                    Path(download_to).parent.mkdir()
                 while True:
                     chunk = response.read(chunk_size)
                     if not chunk:
