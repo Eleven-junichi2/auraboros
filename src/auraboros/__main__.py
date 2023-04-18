@@ -126,11 +126,11 @@ def getasset_process():
                 dirname_of_the_asset_type[asset_info["type"]] / filename
             filesize = int(response.headers.get("Content-Length", 0))
             chunk_size = calc_best_chunk_size_of_dl(filesize)
+            if not Path(download_to).parent.exists():
+                Path(download_to).parent.mkdir()
             with open(download_to, mode="wb") as f,\
                 click.progressbar(
                     length=filesize, label="Downloading...") as bar:
-                if not Path(download_to).parent.exists():
-                    Path(download_to).parent.mkdir()
                 while True:
                     chunk = response.read(chunk_size)
                     if not chunk:
