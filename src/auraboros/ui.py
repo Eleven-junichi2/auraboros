@@ -1,4 +1,4 @@
-from typing import Callable, Union
+from typing import Callable
 import abc
 
 import pygame
@@ -47,6 +47,19 @@ class GameMenuSystem:
             tuple(self.option_actions_on_highlight.keys())[index]]
         self.option_actions_on_select[option_key] = action_on_select
         self.option_actions_on_highlight[option_key] = action_on_highlight
+
+    def replace_menu_item_by_key(
+            self, option_key: str, new_option_key: str,
+            action_on_select: Callable = lambda: None,
+            action_on_highlight: Callable = lambda: None, text: str = None):
+        if text is None:
+            text = new_option_key
+        index = self.menu_option_keys.index(option_key)
+        self.replace_menu_item_by_index(
+            index=index,
+            option_key=new_option_key,
+            action_on_select=action_on_select,
+            action_on_highlight=action_on_highlight, text=text)
 
     def set_action_on_cursor_up(self, action: Callable):
         self.action_on_cursor_up = action

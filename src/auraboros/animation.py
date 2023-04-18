@@ -22,7 +22,7 @@ class AnimationImage:
         self._anim_frames: list[pygame.surface.Surface] = [
             pygame.surface.Surface((0, 0)), ]
         self.anim_frame_id = 0
-        self._anim_interval = 1
+        self.anim_interval = 1
         self.image = self.anim_frames[self.anim_frame_id]
         self.is_playing = False
         self.loop_count = -1

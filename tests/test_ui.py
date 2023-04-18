@@ -35,6 +35,12 @@ class TestGameMenuSystem:
         assert self.gamemenu1.menu_option_keys[1] == "replaced"
         assert self.gamemenu1.menu_option_texts[1] == "replaced"
 
+    @pytest.mark.run(order=5)
+    def test_replace_menu_item_by_key(self):
+        self.gamemenu1.replace_menu_item_by_key("replaced", "new")
+        assert self.gamemenu1.menu_option_keys[1] == "new"
+        assert self.gamemenu1.menu_option_texts[1] == "new"
+
     def test_do_action_when_menu_is_empty(self):
         with pytest.raises(MenuHasNoItemError):
             self.gamemenu2.do_selected_action()
