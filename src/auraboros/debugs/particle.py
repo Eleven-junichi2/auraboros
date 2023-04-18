@@ -13,7 +13,7 @@ from auraboros.gametext import TextSurfaceFactory
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.gameinput import Keyboard
 from auraboros.ui import GameMenuSystem, GameMenuUI, MsgWindow
-from auraboros.particle import Emitter, Particle
+from auraboros.particle import Emitter
 from auraboros import global_
 
 engine.init(caption="Test Particle System")
@@ -63,19 +63,13 @@ class DebugScene(Scene):
         self.testemitter = Emitter()
         self.testemitter.x = global_.w_size[0] // 2
         self.testemitter.y = global_.w_size[1] // 2
-        # self.testparticle = Particle()
-        # self.testparticle.x = global_.w_size[0] // 2
-        # self.testparticle.y = global_.w_size[1] // 2
 
     def run_emitter(self):
-        # self.testparticle.let_move()
+        self.testemitter.reset_lifetime_count()
         self.testemitter.let_emit()
-        if self.testemitter.is_particles_lifetime_end():
-            self.testemitter.reset()
 
     def pause_emitter(self):
         self.testemitter.let_freeze()
-        # self.testparticle.let_freeze()
 
     def reset_emitter(self):
         self.testemitter.reset()
@@ -86,7 +80,6 @@ class DebugScene(Scene):
         self.keyboard.current_setup.do_action_by_keyinput(pygame.K_z)
         self.menuui.set_pos_to_center()
         self.menusystem.update()
-        # self.test_anim_img
         self.msgbox2.text = \
             f"lifetime:{self.testemitter.lifetime}"
         self.msgbox2.pos[1] = \
@@ -117,7 +110,6 @@ class DebugScene(Scene):
         self.menuui.draw(screen)
         self.msgbox.draw(screen)
         self.msgbox2.draw(screen)
-        # self.testparticle.draw(screen)
         self.testemitter.draw(screen)
 
 

@@ -1,6 +1,7 @@
 import abc
 import math
 import random
+from typing import Any, Callable
 
 import pygame
 
@@ -47,35 +48,27 @@ class Particle:
                            (int(self.x), int(self.y)), self.size)
 
 
-class ParticleProgram(metaclass=abc.ABCMeta):
-
-    @classmethod
-    def __init__(cls, particle: Particle) -> "program":
-        cls.particle = particle
-
-    @classmethod
-    @abc.abstractmethod
-    def program(cls, particle: Particle):
-        raise NotImplementedError()
-
-    @classmethod
-    def run(cls):
-        cls.program()
-        return cls.particle
+def saltire_diffusion(particle: Particle) -> Particle:
+    vx = random.randint(-1, 1)
+    vy = random.randint(-1, 1)
+    if vx == 0 and vy == 0:
+        if random.getrandbits(1) > 0:
+            vx = random.choice((-1, 1))
+        else:
+            vy = random.choice((-1, 1))
+    particle.vx = vx
+    particle.vy = vy
+    return particle
 
 
-class SaltireDiffusion(ParticleProgram):
-    @classmethod
-    def program(cls):
-        vx = random.randint(-1, 1)
-        vy = random.randint(-1, 1)
-        if vx == 0 and vy == 0:
-            if random.getrandbits(1) > 0:
-                vx = random.choice((-1, 1))
-            else:
-                vy = random.choice((-1, 1))
-        cls.particle.vx = vx
-        cls.particle.vy = vy
+def random_angle_diffusion(particle: Particle) -> Particle:
+    angle = random.randrange(0, 360)
+    speed = 1
+    vx = speed * math.sin(angle)
+    vy = speed * math.cos(angle)
+    particle.vx = vx
+    particle.vy = vy
+    return particle
 
 
 class Emitter:
@@ -88,6 +81,17 @@ class Emitter:
         self.emitted_counter = 0
         self.is_emitting = False
         self._lifetimer = Stopwatch()
+        self.particle_programs: dict[Any, Callable[[Particle], Particle]] = {
+            "saltire_diffusion": saltire_diffusion,
+            "random_angle_diffusion": random_angle_diffusion, }
+        self.current_program_name = "random_angle_diffusion"
+
+    def register_particle_program(
+            self, program: Callable[[Particle], Particle], program_name):
+        self.particle_programs[program_name] = program
+
+    def set_current_program(self, program_name):
+        self.current_program_name = program_name
 
     def let_emit(self):
         if not self.is_emitting:
@@ -120,7 +124,8 @@ class Emitter:
                     particle = Particle()
                     particle.x = self.x
                     particle.y = self.y
-                    particle = SaltireDiffusion(particle).run()
+                    particle = self.particle_programs[
+                        self.current_program_name](particle)
                     particle.let_move()
                     self.particles.append(particle)
                     self.emitted_counter += 1
@@ -142,142 +147,6 @@ class Emitter:
             return True
         else:
             return False
-
-    def draw(self, screen: pygame.surface.Surface):
-        for particle in self.particles:
-            particle.draw(screen)
-
-    # def let_emit(self):
-    #     self.is_emitting = True
-    #     self.is_pausing = False
-
-    # def let_pause(self):
-    #     self.is_emitting = False
-    #     self.is_pausing = True
-
-    # def is_lifetime_end(self):
-    #     if self._spawn_time:
-    #         _current_time = pygame.time.get_ticks()
-    #         return _current_time - self._spawn_time >= self.lifetime
-    #     else:
-    #         return False
-
-    # def respawn(self):
-    #     self._spawn_time = pygame.time.get_ticks()
-    #     self.emitted_counter = 0
-
-    # def update(self):
-    #     _current_time = pygame.time.get_ticks()
-    #     if self.is_emitting:
-    #         if self._spawn_time is None:
-    #             self.respawn()
-    #         if not _current_time - self._spawn_time >= self.lifetime:
-    #             if self.emitted_counter < self.how_many_emit or \
-    #                     self.how_many_emit < 0:
-    #                 particle = Particle()
-    #                 particle.x = self.x
-    #                 particle.y = self.y
-    #                 speed = 1
-    #                 angle = random.uniform(0, 360)
-    #                 particle.vx = speed * math.cos(math.radians(angle))
-    #                 particle.vy = speed * math.sin(math.radians(angle))
-    #                 self.particles.append(particle)
-    #                 self.emitted_counter += 1
-    #         else:
-    #             self.is_emitting = False
-    #     if not self.is_pausing:
-    #         for particle in self.particles:
-    #             particle.update()
-    #             if _current_time - particle._spawn_time >= particle.lifetime:
-    #                 self.particles.remove(particle)
-
-    # def draw(self, screen: pygame.surface.Surface):
-    #     for particle in self.particles:
-    #         particle.draw(screen)
-
-
-class OldParticle:
-
-    def __init__(self):
-        self.x = 0
-        self.y = 0
-        self.vx = 1
-        self.vy = 1
-        self.lifetime = 2000
-        self.size = 3
-        self.color = (255, 255, 255)
-        self._spawn_time = None
-        # self.size
-
-    def update(self):
-        if self._spawn_time is None:
-            self._spawn_time = pygame.time.get_ticks()
-        _current_time = pygame.time.get_ticks()
-        if not _current_time - self._spawn_time >= self.lifetime:
-            self.x += self.vx
-            self.y += self.vy
-
-    def draw(self, surface):
-        pygame.draw.circle(surface, self.color,
-                           (int(self.x), int(self.y)), self.size)
-
-
-class OldEmitter:
-    def __init__(self):
-        self.x = 0
-        self.y = 0
-        # self.rate = rate
-        self.lifetime = 1000
-        self.particles: list[Particle] = []
-        self.how_many_emit = -1  # -1 means endless during lifetime.
-        self.emitted_counter = 0
-        self._spawn_time = None
-        self.is_emitting = False
-        self.is_pausing = False
-
-    def let_emit(self):
-        self.is_emitting = True
-        self.is_pausing = False
-
-    def let_pause(self):
-        self.is_emitting = False
-        self.is_pausing = True
-
-    def is_lifetime_end(self):
-        if self._spawn_time:
-            _current_time = pygame.time.get_ticks()
-            return _current_time - self._spawn_time >= self.lifetime
-        else:
-            return False
-
-    def respawn(self):
-        self._spawn_time = pygame.time.get_ticks()
-        self.emitted_counter = 0
-
-    def update(self):
-        _current_time = pygame.time.get_ticks()
-        if self.is_emitting:
-            if self._spawn_time is None:
-                self.respawn()
-            if not _current_time - self._spawn_time >= self.lifetime:
-                if self.emitted_counter < self.how_many_emit or \
-                        self.how_many_emit < 0:
-                    particle = Particle()
-                    particle.x = self.x
-                    particle.y = self.y
-                    speed = 1
-                    angle = random.uniform(0, 360)
-                    particle.vx = speed * math.cos(math.radians(angle))
-                    particle.vy = speed * math.sin(math.radians(angle))
-                    self.particles.append(particle)
-                    self.emitted_counter += 1
-            else:
-                self.is_emitting = False
-        if not self.is_pausing:
-            for particle in self.particles:
-                particle.update()
-                if _current_time - particle._spawn_time >= particle.lifetime:
-                    self.particles.remove(particle)
 
     def draw(self, screen: pygame.surface.Surface):
         for particle in self.particles:
