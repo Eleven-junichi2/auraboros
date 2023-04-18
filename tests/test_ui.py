@@ -29,6 +29,12 @@ class TestGameMenuSystem:
         assert self.gamemenu1.menu_selected_index == 0
         assert self.gamemenu1.do_selected_action()
 
+    @pytest.mark.run(order=4)
+    def test_replace_menu_item_by_index(self):
+        self.gamemenu1.replace_menu_item_by_index(1, "replaced")
+        assert self.gamemenu1.menu_option_keys[1] == "replaced"
+        assert self.gamemenu1.menu_option_texts[1] == "replaced"
+
     def test_do_action_when_menu_is_empty(self):
         with pytest.raises(MenuHasNoItemError):
             self.gamemenu2.do_selected_action()

@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Union
 import abc
 
 import pygame
@@ -14,22 +14,37 @@ class MenuHasNoItemError(Exception):
 class GameMenuSystem:
     def __init__(self):
         self.menu_selected_index = 0
-        self.menu_option_keys = []
-        self.menu_option_texts = []
-        self.option_actions_on_select = {}
-        self.option_actions_on_highlight = {}
+        self.menu_option_keys: list[str] = []
+        self.menu_option_texts: list[str] = []
+        self.option_actions_on_select: dict[str, Callable] = {}
+        self.option_actions_on_highlight: dict[str, Callable] = {}
         self.loop_cursor = True
         self.action_on_cursor_up = lambda: None
         self.action_on_cursor_down = lambda: None
 
     def add_menu_item(
-            self, option_key,
-            action_on_select: Callable,
+            self, option_key: str,
+            action_on_select: Callable = lambda: None,
             action_on_highlight: Callable = lambda: None, text: str = None):
         if text is None:
             text = option_key
         self.menu_option_keys.append(option_key)
         self.menu_option_texts.append(text)
+        self.option_actions_on_select[option_key] = action_on_select
+        self.option_actions_on_highlight[option_key] = action_on_highlight
+
+    def replace_menu_item_by_index(
+            self, index: int, option_key: str,
+            action_on_select: Callable = lambda: None,
+            action_on_highlight: Callable = lambda: None, text: str = None):
+        if text is None:
+            text = option_key
+        self.menu_option_keys[index] = option_key
+        self.menu_option_texts[index] = text
+        del self.option_actions_on_select[
+            tuple(self.option_actions_on_select.keys())[index]]
+        del self.option_actions_on_highlight[
+            tuple(self.option_actions_on_highlight.keys())[index]]
         self.option_actions_on_select[option_key] = action_on_select
         self.option_actions_on_highlight[option_key] = action_on_highlight
 
