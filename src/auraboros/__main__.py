@@ -11,7 +11,11 @@ import urllib.parse
 import urllib.request
 import zipfile
 
-import click
+try:
+    import click
+except ModuleNotFoundError:
+    print("auraboros use 'click' for implement CLI.")
+    print("Try 'pip install click' to install it.")
 
 __main__py_path = Path(inspect.getfile(inspect.currentframe()))
 getasset_order_filepath = __main__py_path.parent / "getasset_order.json"
