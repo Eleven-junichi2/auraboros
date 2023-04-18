@@ -40,7 +40,7 @@ class Scene(object):
     def draw(self, screen: pygame.surface.Surface):
         pass
 
-    def update(self, ):
+    def update(self, dt):
         pass
 
 
