@@ -1,0 +1,17 @@
+{
+    "misaki": {
+        "url": "https://littlelimit.net/arc/misaki/misaki_ttf_2021-05-05.zip",
+        "type": "font",
+        "license": "Read the attached file."
+    },
+    "ayu18mincho": {
+        "url": "https://ja.osdn.net/frs/redir.php?m=nchc&f=x-tt%2F8494%2Fayu18mincho-1.1.tar.gz",
+        "type": "font",
+        "license": "public"
+    },
+    "ayu18gothic": {
+        "url": "https://ja.osdn.net/frs/redir.php?m=rwthaachen&f=x-tt%2F8535%2Fayu18gothic-1.3a.tar.gz",
+        "type": "font",
+        "license": "public"
+    }
+}
