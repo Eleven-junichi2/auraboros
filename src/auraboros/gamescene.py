@@ -11,7 +11,7 @@ from .gameinput import KeyboardManager
 @dataclass
 class Scene(object):
 
-    def __init__(self, manager):
+    def __init__(self, manager: "SceneManager"):
         from .gamelevel import Level
         self.manager = manager
         self.gameworld: Level = None
