@@ -1,8 +1,0 @@
-{
-    "python.testing.pytestArgs": [
-        "--cov=src",
-        "--cov-exclude=debugs",
-        "--cov-report",
-        "html"
-    ]
-}
