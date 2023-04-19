@@ -25,6 +25,9 @@ class Scene(object):
             is_gameworld = Level in attrs_of_object
             if is_gameworld:
                 getattr(self, attr_name).scene = self
+    
+    def setup(self):
+        """This method is called on scene transition from the other scene."""
 
     # @property
     # def joystick(self) -> Optional[Joystick2]:
