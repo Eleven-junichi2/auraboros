@@ -77,11 +77,11 @@ class KeyboardDebugScene(Scene):
 
     def update(self, dt):
         for key_name in ascii_lowercase:
-            self.keyboard.current_setup.action_on_keyinput(
+            self.keyboard.current_setup.do_action_on_keyinput(
                 pygame.key.key_code(key_name))
-        self.keyboard.current_setup.action_on_keyinput(
+        self.keyboard.current_setup.do_action_on_keyinput(
             pygame.K_1, True)
-        self.keyboard.current_setup.action_on_keyinput(
+        self.keyboard.current_setup.do_action_on_keyinput(
             pygame.K_2, True)
         textfactory.register_text(
             "current_layout",
