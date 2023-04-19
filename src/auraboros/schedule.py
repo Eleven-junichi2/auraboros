@@ -71,6 +71,7 @@ class Stopwatch:
         self._time: int = 0
         self._pausetime: int = 0
         self._is_running: bool = False
+        self._is_pausetime_enabled = False
 
     def reset(self):
         self._time = 0
@@ -82,11 +83,17 @@ class Stopwatch:
     def update(self, dt):
         if self._is_running:
             self._time += 1 * dt
-        elif self._time != 0:
+        elif self._time != 0 and self._is_pausetime_enabled:
             self._pausetime += 1 * dt
 
     def stop(self):
         self._is_running = False
+
+    def enable_pausing_time_count(self):
+        self._is_pausetime_enabled = True
+
+    def disable_pausing_time_count(self):
+        self._is_pausetime_enabled = False
 
     def read(self):
         return self._time

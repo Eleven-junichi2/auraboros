@@ -12,6 +12,7 @@ from auraboros.utilities import AssetFilePath
 from auraboros.gametext import TextSurfaceFactory
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.gameinput import Keyboard
+from auraboros.ui import MsgWindow
 from auraboros import global_
 
 AssetFilePath.set_asset_root(Path(sys.argv[0]).parent / "assets")
@@ -35,7 +36,7 @@ class KeyboardDebugScene(Scene):
         self.keyboard["azerty"] = Keyboard()
         for key_name in QWERTY_STR:
             self.keyboard["qwerty"].register_keyaction(
-                pygame.key.key_code(key_name), 0, 0,
+                pygame.key.key_code(key_name), 0, 22, 89,
                 lambda kn=key_name: self.press_key(kn),
                 lambda kn=key_name: self.release_key(kn))
         self.keyboard["qwerty"].register_keyaction(
@@ -43,7 +44,7 @@ class KeyboardDebugScene(Scene):
             lambda: self.switch_keyboard_layout("azerty", "1"))
         for key_name in AZERTY_STR:
             self.keyboard["azerty"].register_keyaction(
-                pygame.key.key_code(key_name), 0, 0,
+                pygame.key.key_code(key_name), 44, 22, 44,
                 lambda kn=key_name: self.press_key(kn),
                 lambda kn=key_name: self.release_key(kn))
         self.keyboard["azerty"].register_keyaction(
@@ -52,6 +53,11 @@ class KeyboardDebugScene(Scene):
         self.key_i_o_map: dict[str: bool] = dict.fromkeys(
             ascii_lowercase, False)
         self.keyboard.set_current_setup("qwerty")
+        self.msgbox1 = MsgWindow(textfactory.font())
+        self.msgbox2 = MsgWindow(textfactory.font())
+        self.msgbox3 = MsgWindow(textfactory.font())
+        self.msgbox4 = MsgWindow(textfactory.font())
+        self.msgbox5 = MsgWindow(textfactory.font())
 
     def press_key(self, key):
         self.textinput += key
@@ -71,17 +77,41 @@ class KeyboardDebugScene(Scene):
 
     def update(self, dt):
         for key_name in ascii_lowercase:
-            self.keyboard.current_setup.do_action_by_keyinput(
+            self.keyboard.current_setup.action_on_keyinput(
                 pygame.key.key_code(key_name))
-        self.keyboard.current_setup.do_action_by_keyinput(
+        self.keyboard.current_setup.action_on_keyinput(
             pygame.K_1, True)
-        self.keyboard.current_setup.do_action_by_keyinput(
+        self.keyboard.current_setup.action_on_keyinput(
             pygame.K_2, True)
-
         textfactory.register_text(
             "current_layout",
             f"layout:{self.keyboard.current_setup_key}",
             color_rgb=(178, 150, 250))
+        self.msgbox1.pos[1] = global_.w_size[1] - \
+            self.msgbox1.calculate_ultimate_size()[1]
+        self.msgbox2.pos[1] = self.msgbox1.pos[1] - \
+            self.msgbox2.calculate_ultimate_size()[1]
+        self.msgbox3.pos[1] = self.msgbox2.pos[1] - \
+            self.msgbox3.calculate_ultimate_size()[1]
+        self.msgbox4.pos[1] = self.msgbox3.pos[1] - \
+            self.msgbox4.calculate_ultimate_size()[1]
+        self.msgbox5.pos[1] = self.msgbox4.pos[1] - \
+            self.msgbox5.calculate_ultimate_size()[1]
+        self.msgbox1.text = "q _input_timer: " +\
+            str(self.keyboard.current_setup.keyactions[
+                pygame.K_q]._input_timer.read())
+        self.msgbox2.text = "q _input_timer pause: " +\
+            str(self.keyboard.current_setup.keyactions[
+                pygame.K_q]._input_timer.read_pausing())
+        self.msgbox3.text = "q is_pressed: " +\
+            str(self.keyboard.current_setup.keyactions[
+                pygame.K_q]._is_pressed)
+        self.msgbox4.text = "q is_delayinput_finished: " +\
+            str(self.keyboard.current_setup.keyactions[
+                pygame.K_q]._is_delayinput_finished)
+        self.msgbox5.text = "q is_firstinterval_finished: " +\
+            str(self.keyboard.current_setup.keyactions[
+                pygame.K_q]._is_firstinterval_finished)
 
     def draw(self, screen):
         if self.keyboard.current_setup_key == "qwerty":
@@ -128,6 +158,11 @@ class KeyboardDebugScene(Scene):
                 textinput_surface,
                 (textinput_homepos[0],
                  textinput_homepos[1]+char_size[1]*line_num))
+        self.msgbox1.draw(screen)
+        self.msgbox2.draw(screen)
+        self.msgbox3.draw(screen)
+        self.msgbox4.draw(screen)
+        self.msgbox5.draw(screen)
 
 
 scene_manager = SceneManager()
