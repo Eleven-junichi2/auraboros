@@ -90,7 +90,6 @@ class SceneManager:
         if not self.__is_finished_setup_of_first_scene:
             if global_.is_init_called:
                 self.scenes[0].setup()
-                self.scenes[0]._is_setup_finished = True
                 self.__is_finished_setup_of_first_scene = True
         self.scenes[self.current].update(dt)
         if self.is_current_scene_has_gameworld():
