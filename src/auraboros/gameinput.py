@@ -54,7 +54,8 @@ class Keyboard:
             if self.is_keyaction_regitered(event.key):
                 self.keyactions[event.key]._is_pressed = False
 
-    def do_action_on_keyinput(self, pygame_key_const, ignore_unregistered=True):
+    def do_action_on_keyinput(
+            self, pygame_key_const, ignore_unregistered=True):
         if not self.is_keyaction_regitered(pygame_key_const)\
                 and ignore_unregistered:
             return
