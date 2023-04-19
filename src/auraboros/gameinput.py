@@ -8,7 +8,7 @@ from .schedule import Stopwatch
 
 
 @dataclass
-class _KeyAction:
+class KeyAction:
     delay: int
     first_interval: int
     interval: int
@@ -27,7 +27,10 @@ class _KeyAction:
 
 class Keyboard:
     def __init__(self):
-        self.keyactions: dict[int, _KeyAction] = {}
+        self.keyactions: dict[int, KeyAction] = {}
+
+    def __getitem__(self, key) -> KeyAction:
+        return self.keyactions[key]
 
     def register_keyaction(
             self, pygame_key_const: int,
@@ -39,7 +42,7 @@ class Keyboard:
         """first_interval = interval if first_interval is None"""
         if first_interval is None:
             first_interval = interval
-        self.keyactions[pygame_key_const] = _KeyAction(
+        self.keyactions[pygame_key_const] = KeyAction(
             delay=delay, interval=interval, first_interval=first_interval,
             keydown=keydown, keyup=keyup)
 
@@ -94,9 +97,9 @@ class Keyboard:
             self.keyactions[KEY]._is_firstinterval_finished = False
             do_keyup = True
         if do_keydown:
-            self.keyactions[KEY].keydown()
+            return self.keyactions[KEY].keydown()
         if do_keyup:
-            self.keyactions[KEY].keyup()
+            return self.keyactions[KEY].keyup()
 
     def release_all_of_keys(self):
         for key in self.keyactions.keys():
