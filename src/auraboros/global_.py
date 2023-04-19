@@ -10,6 +10,7 @@ screen: pygame.surface.Surface
 TARGET_FPS: int
 w_size_unscaled: tuple[int, int]
 w_size: tuple[int, int]
+is_init_called = False
 
 
 def init(window_size=(960, 640), caption="", icon_filepath=None,
@@ -27,3 +28,4 @@ def init(window_size=(960, 640), caption="", icon_filepath=None,
     if icon_filepath:
         icon_surf = pygame.image.load(icon_filepath)
         pygame.display.set_icon(icon_surf)
+    global_.is_init_called = True

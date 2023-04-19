@@ -76,5 +76,13 @@
             "console": "integratedTerminal",
             "justMyCode": true
         },
+        {
+            "name": "Python: example scene transition",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/auraboros/debugs/scenetrans.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
     ]
 }

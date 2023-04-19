@@ -1,5 +1,6 @@
 import pygame
 
+import init_for_dev  # noqa
 from auraboros import engine
 from auraboros.gamescene import Scene, SceneManager
 
@@ -11,12 +12,15 @@ engine.init(caption="Test scene transition", pixel_scale=1,
 class TestSceneA(Scene):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        print("transition to 2")
-        self.manager.transition_to(2)
-        print("this is scene A (setup)")
+        print("this is scene A (__init__)")
+        self.is_transition_done = False
 
     def setup(self):
         print("this is scene A (setup)")
+        print("transition to 2 (C)")
+        if not self.is_transition_done:
+            self.is_transition_done = True
+            self.manager.transition_to(2)
 
 
 class TestSceneB(Scene):
@@ -26,16 +30,19 @@ class TestSceneB(Scene):
 
     def setup(self):
         print("this is scene B (setup)")
+        print("transition to 0 (A)")
+        self.manager.transition_to(0)
 
 
 class TestSceneC(Scene):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.manager.transition_to(1)
         print("this is scene C (__init__)")
 
     def setup(self):
         print("this is scene C (setup)")
+        print("transition to 0 (B)")
+        self.manager.transition_to(1)
 
 
 scene_manager = SceneManager()

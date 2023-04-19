@@ -4,6 +4,8 @@ from dataclasses import dataclass
 
 import pygame
 
+from auraboros import global_
+
 from .animation import AnimationImage
 from .gameinput import KeyboardManager
 
@@ -25,9 +27,13 @@ class Scene(object):
             is_gameworld = Level in attrs_of_object
             if is_gameworld:
                 getattr(self, attr_name).scene = self
-    
+
     def setup(self):
-        """This method is called on scene transition from the other scene."""
+        """
+        This method is called on scene transitions
+        or if this scene is the first scene.
+        """
+        pass
 
     # @property
     # def joystick(self) -> Optional[Joystick2]:
@@ -51,6 +57,7 @@ class SceneManager:
     def __init__(self):
         self.scenes: list[Scene] = []
         self._current: int = 0
+        self.__is_finished_setup_of_first_scene = False
 
     @property
     def current(self):
@@ -80,6 +87,10 @@ class SceneManager:
             return True
 
     def update(self, dt):
+        if not self.__is_finished_setup_of_first_scene:
+            if global_.is_init_called:
+                self.scenes[0].setup()
+                self.__is_finished_setup_of_first_scene = True
         self.scenes[self.current].update(dt)
         if self.is_current_scene_has_gameworld():
             if not self.scenes[self.current].gameworld.pause:
@@ -108,8 +119,9 @@ class SceneManager:
     def pop(self):
         self.scenes.pop()
 
-    def transition_to(self, index):
+    def transition_to(self, index: int):
         if self.scenes[self.current].keyboard.current_setup is not None:
             self.scenes[
                 self.current].keyboard.current_setup.release_all_of_keys()
         self.current = index
+        self.scenes[self.current].setup()
