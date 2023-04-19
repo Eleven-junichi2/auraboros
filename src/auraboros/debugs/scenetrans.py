@@ -22,6 +22,11 @@ class TestSceneA(Scene):
             self.is_transition_done = True
             self.manager.transition_to(2)
 
+    # def update(self, dt):
+    #     """update(), draw(), event() is not called before setup()."""
+    #     # raise AttributeError if update() is called before setup():
+    #     dammy = self.dammy  # noqa
+
 
 class TestSceneB(Scene):
     def __init__(self, *args, **kwargs):
@@ -31,6 +36,7 @@ class TestSceneB(Scene):
     def setup(self):
         print("this is scene B (setup)")
         print("transition to 0 (A)")
+        self.dammy = False
         self.manager.transition_to(0)
 
 
