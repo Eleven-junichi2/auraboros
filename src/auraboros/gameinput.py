@@ -8,7 +8,7 @@ from .schedule import Stopwatch
 
 
 @dataclass
-class KeyAction:
+class _KeyAction:
     delay: int
     first_interval: int
     interval: int
@@ -27,7 +27,7 @@ class KeyAction:
 
 class Keyboard:
     def __init__(self):
-        self.keyactions: dict[int, KeyAction] = {}
+        self.keyactions: dict[int, _KeyAction] = {}
 
     def register_keyaction(
             self, pygame_key_const: int,
@@ -39,7 +39,7 @@ class Keyboard:
         """first_interval = interval if first_interval is None"""
         if first_interval is None:
             first_interval = interval
-        self.keyactions[pygame_key_const] = KeyAction(
+        self.keyactions[pygame_key_const] = _KeyAction(
             delay=delay, interval=interval, first_interval=first_interval,
             keydown=keydown, keyup=keyup)
 
@@ -142,7 +142,7 @@ class KeyboardManager(KeyboardSetupDict):
 
 
 class OldKeyboard:
-    """unused"""
+    """DEPRECATED"""
 
     def __init__(self):
         self.keyaction_dict: dict[int, OldKeyActionItem] = {}
@@ -229,7 +229,7 @@ class OldKeyboard:
 
 
 class OldKeyActionItem(TypedDict):
-    """unused"""
+    """DEPRECATED"""
     keydown: Callable
     keyup: Callable
     delay: int
