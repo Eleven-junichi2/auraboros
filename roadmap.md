@@ -1,0 +1,4 @@
+- text curling
+- rich ui
+- joystick
+- sound management
