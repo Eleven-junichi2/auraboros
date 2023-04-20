@@ -27,6 +27,7 @@ class Scene(object):
             is_gameworld = Level in attrs_of_object
             if is_gameworld:
                 getattr(self, attr_name).scene = self
+        self._is_setup_finished = False  # turn True by SceneManager
 
     def setup(self):
         """
@@ -67,12 +68,14 @@ class SceneManager:
     def current(self, value):
         self._current = value
 
-    def event(self, event: pygame.event):
+    def event(self, event: pygame.event) -> bool:
         """return False as a signal of quit app"""
         if event.type == pygame.QUIT:
             return False
         if self.current == -1:
             return False
+        if not self.scenes[self.current]._is_setup_finished:
+            return True
         self.scenes[self.current].event(event)
         if self.scenes[self.current].keyboard.current_setup is not None:
             self.scenes[self.current].keyboard.current_setup.event(event)
@@ -91,6 +94,7 @@ class SceneManager:
             if global_.is_init_called:
                 self.scenes[0].setup()
                 self.__is_finished_setup_of_first_scene = True
+                self.scenes[0]._is_setup_finished = True
         self.scenes[self.current].update(dt)
         if self.is_current_scene_has_gameworld():
             if not self.scenes[self.current].gameworld.pause:
@@ -125,3 +129,4 @@ class SceneManager:
                 self.current].keyboard.current_setup.release_all_of_keys()
         self.current = index
         self.scenes[self.current].setup()
+        self.scenes[self.current]._is_setup_finished = True
