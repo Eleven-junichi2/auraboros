@@ -152,10 +152,11 @@ FuncsOnMouseEvent = dict[str: dict[str, Callable]]
 
 class Mouse:
     """WIP"""
+
     def __init__(self):
         self.is_dragging = False
         self.pos_drag_start = None
-        self.funcs_on_event: FuncsOnMouseEvent = {
+        self._funcs_on_event: FuncsOnMouseEvent = {
             "up": {"left": lambda: None,
                    "middle": lambda: None,
                    "right": lambda: None,
@@ -168,14 +169,16 @@ class Mouse:
                      "wheel_down": lambda: None},
             "motion": {"left": lambda: None,
                        "middle": lambda: None,
-                       "right": lambda: None}, }
-
-    # def new_pos_by_dragging(self, pos_to_drag):
-    #     new_pos = pos_to_drag -= event.pos[0] - \
-    #         self.pos_start_drag[0]
-    #     self.camera.offset_y -= event.pos[1] - \
-    #         self.pos_start_drag[1]
-    #     self.pos_start_drag = event.pos[]
+                       "right": lambda: None},
+            "drag": {"left": lambda drag_pos: None,
+                     "middle": lambda drag_pos: None,
+                     "right": lambda drag_pos: None}}
+        self.is_dragging = {"left": False,
+                            "middle": False,
+                            "right": False}
+        self.pos_prev_drag = {"left": None,
+                              "middle": None,
+                              "right": None}
 
     @staticmethod
     def _translate_int_pygame_mouse_event_to_str(int_pygame_mouse_event_type):
@@ -197,55 +200,72 @@ class Mouse:
         else:
             key = keyname_or_int_pygame_mouse_event_type
         if on_left:
-            self.funcs_on_event[key]["left"] = on_left
+            self._funcs_on_event[key]["left"] = on_left
         if on_middle:
-            self.funcs_on_event[key]["middle"] = on_middle
+            self._funcs_on_event[key]["middle"] = on_middle
         if on_right:
-            self.funcs_on_event[key]["right"] = on_right
-        if key != "motion":
+            self._funcs_on_event[key]["right"] = on_right
+        if key != "motion" and "drag":
             if on_wheel_up:
-                self.funcs_on_event[key]["wheel_up"] = on_wheel_up
+                self._funcs_on_event[key]["wheel_up"] = on_wheel_up
             if on_wheel_down:
-                self.funcs_on_event[key]["wheel_down"] = on_wheel_down
+                self._funcs_on_event[key]["wheel_down"] = on_wheel_down
 
     def event(self, event: pygame.event.Event):
         if event.type == pygame.MOUSEBUTTONDOWN:
             KEY = "down"
             if event.button == 1:
-                self.funcs_on_event[KEY]["left"]()
+                self._funcs_on_event[KEY]["left"]()
+                self.is_dragging["left"] = True
+                self.pos_prev_drag["left"] = pygame.mouse.get_pos()
             elif event.button == 2:
-                self.funcs_on_event[KEY]["middle"]()
+                self._funcs_on_event[KEY]["middle"]()
+                self.is_dragging["middle"] = True
+                self.pos_prev_drag["middle"] = pygame.mouse.get_pos()
             elif event.button == 3:
-                self.funcs_on_event[KEY]["right"]()
+                self._funcs_on_event[KEY]["right"]()
+                self.is_dragging["right"] = True
+                self.pos_prev_drag["right"] = pygame.mouse.get_pos()
             elif event.button == 4:
-                self.funcs_on_event[KEY]["wheel_up"]()
+                self._funcs_on_event[KEY]["wheel_up"]()
             elif event.button == 5:
-                self.funcs_on_event[KEY]["wheel_down"]()
+                self._funcs_on_event[KEY]["wheel_down"]()
         if event.type == pygame.MOUSEBUTTONUP:
             KEY = "up"
             if event.button == 1:
-                self.funcs_on_event[KEY]["left"]()
+                self._funcs_on_event[KEY]["left"]()
+                self.is_dragging["left"] = False
             elif event.button == 2:
-                self.funcs_on_event[KEY]["middle"]()
+                self._funcs_on_event[KEY]["middle"]()
+                self.is_dragging["middle"] = False
             elif event.button == 3:
-                self.funcs_on_event[KEY]["right"]()
+                self._funcs_on_event[KEY]["right"]()
+                self.is_dragging["right"] = False
             elif event.button == 4:
-                self.funcs_on_event[KEY]["wheel_up"]()
+                self._funcs_on_event[KEY]["wheel_up"]()
             elif event.button == 5:
-                self.funcs_on_event[KEY]["wheel_down"]()
+                self._funcs_on_event[KEY]["wheel_down"]()
         elif event.type == pygame.MOUSEMOTION:
             KEY = "motion"
             if pygame.mouse.get_pressed()[0]:
-                self.funcs_on_event[KEY]["left"]()
+                self._funcs_on_event[KEY]["left"]()
             else:
                 pass
             if pygame.mouse.get_pressed()[1]:
-                self.funcs_on_event[KEY]["middle"]()
+                self._funcs_on_event[KEY]["middle"]()
             else:
                 pass
             if pygame.mouse.get_pressed()[2]:
-                self.funcs_on_event[KEY]["right"]()
+                self._funcs_on_event[KEY]["right"]()
             else:
                 pass
-            if self.is_dragging:
-                pass
+            KEY = "drag"
+            if self.is_dragging["left"]:
+                self._funcs_on_event[KEY]["left"](event.pos)
+                self.pos_prev_drag["left"] = event.pos
+            if self.is_dragging["middle"]:
+                self._funcs_on_event[KEY]["middle"](event.pos)
+                self.pos_prev_drag["middle"] = event.pos
+            if self.is_dragging["right"]:
+                self._funcs_on_event[KEY]["right"](event.pos)
+                self.pos_prev_drag["right"] = event.pos
