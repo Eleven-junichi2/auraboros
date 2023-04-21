@@ -2,7 +2,6 @@
 Use to define global variables common use in the modules.
 """
 from functools import wraps
-from typing import Union
 
 import pygame
 
