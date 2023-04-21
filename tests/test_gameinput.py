@@ -70,20 +70,20 @@ class TestMouse:
             for i, key_ in enumerate(keys_event_btn):
                 if key == "motion" and i >= 3:
                     continue
-                assert mouse.funcs_on_event[key][key_]() is None
+                assert mouse._funcs_on_event[key][key_]() is None
 
     def test_register_mouseaction(self):
         mouse = Mouse()
         mouse.register_mouseaction(
             pygame.MOUSEBUTTONDOWN, on_left=self.on_mouse_left)
-        assert mouse.funcs_on_event["down"]["left"]() == 1
+        assert mouse._funcs_on_event["down"]["left"]() == 1
         mouse.register_mouseaction(
             "up", on_right=self.on_mouse_right)
         mouse.register_mouseaction(
             "motion", on_right=self.on_mouse_right,
             on_wheel_down=self.on_mouse_wheel_down)
-        assert mouse.funcs_on_event["up"]["right"]() == 3
+        assert mouse._funcs_on_event["up"]["right"]() == 3
         try:
-            mouse.funcs_on_event["motion"]["wheel_down"]()
+            mouse._funcs_on_event["motion"]["wheel_down"]()
         except KeyError:
             assert True
