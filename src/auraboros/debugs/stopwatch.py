@@ -104,40 +104,40 @@ class DebugScene(Scene):
         self.msgbox3.text = \
             f"1 pausing time:{self.stopwatch.read_pausing()/1000}"
         self.msgbox2.pos[1] = \
-            self.msgbox.calculate_ultimate_size()[1]
+            self.msgbox.real_size[1]
         self.msgbox3.pos[1] = \
-            self.msgbox.calculate_ultimate_size()[1] +\
-            self.msgbox2.calculate_ultimate_size()[1]
+            self.msgbox.real_size[1] +\
+            self.msgbox2.real_size[1]
         self.msgbox4.pos[1] = \
-            self.msgbox.calculate_ultimate_size()[1] +\
-            self.msgbox2.calculate_ultimate_size()[1] +\
-            self.msgbox3.calculate_ultimate_size()[1]
+            self.msgbox.real_size[1] +\
+            self.msgbox2.real_size[1] +\
+            self.msgbox3.real_size[1]
         self.msgbox5.pos[1] = \
-            self.msgbox.calculate_ultimate_size()[1] +\
-            self.msgbox2.calculate_ultimate_size()[1] +\
-            self.msgbox3.calculate_ultimate_size()[1] +\
-            self.msgbox4.calculate_ultimate_size()[1]
+            self.msgbox.real_size[1] +\
+            self.msgbox2.real_size[1] +\
+            self.msgbox3.real_size[1] +\
+            self.msgbox4.real_size[1]
         self.msgbox6.pos[1] = \
-            self.msgbox.calculate_ultimate_size()[1] +\
-            self.msgbox2.calculate_ultimate_size()[1] +\
-            self.msgbox3.calculate_ultimate_size()[1] +\
-            self.msgbox4.calculate_ultimate_size()[1] +\
-            self.msgbox5.calculate_ultimate_size()[1]
+            self.msgbox.real_size[1] +\
+            self.msgbox2.real_size[1] +\
+            self.msgbox3.real_size[1] +\
+            self.msgbox4.real_size[1] +\
+            self.msgbox5.real_size[1]
         self.msgbox7.pos[1] = \
-            self.msgbox.calculate_ultimate_size()[1] +\
-            self.msgbox2.calculate_ultimate_size()[1] +\
-            self.msgbox3.calculate_ultimate_size()[1] +\
-            self.msgbox4.calculate_ultimate_size()[1] +\
-            self.msgbox5.calculate_ultimate_size()[1] +\
-            self.msgbox6.calculate_ultimate_size()[1]
+            self.msgbox.real_size[1] +\
+            self.msgbox2.real_size[1] +\
+            self.msgbox3.real_size[1] +\
+            self.msgbox4.real_size[1] +\
+            self.msgbox5.real_size[1] +\
+            self.msgbox6.real_size[1]
         self.msgbox8.pos[1] = \
-            self.msgbox.calculate_ultimate_size()[1] +\
-            self.msgbox2.calculate_ultimate_size()[1] +\
-            self.msgbox3.calculate_ultimate_size()[1] +\
-            self.msgbox4.calculate_ultimate_size()[1] +\
-            self.msgbox5.calculate_ultimate_size()[1] +\
-            self.msgbox6.calculate_ultimate_size()[1] +\
-            self.msgbox7.calculate_ultimate_size()[1]
+            self.msgbox.real_size[1] +\
+            self.msgbox2.real_size[1] +\
+            self.msgbox3.real_size[1] +\
+            self.msgbox4.real_size[1] +\
+            self.msgbox5.real_size[1] +\
+            self.msgbox6.real_size[1] +\
+            self.msgbox7.real_size[1]
 
     def draw(self, screen):
         draw_grid(screen, 16, (78, 78, 78))

@@ -5,6 +5,7 @@ import pygame
 
 from .gametext import TextSurfaceFactory
 from . import global_
+from .utilities import calc_pos_to_center, calc_x_to_center, calc_y_to_center
 
 
 class MenuHasNoItemError(Exception):
@@ -112,15 +113,42 @@ class GameMenuSystem:
 
 
 class UIElement(metaclass=abc.ABCMeta):
+    def __init__(self, *args, **kwargs):
+        self.padding = 0
+
+    @staticmethod
+    def sum_sizes(sizes: tuple[tuple[int, int]]) -> tuple[int, int]:
+        return tuple(map(sum, zip(*sizes)))
+
     @property
     @abc.abstractmethod
-    def min_size(self) -> list[int]:
+    def pos(self) -> list[int, int]:
+        """return self._pos"""
+        pass
+
+    @pos.setter
+    @abc.abstractmethod
+    def pos(self, value):
+        """self._pos = value"""
+        pass
+
+    @property
+    @abc.abstractmethod
+    def min_size(self) -> list[int, int]:
+        """
         self.resize_min_size_to_suit()
         return self.__min_size
+        """
+        pass
 
     @abc.abstractmethod
     def resize_min_size_to_suit(self):
-        self.__min_size = [0, 0]
+        """self.__min_size = [ calc size here ]"""
+
+    @property
+    @abc.abstractmethod
+    def real_size(self) -> list[int, int]:
+        """return calc size here"""
 
 
 class GameMenuUI(UIElement):
@@ -133,7 +161,9 @@ class GameMenuUI(UIElement):
 
     def __init__(self, menu_system: GameMenuSystem,
                  textfactory: TextSurfaceFactory,
-                 option_highlight_style="cursor"):
+                 option_highlight_style="cursor", *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        print("child")
         self.system = menu_system
         self.textfactory = textfactory
         self.resize_min_size_to_suit()
@@ -144,7 +174,6 @@ class GameMenuUI(UIElement):
         self.cursor_size = textfactory.char_size()
         self.reposition_cursor()
         self.option_highlight_style = option_highlight_style
-        self.padding = 0
         self.locate_cursor_inside_window = True
         # self.anchor = "top-left"
 
@@ -169,10 +198,7 @@ class GameMenuUI(UIElement):
             self.system.count_menu_items()*self.textfactory.char_size()[1]]
 
     @property
-    def ultimate_size(self):
-        return self.calculate_ultimate_size()
-
-    def calculate_ultimate_size(self) -> list[int, int]:
+    def real_size(self):
         if (self.option_highlight_style == "cursor" and
                 self.locate_cursor_inside_window):
             size = [self.min_size[0]+self.padding*3+self.cursor_size[0],
@@ -188,21 +214,21 @@ class GameMenuUI(UIElement):
             self.pos[1]]
 
     def set_x_to_center(self):
-        self.pos[0] = global_.w_size[0]//2-self.ultimate_size[0]//2
+        self.pos[0] = calc_x_to_center(self.real_size[0])
         self.reposition_cursor()
 
     def set_y_to_center(self):
-        self.pos[1] = global_.w_size[1]//2-self.ultimate_size[1]//2
+        self.pos[1] = calc_y_to_center(self.real_size[1])
         self.reposition_cursor()
 
     def set_pos_to_center(self):
-        self.set_x_to_center()
-        self.set_y_to_center()
+        self.pos = list(calc_pos_to_center(self.real_size))
+        self.reposition_cursor()
 
     def draw(self, screen):
         pygame.draw.rect(
             screen, self.frame_color,
-            self.pos + self.ultimate_size, 1)
+            self.pos + self.real_size, 1)
         for i, (key, text) in enumerate(
             zip(self.system.menu_option_keys,
                 self.system.menu_option_texts)):
@@ -315,27 +341,27 @@ class MsgWindow(UIElement):
             self._size = self.min_size
 
     @property
-    def ultimate_size(self):
-        return self.calculate_ultimate_size()
+    def real_size(self):
+        return self.calc_real_size()
 
-    def calculate_ultimate_size(self) -> list[int, int]:
+    def calc_real_size(self) -> list[int, int]:
         return list(map(sum, zip(self.size, [self.padding*2, self.padding*2])))
 
     def rewrite_text(self, text):
         self.text = text
 
     def set_x_to_center(self):
-        self.pos[0] = global_.w_size[0]//2-self.ultimate_size[0]//2
+        self.pos[0] = global_.w_size[0]//2-self.real_size[0]//2
 
     def set_y_to_center(self):
-        self.pos[1] = global_.w_size[1]//2-self.ultimate_size[1]//2
+        self.pos[1] = global_.w_size[1]//2-self.real_size[1]//2
 
     def set_pos_to_center(self):
         self.set_x_to_center()
         self.set_y_to_center()
 
     def draw(self, screen: pygame.surface.Surface):
-        frame_rect = self.pos + self.ultimate_size
+        frame_rect = self.pos + self.real_size
         pygame.draw.rect(
             screen, self.frame_color,
             frame_rect, 1)
