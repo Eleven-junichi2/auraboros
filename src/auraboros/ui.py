@@ -288,11 +288,13 @@ class GameMenuUI(UIElement):
 class MsgWindow(UIElement):
     """
     type_of_sizing = "min"(default) or "fixed"
+    text_anchor = "left" or "center(default)"
     anchor(unused) = "top_left" or "center_fixed" or "center"
     "top_left" is default
     """
 
-    def __init__(self, font: pygame.font.Font, type_of_sizing="min"):
+    def __init__(self, font: pygame.font.Font,
+                 type_of_sizing="min", text_anchor="center"):
         self.text = ""
         # self.textfactory = textfactory
         self.font = font
@@ -301,6 +303,7 @@ class MsgWindow(UIElement):
         self._pos = [0, 0]
         self.frame_color = (255, 255, 255)
         self.type_of_sizing = type_of_sizing
+        self.text_anchor = text_anchor
         self._size = [0, 0]
         self.resize_on_type_of_sizing()
         self.padding = 0
@@ -360,14 +363,32 @@ class MsgWindow(UIElement):
         self.set_x_to_center()
         self.set_y_to_center()
 
+    def set_height_by_line_num(self, textline_num):
+        """WIP"""
+        text_height = self.font.size(self.text)[1]
+        self.size[1] = text_height * textline_num
+
     def draw(self, screen: pygame.surface.Surface):
         frame_rect = self.pos + self.real_size
         pygame.draw.rect(
             screen, self.frame_color,
             frame_rect, 1)
+        text_size = self.font.size(self.text)
+        if self.text_anchor == "center":
+            text_pos = tuple(map(sum, zip(
+                map(
+                    sum, zip(
+                        map(lambda num: num//2, self.real_size),
+                        map(lambda num: -num//2, text_size))
+                ),
+                self.pos)))
+        elif self.text_anchor == "left":
+            text_pos = tuple(map(sum, zip(
+                self.pos, [self.padding, self.padding])))
+        print(text_pos)
         screen.blit(self.font.render(
             self.text, True, (255, 255, 255)),
-            tuple(map(sum, zip(self.pos, [self.padding, self.padding]))))
+            text_pos)
 
 
 # class UIElement:
