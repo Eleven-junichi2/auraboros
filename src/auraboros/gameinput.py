@@ -147,102 +147,65 @@ class KeyboardManager(KeyboardSetupDict):
         self.current_setup_key = key
 
 
-class OldKeyboard:
-    """DEPRECATED"""
-
+class Mouse:
     def __init__(self):
-        self.keyaction_dict: dict[int, OldKeyActionItem] = {}
+        self.is_dragging = False
+        self.pos_drag_start = None
 
-    def __getitem__(self, key):
-        return self.keyaction_dict[key]
+    # def new_pos_by_dragging(self, pos_to_drag):
+    #     new_pos = pos_to_drag -= event.pos[0] - \
+    #         self.pos_start_drag[0]
+    #     self.camera.offset_y -= event.pos[1] - \
+    #         self.pos_start_drag[1]
+    #     self.pos_start_drag = event.pos[]
 
-    def event(self, event):
-        if event.type == pygame.KEYDOWN:
-            if self.keyaction_dict.get(event.key):
-                self.keyaction_dict[event.key][
-                    "is_pressed"] = True
-                self.keyaction_dict[event.key][
-                    "last_time"] = pygame.time.get_ticks()
-        if event.type == pygame.KEYUP:
-            if self.keyaction_dict.get(event.key):
-                self.keyaction_dict[event.key]["is_pressed"] = False
-
-    def release_all_of_keys(self):
-        for key in self.keyaction_dict.keys():
-            self.keyaction_dict[key]["is_pressed"] = False
-
-    def do_action_by_keyinput(self, key_const, ignore_inregistered_key=False):
-        if self.keyaction_dict.get(key_const) is None\
-                and ignore_inregistered_key:
-            return
-        IS_PRESSED = self.keyaction_dict[key_const]["is_pressed"]
-        DELAY = self.keyaction_dict[key_const]["delay"]
-        INTERVAL = self.keyaction_dict[key_const]["interval"]
-        last_time = self.keyaction_dict[key_const]["last_time"]
-        current_time = pygame.time.get_ticks()
-        do_keydown = False
-        do_keyup = False
-        if IS_PRESSED:
-            if current_time - last_time >= DELAY:
-                if not self.keyaction_dict[key_const]["_first_input_finished"]:
-                    self.keyaction_dict[key_const][
-                        "_first_input_finished"] = True
-                    do_keydown = True
-                elif current_time - last_time >= INTERVAL:
-                    do_keydown = True
-                    self.keyaction_dict[key_const]["last_time"] = current_time
-        else:
-            if self.keyaction_dict[key_const]["_first_input_finished"]:
-                do_keyup = True
-                self.keyaction_dict[key_const]["_first_input_finished"] = False
-        if self.keyaction_dict[key_const]["keydown_deactivated"]:
-            do_keydown = False
-        if self.keyaction_dict[key_const]["keyup_deactivated"]:
-            do_keyup = False
-        if do_keydown:
-            return self.keyaction_dict[key_const]["keydown"]()
-        elif do_keyup:
-            return self.keyaction_dict[key_const]["keyup"]()
-
-    def register_keyaction(
-            self,
-            key_const,
-            delay, interval,
-            keydown: Callable = lambda: None, keyup: Callable = lambda: None):
-
-        self.keyaction_dict[key_const] = OldKeyActionItem({
-            "keydown": keydown, "keyup": keyup,
-            "delay": delay,
-            "interval": interval,
-            "is_pressed": False,
-            "last_time": 0,
-            "_first_input_finished": False,
-            "keydown_deactivated": False,
-            "keyup_deactivated": False,
-            "inputtimer": Stopwatch()})
-
-    def deactivate_keyup(self, key_const):
-        self.keyaction_dict[key_const]["keyup_deactivated"] = True
-
-    def activate_keyup(self, key_const):
-        self.keyaction_dict[key_const]["keyup_deactivated"] = False
-
-    def deactivate_keydown(self, key_const):
-        self.keyaction_dict[key_const]["keydown_deactivated"] = True
-
-    def activate_keydown(self, key_const):
-        self.keyaction_dict[key_const]["keydown_deactivated"] = False
-
-
-class OldKeyActionItem(TypedDict):
-    """DEPRECATED"""
-    keydown: Callable
-    keyup: Callable
-    delay: int
-    interval: int
-    is_pressed: bool
-    last_time: int
-    _first_input_finished: bool
-    keydown_deactivated: bool
-    keyup_deactivated: bool
-    inputtimer: Stopwatch
+    def event(self, event: pygame.event.Event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                pass
+            elif event.button == 2:
+                pass
+            elif event.button == 3:
+                pass
+            elif event.button == 4:
+                pass
+            elif event.button == 5:
+                pass
+        if event.type == pygame.MOUSEBUTTONUP:
+            if event.button == 1:
+                pass
+            elif event.button == 2:
+                pass
+            elif event.button == 3:
+                pass
+            elif event.button == 4:
+                pass
+            elif event.button == 5:
+                pass
+        elif event.type == pygame.MOUSEMOTION:
+            if pygame.mouse.get_pressed()[0]:
+                pass
+            else:
+                pass
+            if pygame.mouse.get_pressed()[1]:
+                pass
+            else:
+                pass
+            if pygame.mouse.get_pressed()[2]:
+                pass
+            else:
+                pass
+            if pygame.mouse.get_pressed()[3]:
+                pass
+            else:
+                pass
+            if pygame.mouse.get_pressed()[4]:
+                pass
+            else:
+                pass
+            if self.is_mouse_dragging:
+                self.camera.offset_x -= event.pos[0] - \
+                    self.pos_start_drag[0]
+                self.camera.offset_y -= event.pos[1] - \
+                    self.pos_start_drag[1]
+                self.pos_start_drag = event.pos
