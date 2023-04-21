@@ -16,7 +16,7 @@ from auraboros.ui import GameMenuSystem, GameMenuUI, MsgWindow
 from auraboros.utilities import AssetFilePath, draw_grid
 from auraboros.schedule import Stopwatch
 
-engine.init(caption="Test Stopwatch System")
+engine.init(caption="Test Stopwatch System", pixel_scale=3)
 
 AssetFilePath.set_asset_root(Path(sys.argv[0]).parent / "assets")
 
@@ -48,15 +48,16 @@ class DebugScene(Scene):
         super().__init__(*args, **kwargs)
         textfactory.set_current_font("misaki_gothic")
         self.stopwatch = Stopwatch()
+        self.stopwatch.enable_pausing_time_count()
         self.keyboard["menu"] = Keyboard()
         self.keyboard.set_current_setup("menu")
         self.menusystem = GameMenuSystem()
         self.keyboard["menu"].register_keyaction(
-            pygame.K_UP, 0, 122, self.menusystem.menu_cursor_up)
+            pygame.K_UP, 0, 122, 122, self.menusystem.menu_cursor_up)
         self.keyboard["menu"].register_keyaction(
-            pygame.K_DOWN, 0, 122, self.menusystem.menu_cursor_down)
+            pygame.K_DOWN, 0, 122, 122, self.menusystem.menu_cursor_down)
         self.keyboard["menu"].register_keyaction(
-            pygame.K_z, 0, 0, self.menusystem.do_selected_action)
+            pygame.K_z, 0, 0, 0, self.menusystem.do_selected_action)
         self.menusystem.add_menu_item(
             "play", self.start_stopwatch, text="Play")
         self.menusystem.add_menu_item(

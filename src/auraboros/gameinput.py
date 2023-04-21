@@ -36,7 +36,7 @@ class Keyboard:
             self, pygame_key_const: int,
             delay: int,
             interval: int,
-            first_interval: Union[int, None] = None,
+            first_interval: int,
             keydown: Callable = lambda: None,
             keyup: Callable = lambda: None):
         """first_interval = interval if first_interval is None"""
