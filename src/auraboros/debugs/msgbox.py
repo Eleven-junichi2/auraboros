@@ -33,7 +33,6 @@ class DebugScene(Scene):
         self.msgbox.size[0] = global_.w_size[0]*0.95
         self.msgbox.size[1] = global_.w_size[1]*0.22
         self.msgbox.pos[1] = global_.w_size[1]*0.975 - self.msgbox.real_size[1]
-        # self.msgbox.size[0] = global_.w_size[0]*0.9
         self.msgbox.set_x_to_center()
 
     def draw(self, screen):

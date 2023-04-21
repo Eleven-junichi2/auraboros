@@ -115,6 +115,7 @@ class GameMenuSystem:
 class UIElement(metaclass=abc.ABCMeta):
     def __init__(self, *args, **kwargs):
         self.padding = 0
+        # self.enable_mouse = True
 
     @staticmethod
     def sum_sizes(sizes: tuple[tuple[int, int]]) -> tuple[int, int]:
@@ -224,6 +225,31 @@ class GameMenuUI(UIElement):
     def set_pos_to_center(self):
         self.pos = list(calc_pos_to_center(self.real_size))
         self.reposition_cursor()
+
+    def is_given_x_on_ui(self, x):
+        return self.pos[0] <= x <= self.pos[0] + self.real_size[0]
+
+    def is_given_y_on_ui(self, y):
+        return self.pos[1] <= y <= self.pos[1] + self.real_size[1]
+
+    def is_givenpos_on_ui(self, pos):
+        return self.is_given_x_on_ui(pos[0]) and self.is_given_y_on_ui(pos[1])
+
+    def is_givenpos_on_option(self, pos, index):
+        is_on_y = \
+            self.pos[1] + self.cursor_size[1]*index\
+            <= pos[1] <=\
+            self.pos[1] + self.cursor_size[1]*(index+1)
+        return self.is_given_x_on_ui(pos[0]) and is_on_y
+
+    def do_option_if_givenpos_on_ui(self, pos):
+        if self.is_givenpos_on_ui(pos):
+            self.system.do_selected_action()
+
+    def highlight_option_on_givenpos(self, pos):
+        for i in range(len(self.system.menu_option_keys)):
+            if self.is_givenpos_on_option(pos, i):
+                self.system.select_action_by_index(i)
 
     def draw(self, screen):
         pygame.draw.rect(

@@ -8,14 +8,14 @@ import pygame
 
 import init_for_dev  # noqa
 from auraboros import engine
-from auraboros.utilities import AssetFilePath, draw_grid
+from auraboros.utilities import AssetFilePath, draw_grid, pos_on_pixel_scale
 from auraboros.gametext import TextSurfaceFactory
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.gameinput import Keyboard
 from auraboros.ui import GameMenuSystem, GameMenuUI, MsgWindow
 from auraboros import global_
 
-engine.init()
+engine.init(pixel_scale=2)
 
 AssetFilePath.set_asset_root(Path(sys.argv[0]).parent / "assets")
 
@@ -62,6 +62,10 @@ class GameMenuDebugScene(Scene):
         self.msgwindow2.text = "Press 'Z' to turn color of the box."
         self.turn_red()
         self.box_size = (24, 24)
+        self.mouse.register_mouseaction(
+            "down",
+            on_left=lambda: self.menuui.do_option_if_givenpos_on_ui(
+                pos_on_pixel_scale(pygame.mouse.get_pos())))
 
     def turn_red(self):
         self.box_color = (255, 0, 0)
@@ -83,6 +87,8 @@ class GameMenuDebugScene(Scene):
         self.msgwindow.set_x_to_center()
         self.msgwindow.pos[1] = global_.w_size[1]//3*2
         self.menusystem.update()
+        self.menuui.highlight_option_on_givenpos(
+            pos_on_pixel_scale(pygame.mouse.get_pos()))
 
     def draw(self, screen):
         draw_grid(screen, 16, (78, 78, 78))

@@ -8,6 +8,14 @@ import pygame
 from . import global_
 
 
+def pos_on_pixel_scale(pos) -> tuple[int, int]:
+    """
+    map(lambda num: num//global_.PIXEL_SCALE,
+        pygame.mouse.get_pos())
+    """
+    return tuple(map(lambda num: num//global_.PIXEL_SCALE, pos))
+
+
 def calc_x_to_center(width_of_stuff_to_be_centered: int) -> int:
     return global_.w_size[0]//2-width_of_stuff_to_be_centered//2
 

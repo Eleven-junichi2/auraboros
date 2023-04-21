@@ -8,7 +8,7 @@ import init_for_dev  # noqa
 from auraboros import engine
 from auraboros.gametext import TextSurfaceFactory
 from auraboros.gamescene import Scene, SceneManager
-from auraboros.utilities import AssetFilePath, draw_grid
+from auraboros.utilities import AssetFilePath, draw_grid, pos_on_pixel_scale
 from auraboros.gamecamera import TopDownCamera
 from auraboros.gameinput import Keyboard
 from auraboros.ui import MsgWindow
@@ -58,8 +58,7 @@ class DebugScene(Scene):
 
     def paint_canvas(self):
         camera_offset = self.camera.offset
-        mouse_pos = map(lambda num: num//global_.PIXEL_SCALE,
-                        pygame.mouse.get_pos())
+        mouse_pos = pos_on_pixel_scale(pygame.mouse.get_pos())
         pos = map(sum, zip(mouse_pos, camera_offset))
         pygame.draw.rect(
             self.canvas_surf,
