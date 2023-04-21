@@ -103,10 +103,10 @@ class AssetFilePath:
         cls.root_dirname = Path(root_dir_path).name
 
 
-def draw_grid_background(
+def draw_grid(
         screen: pygame.surface.Surface, grid_size: int, color: int):
     [pygame.draw.rect(
         screen, color,
         (x*grid_size, y*grid_size) + (grid_size, grid_size), 1)
-        for x in range(global_.w_size[0]//grid_size)
-        for y in range(global_.w_size[1]//grid_size)]
+        for x in range(screen.get_size()[0]//grid_size)
+        for y in range(screen.get_size()[1]//grid_size)]
