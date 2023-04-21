@@ -13,7 +13,7 @@ from auraboros.gametext import TextSurfaceFactory
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.gameinput import Keyboard
 from auraboros.ui import GameMenuSystem, GameMenuUI, MsgWindow
-from auraboros.utilities import AssetFilePath, draw_grid_background
+from auraboros.utilities import AssetFilePath, draw_grid
 from auraboros.schedule import Stopwatch
 
 engine.init(caption="Test Stopwatch System")
@@ -93,9 +93,9 @@ class DebugScene(Scene):
         self.stopwatch.reset()
 
     def update(self, dt):
-        self.keyboard.current_setup.do_action_by_keyinput(pygame.K_UP)
-        self.keyboard.current_setup.do_action_by_keyinput(pygame.K_DOWN)
-        self.keyboard.current_setup.do_action_by_keyinput(pygame.K_z)
+        self.keyboard.current_setup.do_action_on_keyinput(pygame.K_UP)
+        self.keyboard.current_setup.do_action_on_keyinput(pygame.K_DOWN)
+        self.keyboard.current_setup.do_action_on_keyinput(pygame.K_z)
         self.menuui.set_pos_to_center()
         self.menusystem.update()
         self.msgbox2.text = \
@@ -139,7 +139,7 @@ class DebugScene(Scene):
             self.msgbox7.calculate_ultimate_size()[1]
 
     def draw(self, screen):
-        draw_grid_background(screen, 16, (78, 78, 78))
+        draw_grid(screen, 16, (78, 78, 78))
         self.menuui.draw(screen)
         self.msgbox.draw(screen)
         self.msgbox2.draw(screen)
