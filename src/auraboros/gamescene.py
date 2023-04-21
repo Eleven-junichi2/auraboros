@@ -7,7 +7,7 @@ import pygame
 from auraboros import global_
 
 from .animation import AnimationImage
-from .gameinput import KeyboardManager
+from .gameinput import KeyboardManager, Mouse
 
 
 @dataclass
@@ -18,6 +18,7 @@ class Scene(object):
         self.manager = manager
         self.gameworld: Level = None
         self.keyboard: KeyboardManager = KeyboardManager()
+        self.mouse: Mouse = Mouse()
         # self._joystick: Joystick2 = None
         self.visual_effects: list[AnimationImage] = []
         attrs_of_class = set(dir(self.__class__)) - set(dir(Scene))
@@ -79,6 +80,8 @@ class SceneManager:
         self.scenes[self.current].event(event)
         if self.scenes[self.current].keyboard.current_setup is not None:
             self.scenes[self.current].keyboard.current_setup.event(event)
+        if self.scenes[self.current].mouse is not None:
+            self.scenes[self.current].mouse.event(event)
         # if self.scenes[self.current].joystick is not None:
         #     self.scenes[self.current].joystick.event(event)
         return True

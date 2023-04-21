@@ -2,6 +2,7 @@
 Use to define global variables common use in the modules.
 """
 from functools import wraps
+from typing import Union
 
 import pygame
 
@@ -22,9 +23,34 @@ class IntOfMousePosForDrawToScaledScrn(int):
     def __new__(cls, num):
         return super().__new__(cls, num)
 
+    def __add__(self, other):
+        return IntOfMousePosForDrawToScaledScrn(super().__add__(other))
+
+    def __sub__(self, other):
+        return IntOfMousePosForDrawToScaledScrn(super().__sub__(other))
+
+    def __mul__(self, other):
+        return IntOfMousePosForDrawToScaledScrn(super().__mul__(other))
+
+    def __truediv__(self, other):
+        return IntOfMousePosForDrawToScaledScrn(super().__truediv__(other))
+
+    def __floordiv__(self, other):
+        return IntOfMousePosForDrawToScaledScrn(super().__floordiv__(other))
+
+    def __mod__(self, other):
+        return IntOfMousePosForDrawToScaledScrn(super().__mod__(other))
+
+    def __divmod__(self, other):
+        return tuple(
+            map(IntOfMousePosForDrawToScaledScrn, super().__divmod__(other)))
+
+    def __pow__(self, other, modulo=None):
+        return IntOfMousePosForDrawToScaledScrn(super().__pow__(other, modulo))
+
 
 def _fix_dislodge_between_givenpos_and_drawpos(
-        func_which_has_pos_as_return, pixel_scale):
+        func_which_has_pos_as_return):
     """decorator"""
     @wraps(func_which_has_pos_as_return)
     def wrapper(*args, **kwargs):
@@ -113,15 +139,16 @@ def _decorate_draw(func, pixel_scale):
 
 
 def init(window_size=(960, 640), caption="", icon_filepath=None,
-         pixel_scale=1, set_mode_flags=0):
+         pixel_scale=1, set_mode_flags=0,
+         decorate_pygame_draw_for_pixel_scale=False):
     """This function initialize pygame and game engine.
     Where to configure settings of game system is here."""
     from . import global_
     global_.TARGET_FPS = 60
-    global_.pixel_scale = pixel_scale
+    global_.PIXEL_SCALE = pixel_scale
     global_.w_size_unscaled = window_size
     global_.w_size = tuple(
-        [length // global_.pixel_scale for length in window_size])
+        [length // global_.PIXEL_SCALE for length in window_size])
     pygame.display.set_mode(global_.w_size_unscaled, set_mode_flags)
     global_.screen = pygame.Surface(global_.w_size)
     pygame.display.set_caption(caption)
@@ -129,14 +156,14 @@ def init(window_size=(960, 640), caption="", icon_filepath=None,
         icon_surf = pygame.image.load(icon_filepath)
         pygame.display.set_icon(icon_surf)
     global_.is_init_called = True
-    if global_.pixel_scale > 1:
+    if decorate_pygame_draw_for_pixel_scale and global_.PIXEL_SCALE > 1:
         pygame.mouse.get_pos = _fix_dislodge_between_givenpos_and_drawpos(
-            pygame.mouse.get_pos, pixel_scale)
+            pygame.mouse.get_pos)
         pygame.draw.rect = _decorate_draw(
-            pygame.draw.rect, global_.pixel_scale)
+            pygame.draw.rect, global_.PIXEL_SCALE)
         pygame.draw.ellipse = _decorate_draw(
-            pygame.draw.ellipse, global_.pixel_scale)
+            pygame.draw.ellipse, global_.PIXEL_SCALE)
         pygame.draw.line = _decorate_draw(
-            pygame.draw.line, global_.pixel_scale)
+            pygame.draw.line, global_.PIXEL_SCALE)
         # pygame.surface.Surface.blit = _decorate_draw(
         #     pygame.surface.Surface.blit, pixel_scale)
