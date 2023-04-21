@@ -18,7 +18,9 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "justMyCode": true
+            "justMyCode": true,
+            "purpose": ["debug-test"],
+            "env": { "PYTEST_ADDOPTS": "--no-cov" },
         },
         {
             "name": "Python: example animation",
