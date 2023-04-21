@@ -5,8 +5,6 @@ import sys
 
 import pygame
 
-from auraboros import global_
-
 
 def open_json_file(filepath):
     with open(filepath, "r") as f:
