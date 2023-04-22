@@ -118,7 +118,7 @@ class AnimFrameProgram(metaclass=abc.ABCMeta):
 
 
 @dataclass
-class AnimFrame(metaclass=abc.ABCMeta):
+class AnimFrame:
     """
     Attributes:
         interval (int):
@@ -129,7 +129,6 @@ class AnimFrame(metaclass=abc.ABCMeta):
     program: Union[AnimFrameProgram, Callable, None] = None
     interval: int = 0
     duration: int = 0
-    is_frame_finished = False
 
     def __post_init__(self):
         if callable(self.program):
@@ -146,15 +145,14 @@ class AnimFrame(metaclass=abc.ABCMeta):
         for the set duration.
         """
         return_value = None
-        if not self.is_frame_finished:
-            # print("do program")
-            if isinstance(self.program, AnimFrameProgram) or \
-                    issubclass(self.program, AnimFrameProgram):
-                # print("animframe prg")
-                return_value = self.program.script()
-            elif callable(self.program):
-                # print("callable prg")
-                return_value = self.program()
+        # print("do program")
+        if isinstance(self.program, AnimFrameProgram) or \
+                issubclass(self.program, AnimFrameProgram):
+            # print("animframe prg")
+            return_value = self.program.script()
+        elif callable(self.program):
+            # print("callable prg")
+            return_value = self.program()
         return return_value
 
     def reset(self):
@@ -179,14 +177,17 @@ class Animation:
         )
 
     """
+
     def __init__(self, frames: list[AnimFrame] = [], delay_1st_frame=0):
         self.delay_1st_frame = delay_1st_frame
         self.is_delay_1st_frame_finished = False
-        self._frames: list[AnimFrame] = frames
         self.id_current_frame: int = 0
         self.is_playing = False
-        self.__timer = Stopwatch()
+        self.loop_count = 1
+        self._loop_counter = 0
+        self._frames: list[AnimFrame] = frames
         self._return_of_script = None
+        self.__timer = Stopwatch()
 
     @property
     def return_of_script(self):
@@ -196,6 +197,18 @@ class Animation:
     @property
     def frames(self):
         return self._frames
+
+    @property
+    def current_frame(self) -> AnimFrame:
+        return self.frames[self.id_current_frame]
+
+    @property
+    def frame_count(self) -> int:
+        return len(self.frames)
+
+    @property
+    def loop_counter(self) -> int:
+        return self._loop_counter
 
     @frames.setter
     def frames(self, value):
@@ -213,23 +226,16 @@ class Animation:
 
     def reset_animation(self, reset_all_programs_of_frames=True):
         self.id_current_frame = 0
+        self._loop_counter = 0
         self.__timer.reset()
         if reset_all_programs_of_frames:
             [frame.reset() for frame in self.frames]
 
-    @property
-    def current_frame(self) -> AnimFrame:
-        return self.frames[self.id_current_frame]
-
-    @property
-    def frame_count(self) -> int:
-        return len(self.frames)
+    def is_all_loop_finished(self):
+        return self.loop_count > 0 and self.loop_counter >= self.loop_count
 
     def seek(self, frame_id: int):
         self.id_current_frame = frame_id
-
-    def __notify_current_frame_that_the_frame_finished(self):
-        self.current_frame.is_frame_finished = True
 
     def update(self, dt):
         if self.is_playing:
@@ -238,17 +244,18 @@ class Animation:
                     pass
                 else:
                     self.__timer.start()
-                if not self.current_frame.is_frame_finished:
-                    if self.__timer.read() <= self.current_frame.duration:
-                        print("dura!!!")
-                        self._return_of_script = self.current_frame.do_program()
-                    if self.__timer.read() >= self.current_frame.period():
-                        print("one frame finished")
-                        self.id_current_frame = (
-                            self.id_current_frame + 1) % self.frame_count
-                        self.__timer.stop()
-                        self.__notify_current_frame_that_the_frame_finished()
-                        if self.id_current_frame == 0:
+                if self.__timer.read() <= self.current_frame.duration:
+                    # print("dura!!!")
+                    self._return_of_script = self.current_frame.do_program()
+                if self.__timer.read() >= self.current_frame.period():
+                    # print(id(self.current_frame))
+                    self.id_current_frame = (
+                        self.id_current_frame + 1) % self.frame_count
+                    self.__timer.reset()
+                    self.__timer.stop()
+                    if self.id_current_frame == 0:
+                        self._loop_counter += 1
+                        if self.is_all_loop_finished():
                             self.is_playing = False
                 return self.return_of_script
             else:

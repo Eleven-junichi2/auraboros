@@ -9,7 +9,7 @@ import sys
 import pygame
 
 import init_for_dev  # noqa
-from auraboros import engine
+from auraboros import engine, global_
 from auraboros.animation import Animation, AnimFrameProgram, AnimFrame
 from auraboros.gametext import TextSurfaceFactory
 from auraboros.gamescene import Scene, SceneManager
@@ -82,12 +82,15 @@ class DebugScene(Scene):
                 self.msgbox2.text = ""
 
         self.anim_textshowing = Animation(
-            [AnimFrame(TextAddRandIntProgram, 0, 0), ]
+            # [AnimFrame(TextAddRandIntProgram, 100, 0),
+            #  AnimFrame(TextAddRandIntProgram, 100, 0)]
+            [AnimFrame(TextAddRandIntProgram, 1000, 0) for _ in range(3)]
         )
 
     def play_animation(self):
         self.stopwatch.start()
-        self.anim_textshowing.let_play()
+        if not self.anim_textshowing.is_playing:
+            self.anim_textshowing.let_play()
 
     def stop_animation(self):
         self.stopwatch.stop()
@@ -99,6 +102,8 @@ class DebugScene(Scene):
 
     def update(self, dt):
         self.anim_textshowing.update(dt)
+        if self.anim_textshowing.is_all_loop_finished():
+            self.stopwatch.stop()
         self.keyboard.current_setup.do_action_on_keyinput(pygame.K_UP)
         self.keyboard.current_setup.do_action_on_keyinput(pygame.K_DOWN)
         self.keyboard.current_setup.do_action_on_keyinput(pygame.K_z)
@@ -110,16 +115,20 @@ class DebugScene(Scene):
         #     f"{self.anim_textshowing.return_of_script}"
         self.msgbox3.text = \
             f"id of current frame:{self.anim_textshowing.id_current_frame}"
-        # self.msgbox4.text = \
-        #     f"anim_frame_id:{self.test_anim_img.anim_frame_id}"
+        self.msgbox4.text = \
+            f"frame count:{self.anim_textshowing.frame_count}"
         # self.msgbox5.text = \
         #     f"is_playing:{self.test_anim_img.is_playing}"
-        # self.msgbox6.text = \
-        #     f"loop_counter:{self.test_anim_img.loop_counter}"
-        self.msgbox7.text = \
+        self.msgbox5.text = \
             f"elapsed time:{self.stopwatch.read()/1000}"
-        self.msgbox8.text = \
+        self.msgbox6.text = \
             f"pausing time:{self.stopwatch.read_pausing()/1000}"
+        self.msgbox7.text = \
+            "duration:" + str(
+                [frame.duration for frame in self.anim_textshowing.frames])
+        self.msgbox8.text = \
+            "interval:" + str(
+                [frame.interval for frame in self.anim_textshowing.frames])
         self.msgbox2.pos[1] = \
             self.msgbox.real_size[1]
         self.msgbox3.pos[1] = \
@@ -141,20 +150,12 @@ class DebugScene(Scene):
             self.msgbox4.real_size[1] +\
             self.msgbox5.real_size[1]
         self.msgbox7.pos[1] = \
-            self.msgbox.real_size[1] +\
-            self.msgbox2.real_size[1] +\
-            self.msgbox3.real_size[1] +\
-            self.msgbox4.real_size[1] +\
-            self.msgbox5.real_size[1] +\
-            self.msgbox6.real_size[1]
+            global_.w_size[1] -\
+            self.msgbox8.real_size[1] -\
+            self.msgbox8.real_size[1]
         self.msgbox8.pos[1] = \
-            self.msgbox.real_size[1] +\
-            self.msgbox2.real_size[1] +\
-            self.msgbox3.real_size[1] +\
-            self.msgbox4.real_size[1] +\
-            self.msgbox5.real_size[1] +\
-            self.msgbox6.real_size[1] +\
-            self.msgbox7.real_size[1]
+            global_.w_size[1] -\
+            self.msgbox8.real_size[1]
 
     def draw(self, screen):
         draw_grid(screen, 16, (78, 78, 78))
