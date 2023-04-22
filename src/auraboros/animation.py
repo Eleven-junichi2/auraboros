@@ -191,8 +191,6 @@ class Animation:
         self._return_of_script = None
         self.__timer = Stopwatch()
         self.__is_timer_delay_phase = True
-        self.__is_timer_duration_phase = False
-        self.__is_timer_interval_phase = False
 
     @property
     def return_of_script(self):
@@ -232,6 +230,7 @@ class Animation:
     def reset_animation(self, reset_all_programs_of_frames=True):
         self.id_current_frame = 0
         self._loop_counter = 0
+        self.__is_timer_delay_phase = False
         self.__timer.reset()
         if reset_all_programs_of_frames:
             [frame.reset() for frame in self.frames]
