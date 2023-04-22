@@ -1,5 +1,6 @@
 
 # from collections import deque
+from dataclasses import dataclass
 from pathlib import Path
 from random import randint
 import sys
@@ -28,17 +29,6 @@ textfactory.register_font(
     pygame.font.Font(AssetFilePath.font("misaki_gothic.ttf"), 16))
 
 
-class TextShowingFrameProgram(AnimFrameProgram):
-    text: str = ""
-
-    def script(self):
-        self.text += str(randint(0, 9))
-        return self.text
-
-    def reset(self):
-        self.text = ""
-
-
 class DebugScene(Scene):
     def setup(self):
         textfactory.set_current_font("misaki_gothic")
@@ -50,7 +40,7 @@ class DebugScene(Scene):
         self.keyboard["menu"].register_keyaction(
             pygame.K_DOWN, 0, 122, 122, self.menusystem.menu_cursor_down)
         self.keyboard["menu"].register_keyaction(
-            pygame.K_z, 0, 0, 0, self.menusystem.do_selected_action)
+            pygame.K_z, 0, 122, 122, self.menusystem.do_selected_action)
         self.menusystem.add_menu_item(
             "play", self.play_animation, text="Play")
         self.menusystem.add_menu_item(
@@ -81,8 +71,18 @@ class DebugScene(Scene):
             "down",
             on_left=lambda: self.menuui.do_option_if_givenpos_on_ui(
                 pos_on_pixel_scale(pygame.mouse.get_pos())))
+
+        class TextAddRandIntProgram(AnimFrameProgram):
+            @staticmethod
+            def script():
+                self.msgbox2.text += str(randint(0, 9))
+
+            @staticmethod
+            def reset():
+                self.msgbox2.text = ""
+
         self.anim_textshowing = Animation(
-            [AnimFrame(TextShowingFrameProgram()), ]
+            [AnimFrame(TextAddRandIntProgram, 0, 0), ]
         )
 
     def play_animation(self):
@@ -96,7 +96,6 @@ class DebugScene(Scene):
     def reset_animation(self):
         self.stopwatch.reset()
         self.anim_textshowing.reset_animation()
-        self.anim_textshowing.current_frame.program.reset()
 
     def update(self, dt):
         self.anim_textshowing.update(dt)
@@ -107,8 +106,8 @@ class DebugScene(Scene):
         self.menusystem.update()
         self.menuui.highlight_option_on_givenpos(
             pos_on_pixel_scale(pygame.mouse.get_pos()))
-        self.msgbox2.text = \
-            f"{self.anim_textshowing.return_of_script}"
+        # self.msgbox2.text = \
+        #     f"{self.anim_textshowing.return_of_script}"
         self.msgbox3.text = \
             f"id of current frame:{self.anim_textshowing.id_current_frame}"
         # self.msgbox4.text = \

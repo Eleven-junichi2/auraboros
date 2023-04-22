@@ -108,48 +108,79 @@ class AnimationImage:
                     Schedule.deactivate_schedule(self.update_animation)
 
 
-@dataclass
 class AnimFrameProgram(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def script(self):
         raise NotImplementedError
 
-    @abc.abstractmethod
     def reset(self):
-        raise NotImplementedError
+        pass
 
 
 @dataclass
 class AnimFrame(metaclass=abc.ABCMeta):
+    """
+    Attributes:
+        interval (int):
+            milliseconds to freeze this frame
+        duration (int):
+            milliseconds for the duration of the program's script execution.
+    """
     program: Union[AnimFrameProgram, Callable, None] = None
-    duration: int = 1
-    is_duration_finished = False
+    interval: int = 0
+    duration: int = 0
+    is_frame_finished = False
 
     def __post_init__(self):
         if callable(self.program):
-            self.program.reset = lambda: None
+            if self.program.reset is None:
+                self.program.reset = lambda: None
+
+    def period(self) -> int:
+        """return duration + interval"""
+        return self.duration + self.interval
 
     def do_program(self):
         """
         This is called from Animation object every milliseconds
         for the set duration.
         """
-        print("do program")
-        if callable(self.program):
-            print("callable prg")
-            return_value = self.program()
-        elif isinstance(self.program, AnimFrameProgram):
-            print("animframe prg")
-            return_value = self.program.script()
-        else:
-            return_value = None
+        return_value = None
+        if not self.is_frame_finished:
+            # print("do program")
+            if isinstance(self.program, AnimFrameProgram) or \
+                    issubclass(self.program, AnimFrameProgram):
+                # print("animframe prg")
+                return_value = self.program.script()
+            elif callable(self.program):
+                # print("callable prg")
+                return_value = self.program()
         return return_value
+
+    def reset(self):
+        self.program.reset()
+        self.is_frame_finished = False
 
 
 class Animation:
-    """WIP abstraction of AnimationImage"""
-    def __init__(self, frames: list[AnimFrame] = []):
-        self.delay_1st_frame = 0
+    """
+    Examples:
+        class TextAddRandIntProgram(AnimFrameProgram):
+            @staticmethod
+            def script():
+                self.msgbox2.text += str(randint(0, 9))
+
+            @staticmethod
+            def reset():
+                self.msgbox2.text = ""
+
+        self.anim_textshowing = Animation(
+            [AnimFrame(TextAddRandIntProgram, 0, 1), ]
+        )
+
+    """
+    def __init__(self, frames: list[AnimFrame] = [], delay_1st_frame=0):
+        self.delay_1st_frame = delay_1st_frame
         self.is_delay_1st_frame_finished = False
         self._frames: list[AnimFrame] = frames
         self.id_current_frame: int = 0
@@ -159,7 +190,7 @@ class Animation:
 
     @property
     def return_of_script(self):
-        """return value of script of program of AnimFrame."""
+        """return value returned from the program of the current frame."""
         return self._return_of_script
 
     @property
@@ -172,15 +203,19 @@ class Animation:
 
     def let_play(self):
         self.is_playing = True
-        self.__timer.start()
+        if not self.__timer.is_playing:
+            self.__timer.start()
 
     def let_stop(self):
         self.is_playing = False
-        self.__timer.stop()
+        if self.__timer.is_playing:
+            self.__timer.stop()
 
-    def reset_animation(self):
+    def reset_animation(self, reset_all_programs_of_frames=True):
         self.id_current_frame = 0
         self.__timer.reset()
+        if reset_all_programs_of_frames:
+            [frame.reset() for frame in self.frames]
 
     @property
     def current_frame(self) -> AnimFrame:
@@ -193,31 +228,39 @@ class Animation:
     def seek(self, frame_id: int):
         self.id_current_frame = frame_id
 
+    def __notify_current_frame_that_the_frame_finished(self):
+        self.current_frame.is_frame_finished = True
+
     def update(self, dt):
         if self.is_playing:
             if self.is_delay_1st_frame_finished:
-                print("after delay phase")
                 if self.__timer.is_playing():
                     pass
                 else:
                     self.__timer.start()
-                self._return_of_script = self.current_frame.do_program()
-                if self.__timer.read() >= self.current_frame.duration:
-                    print("one frame finished")
-                    self.id_current_frame = (
-                        self.id_current_frame + 1) % self.frame_count
-                    self.__timer.stop()
+                if not self.current_frame.is_frame_finished:
+                    if self.__timer.read() <= self.current_frame.duration:
+                        print("dura!!!")
+                        self._return_of_script = self.current_frame.do_program()
+                    if self.__timer.read() >= self.current_frame.period():
+                        print("one frame finished")
+                        self.id_current_frame = (
+                            self.id_current_frame + 1) % self.frame_count
+                        self.__timer.stop()
+                        self.__notify_current_frame_that_the_frame_finished()
+                        if self.id_current_frame == 0:
+                            self.is_playing = False
                 return self.return_of_script
             else:
-                print("delay phase")
+                # print("delay phase")
                 if self.__timer.is_playing():
                     pass
                 else:
                     self.__timer.start()
                 if self.__timer.read() >= self.delay_1st_frame:
                     self.is_delay_1st_frame_finished = True
-                    self.__timer.stop()
                     self.__timer.reset()
+                    self.__timer.stop()
 
             # self.current_frame.do_program()
             # self.id_current_frame = (
