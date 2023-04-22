@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Union
 import abc
 
 import pygame
@@ -112,51 +112,71 @@ class GameMenuSystem:
         self.action_on_highlight()
 
 
-class UIElement(metaclass=abc.ABCMeta):
-    def __init__(self, *args, **kwargs):
+class UIElementBase(metaclass=abc.ABCMeta):
+    def __init__(self):
         self.padding = 0
-        # self.enable_mouse = True
+        self._pos = [0, 0]
+        self._min_size = [0, 0]
 
     @staticmethod
     def sum_sizes(sizes: tuple[tuple[int, int]]) -> tuple[int, int]:
         return tuple(map(sum, zip(*sizes)))
 
     @property
-    @abc.abstractmethod
+    # @abc.abstractmethod
     def pos(self) -> list[int, int]:
         """return self._pos"""
-        pass
+        return self._pos
 
     @pos.setter
-    @abc.abstractmethod
+    # @abc.abstractmethod
     def pos(self, value):
         """self._pos = value"""
-        pass
+        self._pos = value
 
     @property
-    @abc.abstractmethod
+    # @abc.abstractmethod
     def min_size(self) -> list[int, int]:
-        """
         self.resize_min_size_to_suit()
-        return self.__min_size
-        """
-        pass
+        return self._min_size
 
     @abc.abstractmethod
     def resize_min_size_to_suit(self):
-        """self.__min_size = [ calc size here ]"""
+        """self._min_size = [ calc size here ]"""
 
     @property
     @abc.abstractmethod
     def real_size(self) -> list[int, int]:
         """return calc size here"""
 
+    def set_x_to_center(self):
+        self.pos[0] = calc_x_to_center(self.real_size[0])
 
-class GameMenuUI(UIElement):
+    def set_y_to_center(self):
+        self.pos[1] = calc_y_to_center(self.real_size[1])
+
+    def set_pos_to_center(self):
+        self.pos = list(calc_pos_to_center(self.real_size))
+
+    def is_given_x_on_ui(self, x):
+        return self.pos[0] <= x <= self.pos[0] + self.real_size[0]
+
+    def is_given_y_on_ui(self, y):
+        return self.pos[1] <= y <= self.pos[1] + self.real_size[1]
+
+    def is_givenpos_on_ui(self, pos):
+        return self.is_given_x_on_ui(pos[0]) and self.is_given_y_on_ui(pos[1])
+
+    def do_func_if_pos_is_on_ui(self, pos, func: Callable):
+        if self.is_givenpos_on_ui(pos):
+            return func()
+
+
+class GameMenuUI(UIElementBase):
     """
     option_highlight_style = "cursor" or "filled_box"
     "cursor" is default
-    anchor(unused) = "top_left" or "center_fixed" or "center"
+    anchor(WIP) = "top_left" or "center_fixed" or "center"
     "top_left" is default
     """
 
@@ -179,20 +199,15 @@ class GameMenuUI(UIElement):
 
     @property
     def pos(self):
-        return self._pos
+        return super().pos()
 
     @pos.setter
     def pos(self, value):
         self._pos = value
         self.reposition_cursor()
 
-    @property
-    def min_size(self):
-        self.resize_min_size_to_suit()
-        return self.__min_size
-
     def resize_min_size_to_suit(self):
-        self.__min_size = [
+        self._min_size = [
             self.system.max_option_text_length(
             )*self.textfactory.char_size()[0],
             self.system.count_menu_items()*self.textfactory.char_size()[1]]
@@ -214,15 +229,15 @@ class GameMenuUI(UIElement):
             self.pos[1]]
 
     def set_x_to_center(self):
-        self.pos[0] = calc_x_to_center(self.real_size[0])
+        super().set_x_to_center()
         self.reposition_cursor()
 
     def set_y_to_center(self):
-        self.pos[1] = calc_y_to_center(self.real_size[1])
+        super().set_y_to_center()
         self.reposition_cursor()
 
     def set_pos_to_center(self):
-        self.pos = list(calc_pos_to_center(self.real_size))
+        super().set_pos_to_center()
         self.reposition_cursor()
 
     def is_given_x_on_ui(self, x):
@@ -310,21 +325,29 @@ class GameMenuUI(UIElement):
             self.textfactory.render(key, screen)
 
 
-class MsgWindow(UIElement):
+class MsgWindow(UIElementBase):
     """
-    type_of_sizing = "min"(default) or "fixed"
-    text_anchor = "left" or "center(default)"
-    anchor(unused) = "top_left" or "center_fixed" or "center"
-    "top_left" is default
+    Attributes:
+        text (str): text of current showing
+        ...
     """
 
     def __init__(self, font: pygame.font.Font,
-                 type_of_sizing="min", text_anchor="center"):
-        self.text = ""
-        # self.textfactory = textfactory
+                 text_or_textlist: Union[str, list[str]] = "",
+                 type_of_sizing="min", text_anchor="center", frame_width=1):
+        """
+        type_of_sizing = "min"(default) or "fixed"
+        text_anchor = "left" or "center(default)"
+        anchor(unused) = "top_left(default)" or "center_fixed" or "center"
+        """
+        self.id_current_text = 0
+        self._texts: list[str] = []
+        if isinstance(text_or_textlist, str):
+            self._texts.append(text_or_textlist)
+        elif isinstance(text_or_textlist, list):
+            self._texts = text_or_textlist
         self.font = font
         self.resize_min_size_to_suit()
-        # self.resize_window_to_suit_text()
         self._pos = [0, 0]
         self.frame_color = (255, 255, 255)
         self.type_of_sizing = type_of_sizing
@@ -332,22 +355,28 @@ class MsgWindow(UIElement):
         self._size = [0, 0]
         self.resize_on_type_of_sizing()
         self.padding = 0
+        self.frame_width = frame_width
+        self._frame_imgchip_corner: pygame.Surface
+        self._frame_imgchip_left: pygame.Surface
+        self._frame_imgchip_top: pygame.Surface
+        self._frame_imgchip_bottom: pygame.Surface
+        self._frame_imgchip_right: pygame.Surface
+        self.background_img: Union[pygame.Surface, None]
 
     @property
-    def pos(self):
-        return self._pos
+    def text(self) -> str:
+        return self.texts[self.id_current_text]
 
-    @pos.setter
-    def pos(self, value):
-        self._pos = value
+    @text.setter
+    def text(self, value: str):
+        self._texts[self.id_current_text] = value
 
     @property
-    def min_size(self):
-        self.resize_min_size_to_suit()
-        return self.__min_size
+    def texts(self) -> list:
+        return self._texts
 
     def resize_min_size_to_suit(self):
-        self.__min_size = list(self.font.size(self.text))
+        self._min_size = list(self.font.size(self.text))
 
     @property
     def size(self):
@@ -375,8 +404,29 @@ class MsgWindow(UIElement):
     def calc_real_size(self) -> list[int, int]:
         return list(map(sum, zip(self.size, [self.padding*2, self.padding*2])))
 
-    def rewrite_text(self, text):
-        self.text = text
+    def rewrite_text(
+            self, text: str, id: Union[int, None] = None):
+        if id:
+            self._texts[id] = text
+        else:
+            self.text = text
+
+    def set_current_text_by_id(self, id: int):
+        self.id_current_text = id
+
+    def change_text_to_next(self, loop_text_list=False):
+        if self.id_current_text < len(self.texts) - 1:
+            self.id_current_text += 1
+        else:
+            if loop_text_list:
+                self.id_current_text = 0
+
+    def rewind_text(self, loop_text_list=False):
+        if self.id_current_text > 0:
+            self.id_current_text -= 1
+        else:
+            if loop_text_list:
+                self.id_current_text = len(self.texts) - 1
 
     def set_x_to_center(self):
         self.pos[0] = global_.w_size[0]//2-self.real_size[0]//2
@@ -397,7 +447,7 @@ class MsgWindow(UIElement):
         frame_rect = self.pos + self.real_size
         pygame.draw.rect(
             screen, self.frame_color,
-            frame_rect, 1)
+            frame_rect, self.frame_width)
         text_size = self.font.size(self.text)
         if self.text_anchor == "center":
             text_pos = tuple(map(sum, zip(
@@ -413,149 +463,3 @@ class MsgWindow(UIElement):
         screen.blit(self.font.render(
             self.text, True, (255, 255, 255)),
             text_pos)
-
-
-# class UIElement:
-#     def __init__(self, surface: pygame.surface.Surface = None, ):
-#         self._container = None
-#         self._x = 0
-#         self._y = 0
-#         if surface is None:
-#             self.surface = pygame.surface.Surface((0, 0))
-#         else:
-#             self.surface = surface
-#         self.rect = self.surface.get_rect()
-#         self._width = self.rect.width
-#         self._height = self.rect.height
-
-#     @property
-#     def x(self):
-#         return self._x
-
-#     @x.setter
-#     def x(self, value):
-#         self._x = value
-#         self.rect.x = self._x
-
-#     @property
-#     def y(self):
-#         return self._y
-
-#     @y.setter
-#     def y(self, value):
-#         self._y = value
-#         self.rect.y = self._y
-
-#     @property
-#     def width(self):
-#         return self._width
-
-#     @width.setter
-#     def width(self, value):
-#         self._width = value
-#         self.rect.width = self._width
-#         self.surface = pygame.surface.Surface((self.width, self.height))
-
-#     @property
-#     def height(self):
-#         return self._height
-
-#     @height.setter
-#     def height(self, value):
-#         self._height = value
-#         self.rect.height = self._height
-#         self.surface = pygame.surface.Surface((self.width, self.height))
-
-#     @property
-#     def container(self) -> Union[None, "UILayoutBase"]:
-#         return self._container
-
-#     @container.setter
-#     def container(self, value: "UILayoutBase"):
-#         self._container = value
-
-#     def update(self, dt):
-#         pass
-
-#     def draw(self, screen: pygame.surface.Surface):
-#         screen.blit(self.surface, self.rect)
-
-
-# class UILayoutBase(UIElement):
-#     def __init__(self):
-#         super().__init__()
-#         self.layout = list[UIElement]()
-#         self.margin_top = 0
-#         self.margin_bottom = 0
-#         self.margin_right = 0
-#         self.margin_left = 0
-#         self.padding_top = 0
-#         self.padding_bottom = 0
-#         self.padding_right = 0
-#         self.padding_left = 0
-#         self.spacing = 0
-
-
-# class UIBoxLayout(UILayoutBase):
-#     def __init__(self):
-#         super().__init__()
-#         self.orientation = "vertical"  # vertical | horizontal
-
-#     def add_ui_element(self, ui_element: UIElement):
-#         self.layout.append(ui_element)
-
-#     def stretch_to_fit_entire(self):
-#         if self.orientation == "vertical":
-#             height = 0
-#             widths = list[int]()
-#             for element in self.layout:
-#                 height += element.rect.height + self.spacing
-#                 widths.append(element.width)
-#             self.height = height
-#             self.width = max(widths)
-
-#     def draw(self, screen: pygame.surface.Surface):
-#         self.stretch_to_fit_entire()
-#         if self.orientation == "vertical":
-#             i = 0
-#             next_y = 0
-#             for element in self.layout:
-#                 rect = element.rect
-#                 if i < 1:
-#                     next_y += rect.height + self.spacing
-#                 if 1 <= i:
-#                     rect.y = next_y
-#                     next_y += rect.height
-#                 self.surface.blit(element.surface, rect)
-#                 i += 1
-#         screen.blit(self.surface, self.rect)
-
-
-# class UIGameText(UIElement):
-#     def __init__(self, font: pygame.font.Font, text: str):
-#         super().__init__()
-#         self.font = font
-#         self._text = text
-#         self.do_reset_surface_and_rect_when_update_text = True
-#         self._update_surface_and_rect_by_new_text()
-
-#     @property
-#     def text(self):
-#         return self._text
-
-#     @text.setter
-#     def text(self, value: str):
-#         self._text = value
-#         if self.do_reset_surface_and_rect_when_update_text:
-#             self._update_surface_and_rect_by_new_text()
-
-#     def _update_surface_and_rect_by_new_text(self):
-#         self.surface = self.font.render(self.text, True, (255, 255, 255))
-#         self.rect = self.surface.get_rect()
-
-#     def draw(self, screen: pygame.surface.Surface, *args, **kwargs):
-#         screen.blit(self.surface, self.rect)
-
-# uilayout = UILayout()
-# uilayout.set_ui_element(UIElement(), 6, 5)
-# print(uilayout.layout)
