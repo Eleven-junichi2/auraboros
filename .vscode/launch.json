@@ -102,5 +102,13 @@
             "console": "integratedTerminal",
             "justMyCode": true
         },
+        {
+            "name": "Python: example animationimage",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/auraboros/debugs/animationimage.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
     ]
 }

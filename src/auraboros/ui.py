@@ -164,7 +164,6 @@ class GameMenuUI(UIElement):
                  textfactory: TextSurfaceFactory,
                  option_highlight_style="cursor", *args, **kwargs):
         super().__init__(*args, **kwargs)
-        print("child")
         self.system = menu_system
         self.textfactory = textfactory
         self.resize_min_size_to_suit()
@@ -411,7 +410,6 @@ class MsgWindow(UIElement):
         elif self.text_anchor == "left":
             text_pos = tuple(map(sum, zip(
                 self.pos, [self.padding, self.padding])))
-        print(text_pos)
         screen.blit(self.font.render(
             self.text, True, (255, 255, 255)),
             text_pos)

@@ -1,7 +1,6 @@
 
 # from collections import deque
 from pathlib import Path
-from random import randint
 import sys
 # from string import ascii_lowercase
 
@@ -9,14 +8,14 @@ import pygame
 
 import init_for_dev  # noqa
 from auraboros import engine
-from auraboros.animation import Animation, AnimFrameProgram, AnimFrame
+from auraboros.animation import AnimationImage, SpriteSheet
 from auraboros.gametext import TextSurfaceFactory
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.gameinput import Keyboard
 from auraboros.ui import GameMenuSystem, GameMenuUI, MsgWindow
 from auraboros.utilities import AssetFilePath, draw_grid, pos_on_pixel_scale
 from auraboros.schedule import Stopwatch
-# from auraboros import global_
+from auraboros import global_
 
 engine.init(caption="Test AnimationImage System")
 
@@ -28,20 +27,28 @@ textfactory.register_font(
     pygame.font.Font(AssetFilePath.font("misaki_gothic.ttf"), 16))
 
 
-class TextShowingFrameProgram(AnimFrameProgram):
-    text: str = ""
-
-    def script(self):
-        self.text += str(randint(0, 9))
-        return self.text
-
-    def reset(self):
-        self.text = ""
+class TestAnimImg(AnimationImage):
+    def __init__(self):
+        super().__init__()
+        self.sprite_sheet = SpriteSheet(AssetFilePath.img("testsprite.png"))
+        self.anim_frames: list[pygame.surface.Surface] = [
+            self.sprite_sheet.image_by_area(0, 0, 32, 32),
+            self.sprite_sheet.image_by_area(0, 32, 32, 32),
+            self.sprite_sheet.image_by_area(0, 32*2, 32, 32),
+            self.sprite_sheet.image_by_area(0, 32*3, 32, 32),
+            self.sprite_sheet.image_by_area(0, 32*4, 32, 32),
+            self.sprite_sheet.image_by_area(0, 32*3, 32, 32),
+            self.sprite_sheet.image_by_area(0, 32*2, 32, 32),
+            self.sprite_sheet.image_by_area(0, 32, 32, 32)]
+        self.anim_interval = 1000
+        self.loop_count = 1
 
 
 class DebugScene(Scene):
-    def setup(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         textfactory.set_current_font("misaki_gothic")
+        self.test_anim_img = TestAnimImg()
         self.keyboard["menu"] = Keyboard()
         self.keyboard.set_current_setup("menu")
         self.menusystem = GameMenuSystem()
@@ -81,25 +88,22 @@ class DebugScene(Scene):
             "down",
             on_left=lambda: self.menuui.do_option_if_givenpos_on_ui(
                 pos_on_pixel_scale(pygame.mouse.get_pos())))
-        self.anim_textshowing = Animation(
-            [AnimFrame(TextShowingFrameProgram()), ]
-        )
 
     def play_animation(self):
+        self.test_anim_img.let_play()
         self.stopwatch.start()
-        self.anim_textshowing.let_play()
 
     def stop_animation(self):
+        self.test_anim_img.let_stop()
         self.stopwatch.stop()
-        self.anim_textshowing.let_stop()
 
     def reset_animation(self):
+        self.test_anim_img.reset_animation()
         self.stopwatch.reset()
-        self.anim_textshowing.reset_animation()
-        self.anim_textshowing.current_frame.program.reset()
 
     def update(self, dt):
-        self.anim_textshowing.update(dt)
+        if self.test_anim_img.is_all_loop_finished():
+            self.stopwatch.stop()
         self.keyboard.current_setup.do_action_on_keyinput(pygame.K_UP)
         self.keyboard.current_setup.do_action_on_keyinput(pygame.K_DOWN)
         self.keyboard.current_setup.do_action_on_keyinput(pygame.K_z)
@@ -108,15 +112,15 @@ class DebugScene(Scene):
         self.menuui.highlight_option_on_givenpos(
             pos_on_pixel_scale(pygame.mouse.get_pos()))
         self.msgbox2.text = \
-            f"{self.anim_textshowing.return_of_script}"
+            f"loop_count:{self.test_anim_img.loop_count}"
         self.msgbox3.text = \
-            f"id of current frame:{self.anim_textshowing.id_current_frame}"
-        # self.msgbox4.text = \
-        #     f"anim_frame_id:{self.test_anim_img.anim_frame_id}"
-        # self.msgbox5.text = \
-        #     f"is_playing:{self.test_anim_img.is_playing}"
-        # self.msgbox6.text = \
-        #     f"loop_counter:{self.test_anim_img.loop_counter}"
+            f"anim_interval:{self.test_anim_img.anim_interval} milliseconds"
+        self.msgbox4.text = \
+            f"anim_frame_id:{self.test_anim_img.anim_frame_id}"
+        self.msgbox5.text = \
+            f"is_playing:{self.test_anim_img.is_playing}"
+        self.msgbox6.text = \
+            f"loop_counter:{self.test_anim_img.loop_counter}"
         self.msgbox7.text = \
             f"elapsed time:{self.stopwatch.read()/1000}"
         self.msgbox8.text = \
@@ -159,6 +163,10 @@ class DebugScene(Scene):
 
     def draw(self, screen):
         draw_grid(screen, 16, (78, 78, 78))
+        screen.blit(
+            self.test_anim_img.image,
+            (global_.w_size[0]//2-self.test_anim_img.image.get_width()//2,
+             self.menuui.pos[1]-self.test_anim_img.image.get_height()))
         self.menuui.draw(screen)
         self.msgbox.draw(screen)
         self.msgbox2.draw(screen)

@@ -101,6 +101,9 @@ class Stopwatch:
     def read_pausing(self):
         return self._pausetime
 
+    def is_playing(self):
+        return self._is_running
+
     @classmethod
     def update_all_stopwatch(cls, dt):
         for instance in cls._instances:

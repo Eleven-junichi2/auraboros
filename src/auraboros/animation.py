@@ -1,13 +1,26 @@
+import abc
+from dataclasses import dataclass
 from inspect import isclass
-from typing import Any, MutableMapping
+from typing import Any, Callable, MutableMapping, Union
 
 import pygame
 
-from .schedule import Schedule
+from .schedule import Schedule, Stopwatch
 
 
 class AnimationImage:
     """アニメーションのある画像を設定・描写するためのクラス
+
+        How does it differ from Animation class?
+
+        This class is specified to implement animation of Images,
+        such as Sprite.
+        Animation class can implement it as this class but require
+        executing its update() method after the let_play() method
+        to play.
+        In this class, the update method of the frame is
+        auto-registered to the Schedule class and executed.
+
 
     Attributes:
         anim_frame_id (int): 現在のフレームを示すインデックス
@@ -95,8 +108,128 @@ class AnimationImage:
                     Schedule.deactivate_schedule(self.update_animation)
 
 
+@dataclass
+class AnimFrameProgram(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def script(self):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def reset(self):
+        raise NotImplementedError
+
+
+@dataclass
+class AnimFrame(metaclass=abc.ABCMeta):
+    program: Union[AnimFrameProgram, Callable, None] = None
+    duration: int = 1
+    is_duration_finished = False
+
+    def __post_init__(self):
+        if callable(self.program):
+            self.program.reset = lambda: None
+
+    def do_program(self):
+        """
+        This is called from Animation object every milliseconds
+        for the set duration.
+        """
+        print("do program")
+        if callable(self.program):
+            print("callable prg")
+            return_value = self.program()
+        elif isinstance(self.program, AnimFrameProgram):
+            print("animframe prg")
+            return_value = self.program.script()
+        else:
+            return_value = None
+        return return_value
+
+
+class Animation:
+    """WIP abstraction of AnimationImage"""
+    def __init__(self, frames: list[AnimFrame] = []):
+        self.delay_1st_frame = 0
+        self.is_delay_1st_frame_finished = False
+        self._frames: list[AnimFrame] = frames
+        self.id_current_frame: int = 0
+        self.is_playing = False
+        self.__timer = Stopwatch()
+        self._return_of_script = None
+
+    @property
+    def return_of_script(self):
+        """return value of script of program of AnimFrame."""
+        return self._return_of_script
+
+    @property
+    def frames(self):
+        return self._frames
+
+    @frames.setter
+    def frames(self, value):
+        self._frames = value
+
+    def let_play(self):
+        self.is_playing = True
+        self.__timer.start()
+
+    def let_stop(self):
+        self.is_playing = False
+        self.__timer.stop()
+
+    def reset_animation(self):
+        self.id_current_frame = 0
+        self.__timer.reset()
+
+    @property
+    def current_frame(self) -> AnimFrame:
+        return self.frames[self.id_current_frame]
+
+    @property
+    def frame_count(self) -> int:
+        return len(self.frames)
+
+    def seek(self, frame_id: int):
+        self.id_current_frame = frame_id
+
+    def update(self, dt):
+        if self.is_playing:
+            if self.is_delay_1st_frame_finished:
+                print("after delay phase")
+                if self.__timer.is_playing():
+                    pass
+                else:
+                    self.__timer.start()
+                self._return_of_script = self.current_frame.do_program()
+                if self.__timer.read() >= self.current_frame.duration:
+                    print("one frame finished")
+                    self.id_current_frame = (
+                        self.id_current_frame + 1) % self.frame_count
+                    self.__timer.stop()
+                return self.return_of_script
+            else:
+                print("delay phase")
+                if self.__timer.is_playing():
+                    pass
+                else:
+                    self.__timer.start()
+                if self.__timer.read() >= self.delay_1st_frame:
+                    self.is_delay_1st_frame_finished = True
+                    self.__timer.stop()
+                    self.__timer.reset()
+
+            # self.current_frame.do_program()
+            # self.id_current_frame = (
+            #     self.id_current_frame + 1) % self.frame_count
+            # if self.id_current_frame == self.frame_count:
+            #     self.let_stop()
+            #     self.id_current_frame = 0
+
+
 class AnimationFactory(MutableMapping):
-    """
+    """For AnimationImage
+
     Examples:
         class ExampleAnimation(AnimationImage):
             pass
@@ -134,7 +267,8 @@ class AnimationFactory(MutableMapping):
 
 
 class AnimationDict(MutableMapping):
-    """
+    """For AnimationImage
+
     Examples:
         class ExampleAnimation(AnimationImage):
             pass
