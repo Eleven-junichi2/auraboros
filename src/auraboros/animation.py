@@ -127,17 +127,13 @@ class AnimFrame:
             milliseconds for the duration of the program's script execution.
     """
     program: Union[AnimFrameProgram, Callable, None] = None
+    delay: int = 0
     interval: int = 0
-    duration: int = 0
 
     def __post_init__(self):
         if callable(self.program):
             if self.program.reset is None:
                 self.program.reset = lambda: None
-
-    def period(self) -> int:
-        """return duration + interval"""
-        return self.duration + self.interval
 
     def do_program(self):
         """
@@ -178,9 +174,7 @@ class Animation:
 
     """
 
-    def __init__(self, frames: list[AnimFrame] = [], delay_1st_frame=0):
-        self.delay_1st_frame = delay_1st_frame
-        self.is_delay_1st_frame_finished = False
+    def __init__(self, frames: list[AnimFrame] = []):
         self.id_current_frame: int = 0
         self.is_playing = False
         self.loop_count = 1
@@ -188,6 +182,9 @@ class Animation:
         self._frames: list[AnimFrame] = frames
         self._return_of_script = None
         self.__timer = Stopwatch()
+        self.__is_timer_delay_phase = True
+        self.__is_timer_duration_phase = False
+        self.__is_timer_interval_phase = False
 
     @property
     def return_of_script(self):
@@ -238,43 +235,52 @@ class Animation:
         self.id_current_frame = frame_id
 
     def update(self, dt):
+        do_program = False
         if self.is_playing:
-            if self.is_delay_1st_frame_finished:
-                if self.__timer.is_playing():
-                    pass
-                else:
-                    self.__timer.start()
-                if self.__timer.read() <= self.current_frame.duration:
-                    # print("dura!!!")
-                    self._return_of_script = self.current_frame.do_program()
-                if self.__timer.read() >= self.current_frame.period():
-                    # print(id(self.current_frame))
+            if not self.__timer.is_playing():
+                self.__timer.start()
+            if self.__is_timer_delay_phase:
+                if self.__timer.read() >= self.current_frame.delay:
+                    do_program = True
+                    self.__is_timer_delay_phase = False
+                    self.__timer.reset()
+                    self.__timer.stop()
+            else:
+                if self.__timer.read() >= \
+                        self.current_frame.interval:
                     self.id_current_frame = (
                         self.id_current_frame + 1) % self.frame_count
+                    self.__is_timer_delay_phase = True
                     self.__timer.reset()
                     self.__timer.stop()
                     if self.id_current_frame == 0:
                         self._loop_counter += 1
                         if self.is_all_loop_finished():
                             self.is_playing = False
-                return self.return_of_script
-            else:
-                # print("delay phase")
-                if self.__timer.is_playing():
-                    pass
-                else:
-                    self.__timer.start()
-                if self.__timer.read() >= self.delay_1st_frame:
-                    self.is_delay_1st_frame_finished = True
-                    self.__timer.reset()
-                    self.__timer.stop()
+            if do_program:
+                self._return_of_script = self.current_frame.do_program()
+            return self.return_of_script
 
-            # self.current_frame.do_program()
-            # self.id_current_frame = (
-            #     self.id_current_frame + 1) % self.frame_count
-            # if self.id_current_frame == self.frame_count:
-            #     self.let_stop()
-            #     self.id_current_frame = 0
+    # def update(self, dt):
+    #     if self.is_playing:
+    #         if self.__timer.is_playing():
+    #             pass
+    #         else:
+    #             self.__timer.start()
+    #         if self.__timer.read() <= self.current_frame.duration:
+    #             self._return_of_script = self.current_frame.do_program()
+    #         if self.__timer.read() >=\
+    #                 self.current_frame.duration +\
+    #                 self.current_frame.interval:
+    #             self.id_current_frame = (
+    #                 self.id_current_frame + 1) % self.frame_count
+    #             self.__timer.reset()
+    #             self.__timer.stop()
+    #             if self.id_current_frame == 0:
+    #                 self._loop_counter += 1
+    #                 if self.is_all_loop_finished():
+    #                     self.is_playing = False
+    #         return self.return_of_script
 
 
 class AnimationFactory(MutableMapping):

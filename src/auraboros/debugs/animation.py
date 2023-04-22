@@ -66,6 +66,8 @@ class DebugScene(Scene):
         self.msgbox7.padding = 4
         self.msgbox8 = MsgWindow(textfactory.font())
         self.msgbox8.padding = 4
+        self.msgbox9 = MsgWindow(textfactory.font())
+        self.msgbox9.padding = 4
         self.stopwatch = Stopwatch()
         self.mouse.register_mouseaction(
             "down",
@@ -84,7 +86,7 @@ class DebugScene(Scene):
         self.anim_textshowing = Animation(
             # [AnimFrame(TextAddRandIntProgram, 100, 0),
             #  AnimFrame(TextAddRandIntProgram, 100, 0)]
-            [AnimFrame(TextAddRandIntProgram, 1000, 0) for _ in range(3)]
+            [AnimFrame(TextAddRandIntProgram, 1000, 1000) for _ in range(3)]
         )
 
     def play_animation(self):
@@ -124,9 +126,15 @@ class DebugScene(Scene):
         self.msgbox6.text = \
             f"pausing time:{self.stopwatch.read_pausing()/1000}"
         self.msgbox7.text = \
-            "duration:" + str(
-                [frame.duration for frame in self.anim_textshowing.frames])
+            "frame period:" + str(
+                list(map(sum, zip(
+                    [frame.delay for frame in self.anim_textshowing.frames],
+                    [frame.interval for frame in self.anim_textshowing.frames]
+                ))))
         self.msgbox8.text = \
+            "delay:" + str(
+                [frame.delay for frame in self.anim_textshowing.frames])
+        self.msgbox9.text = \
             "interval:" + str(
                 [frame.interval for frame in self.anim_textshowing.frames])
         self.msgbox2.pos[1] = \
@@ -151,9 +159,14 @@ class DebugScene(Scene):
             self.msgbox5.real_size[1]
         self.msgbox7.pos[1] = \
             global_.w_size[1] -\
+            self.msgbox7.real_size[1] -\
             self.msgbox8.real_size[1] -\
-            self.msgbox8.real_size[1]
+            self.msgbox9.real_size[1]
         self.msgbox8.pos[1] = \
+            global_.w_size[1] -\
+            self.msgbox8.real_size[1] -\
+            self.msgbox9.real_size[1]
+        self.msgbox9.pos[1] = \
             global_.w_size[1] -\
             self.msgbox8.real_size[1]
 
@@ -168,6 +181,7 @@ class DebugScene(Scene):
         self.msgbox6.draw(screen)
         self.msgbox7.draw(screen)
         self.msgbox8.draw(screen)
+        self.msgbox9.draw(screen)
 
 
 scene_manager = SceneManager()
