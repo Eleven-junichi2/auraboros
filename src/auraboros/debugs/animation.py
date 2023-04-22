@@ -1,6 +1,5 @@
 
 # from collections import deque
-from dataclasses import dataclass
 from pathlib import Path
 from random import randint
 import sys
@@ -84,15 +83,15 @@ class DebugScene(Scene):
                 self.msgbox2.text = ""
 
         self.anim_textshowing = Animation(
-            # [AnimFrame(TextAddRandIntProgram, 100, 0),
-            #  AnimFrame(TextAddRandIntProgram, 100, 0)]
             [AnimFrame(TextAddRandIntProgram, 1000, 1000) for _ in range(3)]
         )
 
     def play_animation(self):
-        self.stopwatch.start()
         if not self.anim_textshowing.is_playing:
             self.anim_textshowing.let_play()
+            self.stopwatch.start()
+        if self.anim_textshowing.is_all_loop_finished():
+            self.stopwatch.reset()
 
     def stop_animation(self):
         self.stopwatch.stop()
@@ -104,8 +103,9 @@ class DebugScene(Scene):
 
     def update(self, dt):
         self.anim_textshowing.update(dt)
-        if self.anim_textshowing.is_all_loop_finished():
-            self.stopwatch.stop()
+        if not self.anim_textshowing.is_playing:
+            if self.anim_textshowing.is_all_loop_finished():
+                self.stopwatch.stop()
         self.keyboard.current_setup.do_action_on_keyinput(pygame.K_UP)
         self.keyboard.current_setup.do_action_on_keyinput(pygame.K_DOWN)
         self.keyboard.current_setup.do_action_on_keyinput(pygame.K_z)
@@ -113,20 +113,16 @@ class DebugScene(Scene):
         self.menusystem.update()
         self.menuui.highlight_option_on_givenpos(
             pos_on_pixel_scale(pygame.mouse.get_pos()))
-        # self.msgbox2.text = \
-        #     f"{self.anim_textshowing.return_of_script}"
         self.msgbox3.text = \
             f"id of current frame:{self.anim_textshowing.id_current_frame}"
         self.msgbox4.text = \
             f"frame count:{self.anim_textshowing.frame_count}"
-        # self.msgbox5.text = \
-        #     f"is_playing:{self.test_anim_img.is_playing}"
         self.msgbox5.text = \
             f"elapsed time:{self.stopwatch.read()/1000}"
         self.msgbox6.text = \
             f"pausing time:{self.stopwatch.read_pausing()/1000}"
         self.msgbox7.text = \
-            "frame period:" + str(
+            "delay + interval:" + str(
                 list(map(sum, zip(
                     [frame.delay for frame in self.anim_textshowing.frames],
                     [frame.interval for frame in self.anim_textshowing.frames]

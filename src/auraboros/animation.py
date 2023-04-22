@@ -109,6 +109,9 @@ class AnimationImage:
 
 
 class AnimFrameProgram(metaclass=abc.ABCMeta):
+    """
+    Examples is written in docstring of Animation.
+    """
     @abc.abstractmethod
     def script(self):
         raise NotImplementedError
@@ -121,6 +124,7 @@ class AnimFrameProgram(metaclass=abc.ABCMeta):
 class AnimFrame:
     """
     Attributes:
+        program: Union[AnimFrameProgram, Callable, None]:
         interval (int):
             milliseconds to freeze this frame
         duration (int):
@@ -162,16 +166,20 @@ class Animation:
         class TextAddRandIntProgram(AnimFrameProgram):
             @staticmethod
             def script():
-                self.msgbox2.text += str(randint(0, 9))
+                self.msgbox.text += str(randint(0, 9))
 
             @staticmethod
             def reset():
-                self.msgbox2.text = ""
+                self.msgbox.text = ""
 
-        self.anim_textshowing = Animation(
-            [AnimFrame(TextAddRandIntProgram, 0, 1), ]
+        self.animation_instance = Animation(
+            [AnimFrame(TextAddRandIntProgram, 1000, 0),
+            [AnimFrame(TextAddRandIntProgram, 0, 1000),
+            [AnimFrame(TextAddRandIntProgram, 0, )]
         )
+        self.animation_instance.let_play()
 
+        # do update() to play animation after let_play()
     """
 
     def __init__(self, frames: list[AnimFrame] = []):
@@ -260,27 +268,6 @@ class Animation:
             if do_program:
                 self._return_of_script = self.current_frame.do_program()
             return self.return_of_script
-
-    # def update(self, dt):
-    #     if self.is_playing:
-    #         if self.__timer.is_playing():
-    #             pass
-    #         else:
-    #             self.__timer.start()
-    #         if self.__timer.read() <= self.current_frame.duration:
-    #             self._return_of_script = self.current_frame.do_program()
-    #         if self.__timer.read() >=\
-    #                 self.current_frame.duration +\
-    #                 self.current_frame.interval:
-    #             self.id_current_frame = (
-    #                 self.id_current_frame + 1) % self.frame_count
-    #             self.__timer.reset()
-    #             self.__timer.stop()
-    #             if self.id_current_frame == 0:
-    #                 self._loop_counter += 1
-    #                 if self.is_all_loop_finished():
-    #                     self.is_playing = False
-    #         return self.return_of_script
 
 
 class AnimationFactory(MutableMapping):
