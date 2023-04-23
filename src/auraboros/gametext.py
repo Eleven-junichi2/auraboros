@@ -75,10 +75,10 @@ class GameText:
     def __init__(self, text: str,
                  pos: pygame.math.Vector2,
                  rgb_foreground: ColorValue,
-                 rgb_background: Optional(ColorValue) = None):
+                 rgb_background: Optional[ColorValue] = None):
         self.text = text
         self.pos = pos
-        self.rgb_foreground = self.rgb_foreground
+        self.rgb_foreground = rgb_foreground
         self.rgb_background = rgb_background
 
     def rewrite(self, text: str):
