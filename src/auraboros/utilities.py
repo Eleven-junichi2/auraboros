@@ -1,3 +1,4 @@
+from collections import deque
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
 import json
@@ -6,6 +7,27 @@ import sys
 import pygame
 
 from . import global_
+
+
+def test_renderln():
+    # TEXT_SIZE = self.size(text)
+    text = "AaBbCc\nDdEeFf\nGgHhIi"
+    line_width_by_px = 48
+    TEXT_SIZE = (16*len(text), 16)
+    # CHAR_SIZE = TEXT_SIZE // len(text)
+    CHAR_SIZE = TEXT_SIZE[0] // len(text)
+    len_of_single_line = line_width_by_px // CHAR_SIZE
+    texts = [text[i:i+len_of_single_line]
+             for i in range(0, len(text), len_of_single_line)]
+    text_lists = tuple(map(str.splitlines, texts))
+    output_list = []
+    for str_list in text_lists:
+        for str_ in str_list:
+            output_list.append(str_)
+    [output_list.append(str_)]
+
+    [text for i in text for text in texts]
+    return texts
 
 
 def pos_on_pixel_scale(pos) -> tuple[int, int]:
@@ -33,6 +55,24 @@ def calc_pos_to_center(
 def open_json_file(filepath):
     with open(filepath, "r") as f:
         return json.load(f)
+
+
+# class Position2d(deque):
+
+#     def __init__(self, iterable=None):
+#         super().__init__(iterable, maxlen=2)
+
+#     def append(self):
+#         raise NotImplementedError
+    
+#     @property
+#     def x(self):
+#         return self.
+
+
+# Pos2d = Position2d
+# Coordinate2d = Position2d
+# Coord2d = Coordinate2d
 
 
 @dataclass
