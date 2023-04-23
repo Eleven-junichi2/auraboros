@@ -4,14 +4,11 @@ from pathlib import Path
 import sys
 # from string import ascii_lowercase
 
-import pygame
-
 import init_for_dev  # noqa
-from auraboros import engine, global_
+from auraboros import engine
 from auraboros.gametext import GameText, Font2
 from auraboros.gamescene import Scene, SceneManager
-from auraboros.ui import MsgWindow
-from auraboros.utilities import AssetFilePath, draw_grid, pos_on_pixel_scale
+from auraboros.utilities import AssetFilePath, draw_grid
 
 engine.init(caption="Test GameText system", pixel_scale=2)
 

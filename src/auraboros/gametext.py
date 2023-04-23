@@ -43,15 +43,12 @@ class Font2(pygame.font.Font):
                 if len(text) == line_width_by_char_count:
                     return self.render(text, antialias, color,
                                        background_color, *args, **kwargs)
-                # make text list
-            # print(line_width_by_char_count)
+            # make text list
             texts = [text[i:i+line_width_by_char_count]
                      for i in range(0, len(text), line_width_by_char_count)]
-            # print(texts)
             text_lists = tuple(map(str.splitlines, texts))
             texts = tuple(filter(lambda str_: str_ != "",
                                  itertools.chain.from_iterable(text_lists)))
-            # print(texts)
             # ---
             text_surf = pygame.surface.Surface(
                 (CHAR_WIDTH*line_width_by_char_count, TEXT_SIZE[1]*len(texts)))

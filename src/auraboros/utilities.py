@@ -64,7 +64,7 @@ def open_json_file(filepath):
 
 #     def append(self):
 #         raise NotImplementedError
-    
+
 #     @property
 #     def x(self):
 #         return self.
@@ -112,16 +112,6 @@ class ArrowToTurnToward:
         elif direction is Arrow.LEFT:
             self.is_left = False
 
-    # def switch(self, direction: Arrow):
-    #     if direction is Arrow.up:
-    #         self.is_down = False
-    #     elif direction is Arrow.down:
-    #         self.is_down = not self.is_down
-    #     elif direction is Arrow.right:
-    #         self.is_right = self.is_right
-    #     elif direction is Arrow.left:
-    #         self.is_left = self.is_left
-
     def is_set_any(self):
         return True in set(asdict(self).values())
 
@@ -138,7 +128,8 @@ class AssetFilePath:
     @ classmethod
     def pyinstaller_path(cls, filepath):
         try:
-            # PyInstaller creates a temp folder and stores path in _MEIPASS
+            # PyInstaller creates a temp folder
+            # and stores the programs in _MEIPASS
             path = Path(sys._MEIPASS) / cls.root_dirname / filepath
             # path will be such as: "sys._MEIPASS/assets/imgs/example.png"
         except AttributeError:
