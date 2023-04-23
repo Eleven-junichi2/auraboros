@@ -25,8 +25,8 @@ class Font2(pygame.font.Font):
     def renderln(self, text: Union[str, bytes, None], antialias: bool,
                  color: ColorValue,
                  background_color: Optional[ColorValue] = None,
-                 line_width_by_px: Optional[int] = None,
                  line_width_by_char_count: Optional[int] = None,
+                 line_width_by_px: Optional[int] = None,
                  *args, **kwargs) -> pygame.surface.Surface:
         """
         line_width_by_px takes precedence over line_width_by_char_count
@@ -44,14 +44,14 @@ class Font2(pygame.font.Font):
                     return self.render(text, antialias, color,
                                        background_color, *args, **kwargs)
                 # make text list
-            print(line_width_by_char_count)
+            # print(line_width_by_char_count)
             texts = [text[i:i+line_width_by_char_count]
                      for i in range(0, len(text), line_width_by_char_count)]
-            print(texts)
+            # print(texts)
             text_lists = tuple(map(str.splitlines, texts))
             texts = tuple(filter(lambda str_: str_ != "",
                                  itertools.chain.from_iterable(text_lists)))
-            print(texts)
+            # print(texts)
             # ---
             text_surf = pygame.surface.Surface(
                 (CHAR_WIDTH*line_width_by_char_count, TEXT_SIZE[1]*len(texts)))
@@ -70,69 +70,70 @@ class GameText:
 
     @classmethod
     def setup_font(cls, font: Font2):
+        """The classmethod to set Font object."""
         cls.font = font
 
-    def __init__(self, text: str,
-                 pos: pygame.math.Vector2,
-                 rgb_foreground: ColorValue,
-                 rgb_background: Optional[ColorValue] = None):
+    def __init__(
+        self, text: Union[str, bytes, None],
+            pos: pygame.math.Vector2,
+            is_antialias_enable: bool = True,
+            color_foreground: ColorValue = pygame.Color(255, 255, 255, 255),
+            color_background: Optional[ColorValue] = None):
         self.text = text
+        self.is_antialias_enable = is_antialias_enable
         self.pos = pos
-        self.rgb_foreground = rgb_foreground
-        self.rgb_background = rgb_background
+        self.color_foreground = color_foreground
+        self.color_background = color_background
 
     def rewrite(self, text: str):
         self.text = text
 
-    def render(self, text: Union[str, bytes, None], antialias: bool,
-               color: ColorValue,
-               background_color: Optional[ColorValue] = None,
-               screen: pygame.surface.Surface = None,
+    def render(self, surface_to_blit: Optional[pygame.Surface] = None,
                *args, **kwargs) -> pygame.surface.Surface:
         """GameText.font.render(with its attributes as args)"""
         text_surface = self.font.render(
-            text, antialias, color, background_color,
+            self.text, self.is_antialias_enable,
+            self.color_foreground, self.color_background,
             *args, **kwargs)
-        if screen:
-            screen.blit(text_surface, self.pos)
+        if surface_to_blit:
+            surface_to_blit.blit(text_surface, self.pos)
         return text_surface
 
-    def renderln(self, text: Union[str, bytes, None], antialias: bool,
-                 color: ColorValue,
-                 background_color: Optional[ColorValue] = None,
-                 line_width_by_px: Optional[int] = None,
+    def renderln(self,
                  line_width_by_char_count: Optional[int] = None,
-                 screen: pygame.surface.Surface = None,
+                 line_width_by_px: Optional[int] = None,
+                 surface_to_blit: pygame.surface.Surface = None,
                  *args, **kwargs) -> pygame.surface.Surface:
         """GameText.font.renderln(with its attributes as args)"""
         text_surface = self.font.renderln(
-            text, antialias, color, background_color,
-            line_width_by_px,
+            self.text, self.is_antialias_enable,
+            self.color_foreground, self.color_background,
             line_width_by_char_count,
+            line_width_by_px,
             *args, **kwargs)
-        if screen:
-            screen.blit(text_surface, self.pos)
+        if surface_to_blit:
+            surface_to_blit.blit(text_surface, self.pos)
         return text_surface
 
     def set_pos_to_right(self):
         self.pos[0] = \
             global_.w_size[0] - \
-            self.font().size(self.text)[0]
+            self.font.size(self.text)[0]
 
     def set_pos_to_bottom(self):
         self.pos[1] = \
             global_.w_size[1] - \
-            self.font().size(self.text)[1]
+            self.font.size(self.text)[1]
 
     def set_pos_to_center_x(self):
         self.pos[0] = \
             global_.w_size[0]//2 - \
-            self.font().size(self.text)[0]//2
+            self.font.size(self.text)[0]//2
 
     def set_pos_to_center_y(self):
         self.pos[1] = \
             global_.w_size[1]//2 - \
-            self.font().size(self.text)[1]//2
+            self.font.size(self.text)[1]//2
 
 
 @dataclass
@@ -140,7 +141,7 @@ class TextData:
     """This class is going to be deprecated"""
     text: str
     pos: list
-    rgb_foreground: list
+    color_foreground: list
     rgb_background: list
     surface: pygame.surface.Surface = None
 
@@ -202,7 +203,7 @@ class TextSurfaceFactory:
         self.text_dict[key].pos = pos
 
     def set_text_color(self, key, color_rgb):
-        self.text_dict[key].rgb = color_rgb
+        self.text_dict[key].color_foreground = color_rgb
 
     def set_text_pos_to_right(self, key):
         self.text_dict[key].pos[0] = \
@@ -229,7 +230,7 @@ class TextSurfaceFactory:
         if self.is_text_registered(text_key):
             text_surf = self.font().render(
                 self.text_by_key(text_key), True,
-                self.text_dict[text_key].rgb_foreground,
+                self.text_dict[text_key].color_foreground,
                 self.text_dict[text_key].rgb_background)
             if pos is None:
                 pos_ = self.text_dict[text_key].pos
