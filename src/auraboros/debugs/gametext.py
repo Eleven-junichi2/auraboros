@@ -14,12 +14,8 @@ engine.init(caption="Test GameText system", pixel_scale=2)
 
 AssetFilePath.set_asset_root(Path(sys.argv[0]).parent / "assets")
 
-# textfactory = TextSurfaceFactory()
-# textfactory.register_font(
-#     "misaki_gothic",
-#     pygame.font.Font(AssetFilePath.font("misaki_gothic.ttf"), 16))
-
-GameText.setup_font(Font2(AssetFilePath.font("misaki_gothic.ttf"), 16))
+GameText.setup_font(
+    Font2(AssetFilePath.font("misaki_gothic.ttf"), 16), "misakigothic")
 
 
 class DebugScene(Scene):

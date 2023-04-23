@@ -3,7 +3,7 @@ import abc
 
 import pygame
 
-from .gametext import TextSurfaceFactory
+from .gametext import Font2
 from . import global_
 from .utilities import calc_pos_to_center, calc_x_to_center, calc_y_to_center
 
@@ -123,19 +123,16 @@ class UIElementBase(metaclass=abc.ABCMeta):
         return tuple(map(sum, zip(*sizes)))
 
     @property
-    # @abc.abstractmethod
     def pos(self) -> list[int, int]:
         """return self._pos"""
         return self._pos
 
     @pos.setter
-    # @abc.abstractmethod
     def pos(self, value):
         """self._pos = value"""
         self._pos = value
 
     @property
-    # @abc.abstractmethod
     def min_size(self) -> list[int, int]:
         self.resize_min_size_to_suit()
         return self._min_size
@@ -180,18 +177,17 @@ class GameMenuUI(UIElementBase):
     "top_left" is default
     """
 
-    def __init__(self, menu_system: GameMenuSystem,
-                 textfactory: TextSurfaceFactory,
+    def __init__(self, menu_system: GameMenuSystem, font: Font2,
                  option_highlight_style="cursor", *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.system = menu_system
-        self.textfactory = textfactory
+        self.font = font
         self.resize_min_size_to_suit()
         self._pos = [0, 0]
         self.frame_color = (255, 255, 255)
         self.option_highlight_color = (222, 222, 222)
         self.option_highlight_bg_color = (122, 122, 122)
-        self.cursor_size = textfactory.char_size()
+        self.cursor_size = font.size(" ")
         self.reposition_cursor()
         self.option_highlight_style = option_highlight_style
         self.locate_cursor_inside_window = True
@@ -199,7 +195,7 @@ class GameMenuUI(UIElementBase):
 
     @property
     def pos(self):
-        return super().pos()
+        return super().pos
 
     @pos.setter
     def pos(self, value):
@@ -209,8 +205,8 @@ class GameMenuUI(UIElementBase):
     def resize_min_size_to_suit(self):
         self._min_size = [
             self.system.max_option_text_length(
-            )*self.textfactory.char_size()[0],
-            self.system.count_menu_items()*self.textfactory.char_size()[1]]
+            )*self.font.size(" ")[0],
+            self.system.count_menu_items()*self.font.size(" ")[1]]
 
     @property
     def real_size(self):
@@ -265,24 +261,10 @@ class GameMenuUI(UIElementBase):
             if self.is_givenpos_on_option(pos, i):
                 self.system.select_action_by_index(i)
 
-    def draw(self, screen):
+    def draw(self, screen: pygame.surface.Surface):
         pygame.draw.rect(
             screen, self.frame_color,
             self.pos + self.real_size, 1)
-        for i, (key, text) in enumerate(
-            zip(self.system.menu_option_keys,
-                self.system.menu_option_texts)):
-            if (self.option_highlight_style == "cursor" and
-                    self.locate_cursor_inside_window):
-                text_pos = (
-                    self.pos[0]+self.padding+self.cursor_size[0]+self.padding,
-                    self.pos[1]+self.textfactory.char_size()[1]*i+self.padding)
-            else:
-                text_pos = (
-                    self.pos[0]+self.padding,
-                    self.pos[1]+self.textfactory.char_size()[1]*i+self.padding)
-            self.textfactory.register_text(
-                key, text, text_pos)
         if self.option_highlight_style == "cursor":
             if (self.option_highlight_style == "cursor" and
                     self.locate_cursor_inside_window):
@@ -321,8 +303,20 @@ class GameMenuUI(UIElementBase):
                   * self.system.menu_selected_index+self.padding),
                  (self.min_size[0], self.cursor_size[1])))
             pass
-        for key in self.system.menu_option_keys:
-            self.textfactory.render(key, screen)
+            # self.textfactory.render(key, screen)
+        for i, text in enumerate(self.system.menu_option_texts):
+            if (self.option_highlight_style == "cursor" and
+                    self.locate_cursor_inside_window):
+                text_pos = (
+                    self.pos[0]+self.padding +
+                    self.cursor_size[0]+self.padding,
+                    self.pos[1]+self.font.size(" ")[1]*i+self.padding)
+            else:
+                text_pos = (
+                    self.pos[0]+self.padding,
+                    self.pos[1]+self.font.size(" ")[1]*i+self.padding)
+            screen.blit(self.font.render(
+                text, True, (255, 255, 255)), text_pos)
 
 
 class MsgWindow(UIElementBase):

@@ -62,13 +62,23 @@ class Font2(pygame.font.Font):
             return text_surf
 
 
-class GameText:
-    font: Font2
+class Font2Dict(dict):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-    @classmethod
-    def setup_font(cls, font: Font2):
-        """The classmethod to set Font object."""
-        cls.font = font
+    def __setitem__(self, key, value: Font2):
+        if isinstance(value, Font2):
+            super().__setitem__(key, value)
+        else:
+            raise TypeError("The value must be Font2 object.")
+
+    def __getitem__(self, key) -> Font2:
+        return super().__getitem__(key)
+
+
+class GameText:
+    font_dict: Font2Dict = Font2Dict()
+    current_font_name: str
 
     def __init__(
         self, text: Union[str, bytes, None],
@@ -81,6 +91,31 @@ class GameText:
         self.pos = pos
         self.color_foreground = color_foreground
         self.color_background = color_background
+
+    @classmethod
+    def setup_font(cls, font: Font2, name_for_registering_in_dict: str):
+        """The classmethod to set Font object."""
+        cls.font_dict[name_for_registering_in_dict] = font
+        cls.current_font_name = name_for_registering_in_dict
+
+    @classmethod
+    def use_font(cls, name_of_font_in_dict: str):
+        cls.current_font_name = name_of_font_in_dict
+
+    # alias of the method
+    register_font = setup_font
+
+    @classmethod
+    def get_font(cls) -> Font2:
+        return cls.font_dict[cls.current_font_name]
+
+    @classmethod
+    @property
+    def font(cls) -> Font2:
+        return cls.font_dict[cls.current_font_name]
+
+    def char_size(self) -> Tuple[int, int]:
+        return self.font_dict[self.current_font_name].size(" ")
 
     def rewrite(self, text: str):
         self.text = text
@@ -146,111 +181,95 @@ class TextData:
         screen.blit(self.surface, self.pos)
 
 
-class TextSurfaceFactory:
-    """This class is going to be deprecated"""
+# class TextSurfaceFactory:
+#     """This class is going to be deprecated"""
 
-    def __init__(self):
-        self.current_font_key = None
-        self._text_dict: dict[Any, TextData] = {}
-        self._font_dict = FontDict()
+#     def __init__(self):
+#         self.current_font_key = None
+#         self._text_dict: dict[Any, TextData] = {}
+#         self._font_dict = FontDict()
 
-    @property
-    def text_dict(self) -> dict[Any, TextData]:
-        return self._text_dict
+#     @property
+#     def text_dict(self) -> dict[Any, TextData]:
+#         return self._text_dict
 
-    @property
-    def font_dict(self):
-        return self._font_dict
+#     @property
+#     def font_dict(self):
+#         return self._font_dict
 
-    def register_text(self, key, text: str = "", pos=[0, 0],
-                      color_rgb=[255, 255, 255]):
-        self.text_dict[key] = TextData(text=text, pos=pos, rgb=color_rgb)
+#     def register_text(self, key, text: str = "", pos=[0, 0],
+#                       color_rgb=[255, 255, 255]):
+#         self.text_dict[key] = TextData(text=text, pos=pos, rgb=color_rgb)
 
-    def rewrite_text(self, key, text: str):
-        self.text_dict[key].text = text
+#     def rewrite_text(self, key, text: str):
+#         self.text_dict[key].text = text
 
-    def text_by_key(self, key) -> str:
-        return self.text_dict[key].text
+#     def text_by_key(self, key) -> str:
+#         return self.text_dict[key].text
 
-    def is_text_registered(self, key):
-        if self.text_dict.get(key):
-            return True
-        else:
-            return False
+#     def is_text_registered(self, key):
+#         if self.text_dict.get(key):
+#             return True
+#         else:
+#             return False
 
-    def register_font(self, key, font: pygame.font.Font):
-        if len(self.font_dict) == 0:
-            self.current_font_key = key
-        self.font_dict[key] = font
+#     def register_font(self, key, font: pygame.font.Font):
+#         if len(self.font_dict) == 0:
+#             self.current_font_key = key
+#         self.font_dict[key] = font
 
-    def set_current_font(self, key):
-        self.current_font_key = key
+#     def set_current_font(self, key):
+#         self.current_font_key = key
 
-    def font_by_key(self, key) -> pygame.font.Font:
-        return self.font_dict[key]
+#     def font_by_key(self, key) -> pygame.font.Font:
+#         return self.font_dict[key]
 
-    def font(self) -> pygame.font.Font:
-        """Return Font object that is currently being used"""
-        return self.font_dict[self.current_font_key]
+#     def font(self) -> pygame.font.Font:
+#         """Return Font object that is currently being used"""
+#         return self.font_dict[self.current_font_key]
 
-    def char_size(self) -> Tuple[int, int]:
-        return self.font_dict[self.current_font_key].size(" ")
+#     def char_size(self) -> Tuple[int, int]:
+#         return self.font_dict[self.current_font_key].size(" ")
 
-    def set_text_pos(self, key, pos):
-        self.text_dict[key].pos = pos
+#     def set_text_pos(self, key, pos):
+#         self.text_dict[key].pos = pos
 
-    def set_text_color(self, key, color_rgb):
-        self.text_dict[key].color_foreground = color_rgb
+#     def set_text_color(self, key, color_rgb):
+#         self.text_dict[key].color_foreground = color_rgb
 
-    def set_text_pos_to_right(self, key):
-        self.text_dict[key].pos[0] = \
-            global_.w_size[0] - \
-            self.font().size(self.text_dict[key].text)[0]
+#     def set_text_pos_to_right(self, key):
+#         self.text_dict[key].pos[0] = \
+#             global_.w_size[0] - \
+#             self.font().size(self.text_dict[key].text)[0]
 
-    def set_text_pos_to_bottom(self, key):
-        self.text_dict[key].pos[1] = \
-            global_.w_size[1] - \
-            self.font().size(self.text_dict[key].text)[1]
+#     def set_text_pos_to_bottom(self, key):
+#         self.text_dict[key].pos[1] = \
+#             global_.w_size[1] - \
+#             self.font().size(self.text_dict[key].text)[1]
 
-    def center_text_pos_x(self, key):
-        self.text_dict[key].pos[0] = \
-            global_.w_size[0]//2 - \
-            self.font().size(self.text_dict[key].text)[0]//2
+#     def center_text_pos_x(self, key):
+#         self.text_dict[key].pos[0] = \
+#             global_.w_size[0]//2 - \
+#             self.font().size(self.text_dict[key].text)[0]//2
 
-    def center_text_pos_y(self, key):
-        self.text_dict[key].pos[1] = \
-            global_.w_size[1]//2 - \
-            self.font().size(self.text_dict[key].text)[1]//2
+#     def center_text_pos_y(self, key):
+#         self.text_dict[key].pos[1] = \
+#             global_.w_size[1]//2 - \
+#             self.font().size(self.text_dict[key].text)[1]//2
 
-    def render(self, text_key, surface_to_draw: pygame.surface.Surface,
-               pos=None):
-        if self.is_text_registered(text_key):
-            text_surf = self.font().render(
-                self.text_by_key(text_key), True,
-                self.text_dict[text_key].color_foreground,
-                self.text_dict[text_key].rgb_background)
-            if pos is None:
-                pos_ = self.text_dict[text_key].pos
-            else:
-                pos_ = pos
-            self.text_dict[text_key].surface = text_surf
-            surface_to_draw.blit(text_surf, pos_)
+#     def render(self, text_key, surface_to_draw: pygame.surface.Surface,
+#                pos=None):
+#         if self.is_text_registered(text_key):
+#             text_surf = self.font().render(
+#                 self.text_by_key(text_key), True,
+#                 self.text_dict[text_key].color_foreground,
+#                 self.text_dict[text_key].rgb_background)
+#             if pos is None:
+#                 pos_ = self.text_dict[text_key].pos
+#             else:
+#                 pos_ = pos
+#             self.text_dict[text_key].surface = text_surf
+#             surface_to_draw.blit(text_surf, pos_)
 
-    def generate_gametext(self, text_key):
-        return self.text_dict[text_key]
-
-
-class FontDict(dict):
-    """This class is going to be deprecated"""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def __setitem__(self, key, value: pygame.font.Font):
-        if isinstance(value, pygame.font.Font):
-            super().__setitem__(key, value)
-        else:
-            raise TypeError("The value must be Font object of pygame.")
-
-    def __getitem__(self, key) -> pygame.font.Font:
-        return super().__getitem__(key)
+#     def generate_gametext(self, text_key):
+#         return self.text_dict[text_key]

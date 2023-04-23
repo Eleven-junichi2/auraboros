@@ -9,7 +9,7 @@ import pygame
 import init_for_dev  # noqa
 from auraboros import engine
 from auraboros.utilities import AssetFilePath, draw_grid, pos_on_pixel_scale
-from auraboros.gametext import TextSurfaceFactory
+from auraboros.gametext import GameText, Font2
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.gameinput import Keyboard
 from auraboros.ui import GameMenuSystem, GameMenuUI, MsgWindow
@@ -19,19 +19,13 @@ engine.init(pixel_scale=2)
 
 AssetFilePath.set_asset_root(Path(sys.argv[0]).parent / "assets")
 
-textfactory = TextSurfaceFactory()
-textfactory.register_font(
-    "misaki_gothic",
-    pygame.font.Font(AssetFilePath.font("misaki_gothic.ttf"), 16))
-
-QWERTY_STR = "qwertyuiopasdfghjklzxcvbnm"
-AZERTY_STR = "azertyuiopqsdfghjklmwxcvbn"
+GameText.setup_font(
+    Font2(AssetFilePath.font("misaki_gothic.ttf"), 16), "misakigothic")
 
 
 class GameMenuDebugScene(Scene):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        textfactory.set_current_font("misaki_gothic")
         self.keyboard["menu"] = Keyboard()
         self.keyboard.set_current_setup("menu")
         self.menusystem = GameMenuSystem()
@@ -53,11 +47,12 @@ class GameMenuDebugScene(Scene):
             "blue", self.turn_blue,
             lambda: self.msgwindow.rewrite_text("Blue"),
             text="BLUE")
-        self.menuui = GameMenuUI(self.menusystem, textfactory, "filled_box")
+        self.menuui = GameMenuUI(
+            self.menusystem, GameText.font, "filled_box")
         self.menuui.padding = 4
-        self.msgwindow = MsgWindow(textfactory.font())
+        self.msgwindow = MsgWindow(GameText.font)
         self.msgwindow.padding = 4
-        self.msgwindow2 = MsgWindow(textfactory.font())
+        self.msgwindow2 = MsgWindow(GameText.font)
         self.msgwindow2.padding = 10
         self.msgwindow2.text = "Press 'Z' to turn color of the box."
         self.turn_red()
