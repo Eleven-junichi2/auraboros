@@ -6,7 +6,7 @@ import pygame
 
 import init_for_dev  # noqa
 from auraboros import engine
-from auraboros.gametext import TextSurfaceFactory
+from auraboros.gametext import GameText, Font2
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.utilities import AssetFilePath, draw_grid, pos_on_pixel_scale
 from auraboros.gamecamera import TopDownCamera
@@ -18,10 +18,8 @@ engine.init(caption="Test Mouse System", pixel_scale=2)
 
 AssetFilePath.set_asset_root(Path(sys.argv[0]).parent / "assets")
 
-textfactory = TextSurfaceFactory()
-textfactory.register_font(
-    "misaki_gothic",
-    pygame.font.Font(AssetFilePath.font("misaki_gothic.ttf"), 16))
+GameText.setup_font(
+    Font2(AssetFilePath.font("misaki_gothic.ttf"), 16), "misakigothic")
 
 
 class DebugScene(Scene):
@@ -30,7 +28,6 @@ class DebugScene(Scene):
         self.canvas_surf = pygame.surface.Surface(global_.w_size)
         draw_grid(self.canvas_surf, 16, (78, 78, 78))
         self.canvas_surf.set_colorkey((0, 0, 0))
-        textfactory.set_current_font("misaki_gothic")
         self.camera = TopDownCamera()
         self.keyboard["camera"] = Keyboard()
         self.keyboard["camera"].register_keyaction(
@@ -47,14 +44,15 @@ class DebugScene(Scene):
         self.mouse.register_mouseaction("down", on_right=self.erase_canvas)
         self.mouse.register_mouseaction("motion", on_right=self.erase_canvas)
         self.mouse.register_mouseaction("drag", on_middle=self.drag_canvas)
-        self.msgbox = MsgWindow(textfactory.font())
+        self.msgbox = MsgWindow(GameText.font)
         self.msgbox.padding = 2
-        self.msgbox.text = "Click to paint | Drag to move canvas"
-        textfactory.register_text(
-            "mouse_pos", pos=(0, self.msgbox.calculate_ultimate_size()[1]))
-        textfactory.register_text(
-            "mouse_pressed", pos=(0, self.msgbox.calculate_ultimate_size()[1]
-                                  + textfactory.font().get_height()))
+        self.msgbox.text = \
+            "Click to paint | Click wheel and drag to move canvas"
+        self.text_to_show_param1 = GameText(
+            "", (0, self.msgbox.real_size[1]))
+        self.text_to_show_param2 = GameText(
+            "", (0, self.msgbox.real_size[1]
+                 + GameText.font.get_height()))
 
     def paint_canvas(self):
         camera_offset = self.camera.offset
@@ -82,10 +80,10 @@ class DebugScene(Scene):
             (*pos, 2, 2), 2)
 
     def update(self, dt):
-        textfactory.rewrite_text("mouse_pos",
-                                 text=f"{pygame.mouse.get_pos()}")
-        textfactory.rewrite_text("mouse_pressed",
-                                 text=f"{pygame.mouse.get_pressed()}")
+        self.text_to_show_param1.rewrite(
+            f"mouse_pos:{pygame.mouse.get_pos()}")
+        self.text_to_show_param2.rewrite(
+            f"mouse_pressed:{pygame.mouse.get_pressed()}")
         self.keyboard.current_setup.do_action_on_keyinput(pygame.K_LEFT)
         self.keyboard.current_setup.do_action_on_keyinput(pygame.K_UP)
         self.keyboard.current_setup.do_action_on_keyinput(pygame.K_RIGHT)
@@ -96,8 +94,8 @@ class DebugScene(Scene):
         self.camera.projection_on_screen(
             screen, self.canvas_surf, global_.w_size)
         self.msgbox.draw(screen)
-        textfactory.render("mouse_pos", screen)
-        textfactory.render("mouse_pressed", screen)
+        self.text_to_show_param1.render(screen)
+        self.text_to_show_param2.render(screen)
 
 
 scene_manager = SceneManager()

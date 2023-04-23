@@ -9,7 +9,7 @@ import pygame
 import init_for_dev  # noqa
 from auraboros import engine
 from auraboros.animation import AnimationImage, SpriteSheet
-from auraboros.gametext import TextSurfaceFactory
+from auraboros.gametext import GameText, Font2
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.gameinput import Keyboard
 from auraboros.ui import GameMenuSystem, GameMenuUI, MsgWindow
@@ -20,10 +20,8 @@ engine.init(caption="Test Stopwatch System", pixel_scale=3)
 
 AssetFilePath.set_asset_root(Path(sys.argv[0]).parent / "assets")
 
-textfactory = TextSurfaceFactory()
-textfactory.register_font(
-    "misaki_gothic",
-    pygame.font.Font(AssetFilePath.font("misaki_gothic.ttf"), 16))
+GameText.setup_font(
+    Font2(AssetFilePath.font("misaki_gothic.ttf"), 16), "misakigothic")
 
 
 class TestAnimImg(AnimationImage):
@@ -46,7 +44,6 @@ class TestAnimImg(AnimationImage):
 class DebugScene(Scene):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        textfactory.set_current_font("misaki_gothic")
         self.stopwatch = Stopwatch()
         self.stopwatch.enable_pausing_time_count()
         self.keyboard["menu"] = Keyboard()
@@ -64,24 +61,24 @@ class DebugScene(Scene):
             "stop", self.stop_stopwatch, text="STOP")
         self.menusystem.add_menu_item(
             "reset", self.reset_stopwatch, text="RESET")
-        self.menuui = GameMenuUI(self.menusystem, textfactory, "filled_box")
+        self.menuui = GameMenuUI(self.menusystem, GameText.font, "filled_box")
         self.menuui.padding = 4
-        self.msgbox = MsgWindow(textfactory.font())
+        self.msgbox = MsgWindow(GameText.font)
         self.msgbox.padding = 4
         self.msgbox.text = "Press 'Z'"
-        self.msgbox2 = MsgWindow(textfactory.font())
+        self.msgbox2 = MsgWindow(GameText.font)
         self.msgbox2.padding = 4
-        self.msgbox3 = MsgWindow(textfactory.font())
+        self.msgbox3 = MsgWindow(GameText.font)
         self.msgbox3.padding = 4
-        self.msgbox4 = MsgWindow(textfactory.font())
+        self.msgbox4 = MsgWindow(GameText.font)
         self.msgbox4.padding = 4
-        self.msgbox5 = MsgWindow(textfactory.font())
+        self.msgbox5 = MsgWindow(GameText.font)
         self.msgbox5.padding = 4
-        self.msgbox6 = MsgWindow(textfactory.font())
+        self.msgbox6 = MsgWindow(GameText.font)
         self.msgbox6.padding = 4
-        self.msgbox7 = MsgWindow(textfactory.font())
+        self.msgbox7 = MsgWindow(GameText.font)
         self.msgbox7.padding = 4
-        self.msgbox8 = MsgWindow(textfactory.font())
+        self.msgbox8 = MsgWindow(GameText.font)
         self.msgbox8.padding = 4
 
     def start_stopwatch(self):

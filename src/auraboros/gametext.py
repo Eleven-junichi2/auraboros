@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 # from functools import wraps
 import itertools
-from typing import Any, Tuple, Union, Sequence, Optional
+from typing import Tuple, Union, Sequence, Optional
 
 from pygame.color import Color
 import pygame

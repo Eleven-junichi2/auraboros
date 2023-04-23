@@ -1,4 +1,3 @@
-
 from collections import deque
 from pathlib import Path
 import sys
@@ -9,7 +8,7 @@ import pygame
 import init_for_dev  # noqa
 from auraboros import engine
 from auraboros.utilities import AssetFilePath
-from auraboros.gametext import TextSurfaceFactory
+from auraboros.gametext import GameText, Font2
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.gameinput import Keyboard
 from auraboros.ui import MsgWindow
@@ -17,10 +16,10 @@ from auraboros import global_
 
 AssetFilePath.set_asset_root(Path(sys.argv[0]).parent / "assets")
 
-textfactory = TextSurfaceFactory()
-textfactory.register_font(
-    "misaki_gothic",
-    pygame.font.Font(AssetFilePath.font("misaki_gothic.ttf"), 16))
+
+GameText.setup_font(
+    Font2(AssetFilePath.font("misaki_gothic.ttf"), 16), "misakigothic")
+
 
 QWERTY_STR = "qwertyuiopasdfghjklzxcvbnm"
 AZERTY_STR = "azertyuiopqsdfghjklmwxcvbn"
@@ -31,7 +30,6 @@ class KeyboardDebugScene(Scene):
         super().__init__(*args, **kwargs)
         self.textinput = ""
         self.textinput_to_show = self.textinput
-        textfactory.set_current_font("misaki_gothic")
         self.keyboard["qwerty"] = Keyboard()
         self.keyboard["azerty"] = Keyboard()
         for key_name in QWERTY_STR:
@@ -53,11 +51,11 @@ class KeyboardDebugScene(Scene):
         self.key_i_o_map: dict[str: bool] = dict.fromkeys(
             ascii_lowercase, False)
         self.keyboard.set_current_setup("qwerty")
-        self.msgbox1 = MsgWindow(textfactory.font())
-        self.msgbox2 = MsgWindow(textfactory.font())
-        self.msgbox3 = MsgWindow(textfactory.font())
-        self.msgbox4 = MsgWindow(textfactory.font())
-        self.msgbox5 = MsgWindow(textfactory.font())
+        self.msgbox1 = MsgWindow(GameText.font)
+        self.msgbox2 = MsgWindow(GameText.font)
+        self.msgbox3 = MsgWindow(GameText.font)
+        self.msgbox4 = MsgWindow(GameText.font)
+        self.msgbox5 = MsgWindow(GameText.font)
 
     def press_key(self, key):
         self.textinput += key
@@ -118,7 +116,7 @@ class KeyboardDebugScene(Scene):
             keyboard_layout = QWERTY_STR
         elif self.keyboard.current_setup_key == "azerty":
             keyboard_layout = AZERTY_STR
-        char_size = textfactory.font().size("a")
+        char_size = GameText.font.size("a")
         for i, key_name in enumerate(keyboard_layout):
             if i < 10:  # key_name <= "p"(qwerty)
                 surface_pos = (i*char_size[0], 0)
@@ -129,15 +127,15 @@ class KeyboardDebugScene(Scene):
                 surface_pos = (char_size[0]//2+(i-19)
                                * char_size[0], char_size[1]*2)
             if self.key_i_o_map[key_name]:
-                text_surface = textfactory.font().render(
+                text_surface = GameText.font.render(
                     key_name, True, (89, 255, 89))
                 screen.blit(text_surface, surface_pos)
             else:
-                text_surface = textfactory.font().render(
+                text_surface = GameText.font.render(
                     key_name, True, (255, 255, 255))
                 screen.blit(text_surface, surface_pos)
         textfactory.render("current_layout", screen, (0, char_size[1]*4))
-        textinput_size = textfactory.font().size(self.textinput)
+        textinput_size = GameText.font.size(self.textinput)
         textinput_homepos = (0, char_size[1]*6)
         if textinput_size[0] > global_.w_size[0]:
             num_of_chars = global_.w_size[0] // char_size[0]
@@ -152,7 +150,7 @@ class KeyboardDebugScene(Scene):
             textinput_lines = [self.textinput]
         for line_num, line in enumerate(textinput_lines):
             textinput_to_show = line
-            textinput_surface = textfactory.font().render(
+            textinput_surface = GameText.font.render(
                 textinput_to_show, True, (255, 255, 255))
             screen.blit(
                 textinput_surface,

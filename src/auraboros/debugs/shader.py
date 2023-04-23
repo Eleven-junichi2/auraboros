@@ -12,7 +12,7 @@ from auraboros.entity import Entity
 from auraboros.gameinput import Keyboard
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.shader import Shader2D, VERTEX_DEFAULT
-from auraboros.utilities import Arrow, AssetFilePath, draw_grid_background
+from auraboros.utilities import Arrow, AssetFilePath, draw_grid
 
 engine.init(pixel_scale=1, set_mode_flags=pygame.DOUBLEBUF | pygame.OPENGL)
 
@@ -63,19 +63,19 @@ class DebugScene(Scene):
         self.testentity.set_y_to_center_of_screen()
         self.keyboard["player"] = Keyboard()
         self.keyboard["player"].register_keyaction(
-            pygame.K_LEFT, 0, 0,
+            pygame.K_LEFT, 0, 0, 0,
             lambda: self.testentity.set_move_direction(Arrow.LEFT),
             lambda: self.testentity.cancel_move_direction(Arrow.LEFT))
         self.keyboard["player"].register_keyaction(
-            pygame.K_UP, 0, 0,
+            pygame.K_UP, 0, 0, 0,
             lambda: self.testentity.set_move_direction(Arrow.UP),
             lambda: self.testentity.cancel_move_direction(Arrow.UP))
         self.keyboard["player"].register_keyaction(
-            pygame.K_RIGHT, 0, 0,
+            pygame.K_RIGHT, 0, 0, 0,
             lambda: self.testentity.set_move_direction(Arrow.RIGHT),
             lambda: self.testentity.cancel_move_direction(Arrow.RIGHT))
         self.keyboard["player"].register_keyaction(
-            pygame.K_DOWN, 0, 0,
+            pygame.K_DOWN, 0, 0, 0,
             lambda: self.testentity.set_move_direction(Arrow.DOWN),
             lambda: self.testentity.cancel_move_direction(Arrow.DOWN))
         self.keyboard.set_current_setup("player")
@@ -89,14 +89,14 @@ class DebugScene(Scene):
         shader2d.set_uniform("vignette", "softness", 0.33)
 
     def update(self, dt):
-        self.keyboard.current_setup.do_action_by_keyinput(pygame.K_LEFT)
-        self.keyboard.current_setup.do_action_by_keyinput(pygame.K_UP)
-        self.keyboard.current_setup.do_action_by_keyinput(pygame.K_RIGHT)
-        self.keyboard.current_setup.do_action_by_keyinput(pygame.K_DOWN)
+        self.keyboard.current_setup.do_action_on_keyinput(pygame.K_LEFT)
+        self.keyboard.current_setup.do_action_on_keyinput(pygame.K_UP)
+        self.keyboard.current_setup.do_action_on_keyinput(pygame.K_RIGHT)
+        self.keyboard.current_setup.do_action_on_keyinput(pygame.K_DOWN)
         self.testentity.update()
 
     def draw(self, screen):
-        draw_grid_background(screen, 32, (178, 178, 178))
+        draw_grid(screen, 32, (178, 178, 178))
         self.testentity.draw(screen)
 
 
