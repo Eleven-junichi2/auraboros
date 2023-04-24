@@ -16,11 +16,41 @@ ColorValue = Union[Color, int, str,
                    Tuple[int, int, int], RGBAOutput, Sequence[int]]
 
 
+def split_multiline_text(
+        text_to_split: str,
+        singleline_width_by_charcount: int) -> tuple[str, ...]:
+    """
+    Examples:
+        >>> texts = split_multiline_text("AaBbC\nFfGg\nHhIiJjKkLlMmNnOoPp", 12)
+        >>> print(texts)
+        # -> ('AaBbC', 'FfGg', 'HhIiJjKkLlMm', 'NnOoPp')
+    """
+    text_to_split = text_to_split.splitlines()
+    text_lists = [[text[i:i+singleline_width_by_charcount]
+                   for i in range(0, len(text), singleline_width_by_charcount)]
+                  for text in text_to_split]
+    texts = tuple(filter(lambda str_: str_ != "",
+                         itertools.chain.from_iterable(text_lists)))
+    return texts
+
+
+def line_count_of_multiline_text(
+        text: str, singleline_width_by_charcount: int):
+    return len(split_multiline_text(text, singleline_width_by_charcount))
+
+
 class Font2(pygame.font.Font):
     """
     This class inherits from Pygame's Font object and adds some
-    helpful features.
+    helpful features for multiline text.
     """
+
+    def textwidth_by_px_into_charcount(self, text_width_by_px) -> int:
+        return text_width_by_px // self.size(" ")[0]
+
+    def textwidth_by_charcount_into_px(self, textwidth_by_charcount) -> int:
+        return textwidth_by_charcount * self.size(" ")[0]
+
 
     def renderln(self, text: Union[str, bytes, None], antialias: bool,
                  color: ColorValue,
@@ -36,26 +66,23 @@ class Font2(pygame.font.Font):
             raise ValueError(
                 "line_width_by_px or line_width_by_char_count is required.")
         else:
-            TEXT_SIZE = self.size(text)
-            CHAR_WIDTH = TEXT_SIZE[0] // len(text)
             if line_width_by_px:
-                line_width_by_char_count = line_width_by_px // CHAR_WIDTH
+                line_width_by_char_count = self.textwidth_by_px_into_charcount(
+                    line_width_by_px)
                 if len(text) == line_width_by_char_count:
                     return self.render(text, antialias, color,
                                        background_color, *args, **kwargs)
             # make text list
-            texts = [text[i:i+line_width_by_char_count]
-                     for i in range(0, len(text), line_width_by_char_count)]
-            text_lists = tuple(map(str.splitlines, texts))
-            texts = tuple(filter(lambda str_: str_ != "",
-                                 itertools.chain.from_iterable(text_lists)))
+            texts = split_multiline_text(text, line_width_by_char_count)
             # ---
+            LINE_HEIGHT = self.get_linesize()
             text_surf = pygame.surface.Surface(
-                (CHAR_WIDTH*line_width_by_char_count, TEXT_SIZE[1]*len(texts)))
+                (self.size(" ")[0]*line_width_by_char_count,
+                 LINE_HEIGHT*len(texts)))
             [text_surf.blit(
                 self.render(text, antialias, color,
                             background_color, *args, **kwargs),
-                (0, TEXT_SIZE[1]*line_counter))
+                (0, LINE_HEIGHT*line_counter))
                 for line_counter, text in enumerate(texts)]
             if not background_color == (0, 0, 0):
                 text_surf.set_colorkey((0, 0, 0))
@@ -166,6 +193,11 @@ class GameText:
         self.pos[1] = \
             global_.w_size[1]//2 - \
             self.font.size(self.text)[1]//2
+
+    def height_multiline(
+            self, line_width_by_char_count: Optional[int] = None,
+            line_width_by_px: Optional[int] = None,):
+        pass
 
 
 @dataclass

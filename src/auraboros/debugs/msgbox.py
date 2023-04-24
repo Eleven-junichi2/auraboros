@@ -27,10 +27,10 @@ class DebugScene(Scene):
         self.msgbox = MsgWindow(
             GameText.font,
             "frame_width=4\nmultiline text MULTILINE TEXT",
-            "fixed", frame_width=4)
+            singleline_length=13, sizing_style="fixed", frame_width=4)
         self.msgbox.padding = 4
-        self.msgbox.size[0] = global_.w_size[0]*0.95
-        self.msgbox.size[1] = global_.w_size[1]*0.22
+        self.msgbox.fixed_size[0] = global_.w_size[0]*0.95
+        self.msgbox.fixed_size[1] = global_.w_size[1]*0.22
         self.msgbox.pos[1] = global_.w_size[1]*0.975 - self.msgbox.real_size[1]
         self.msgbox.set_x_to_center()
 
@@ -38,10 +38,10 @@ class DebugScene(Scene):
             GameText.font,
             ["click or down up to next | (text 1)",
              "(text 2)",
-             "wheel up to back | (text 3)"], "fixed")
+             "wheel up to back | (text 3)"], sizing_style="fixed")
         self.msgbox2.padding = 4
-        self.msgbox2.size[0] = global_.w_size[0]*0.95
-        self.msgbox2.size[1] = global_.w_size[1]*0.22
+        self.msgbox2.fixed_size[0] = global_.w_size[0]*0.95
+        self.msgbox2.fixed_size[1] = global_.w_size[1]*0.22
         self.msgbox2.pos[1] = self.msgbox.pos[1] * \
             0.95 - self.msgbox2.real_size[1]
         self.msgbox2.set_x_to_center()
