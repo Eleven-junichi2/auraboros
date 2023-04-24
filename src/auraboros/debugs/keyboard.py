@@ -14,6 +14,8 @@ from auraboros.gameinput import Keyboard
 from auraboros.ui import MsgWindow
 from auraboros import global_
 
+engine.init(pixel_scale=2)
+
 AssetFilePath.set_asset_root(Path(sys.argv[0]).parent / "assets")
 
 
@@ -29,7 +31,6 @@ class KeyboardDebugScene(Scene):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.textinput = ""
-        self.textinput_to_show = self.textinput
         self.keyboard["qwerty"] = Keyboard()
         self.keyboard["azerty"] = Keyboard()
         for key_name in QWERTY_STR:
@@ -38,7 +39,7 @@ class KeyboardDebugScene(Scene):
                 lambda kn=key_name: self.press_key(kn),
                 lambda kn=key_name: self.release_key(kn))
         self.keyboard["qwerty"].register_keyaction(
-            pygame.K_1, 0, 0,
+            pygame.K_1, 0, 0, 0,
             lambda: self.switch_keyboard_layout("azerty", "1"))
         for key_name in AZERTY_STR:
             self.keyboard["azerty"].register_keyaction(
@@ -46,7 +47,7 @@ class KeyboardDebugScene(Scene):
                 lambda kn=key_name: self.press_key(kn),
                 lambda kn=key_name: self.release_key(kn))
         self.keyboard["azerty"].register_keyaction(
-            pygame.K_2, 0, 0,
+            pygame.K_2, 0, 0, 0,
             lambda: self.switch_keyboard_layout("qwerty", "2"))
         self.key_i_o_map: dict[str: bool] = dict.fromkeys(
             ascii_lowercase, False)
@@ -60,14 +61,9 @@ class KeyboardDebugScene(Scene):
     def press_key(self, key):
         self.textinput += key
         self.key_i_o_map[key] = True
-        # print(key)
-        textfactory.register_text("recent_pressed", f"{key}")
-        textfactory.register_text("textinput", f"{self.textinput_to_show}")
 
     def release_key(self, key):
         self.key_i_o_map[key] = False
-        # print(key)
-        textfactory.register_text("recent_pressed", f"{key}")
 
     def switch_keyboard_layout(self, layout_name, key):
         print(key)
@@ -81,20 +77,16 @@ class KeyboardDebugScene(Scene):
             pygame.K_1, True)
         self.keyboard.current_setup.do_action_on_keyinput(
             pygame.K_2, True)
-        textfactory.register_text(
-            "current_layout",
-            f"layout:{self.keyboard.current_setup_key}",
-            color_rgb=(178, 150, 250))
         self.msgbox1.pos[1] = global_.w_size[1] - \
-            self.msgbox1.calculate_ultimate_size()[1]
+            self.msgbox1.real_size[1]
         self.msgbox2.pos[1] = self.msgbox1.pos[1] - \
-            self.msgbox2.calculate_ultimate_size()[1]
+            self.msgbox2.real_size[1]
         self.msgbox3.pos[1] = self.msgbox2.pos[1] - \
-            self.msgbox3.calculate_ultimate_size()[1]
+            self.msgbox3.real_size[1]
         self.msgbox4.pos[1] = self.msgbox3.pos[1] - \
-            self.msgbox4.calculate_ultimate_size()[1]
+            self.msgbox4.real_size[1]
         self.msgbox5.pos[1] = self.msgbox4.pos[1] - \
-            self.msgbox5.calculate_ultimate_size()[1]
+            self.msgbox5.real_size[1]
         self.msgbox1.text = "q _input_timer: " +\
             str(self.keyboard.current_setup.keyactions[
                 pygame.K_q]._input_timer.read())
@@ -134,7 +126,6 @@ class KeyboardDebugScene(Scene):
                 text_surface = GameText.font.render(
                     key_name, True, (255, 255, 255))
                 screen.blit(text_surface, surface_pos)
-        textfactory.render("current_layout", screen, (0, char_size[1]*4))
         textinput_size = GameText.font.size(self.textinput)
         textinput_homepos = (0, char_size[1]*6)
         if textinput_size[0] > global_.w_size[0]:
@@ -167,5 +158,4 @@ scene_manager = SceneManager()
 scene_manager.push(KeyboardDebugScene(scene_manager))
 
 if __name__ == "__main__":
-    engine.init()
     engine.run(scene_manager=scene_manager)
