@@ -334,7 +334,7 @@ class MsgWindow(UIElementBase):
         Args:
             font: (Font2):
             singleline_length (:obj:`int`, optional):
-            sizing_style (str): "min"(default) or "fixed"
+            sizing_style (str): "min"(default) or "fixed_if_larger_than_min"
             text_anchor (str):= "left" or "center(default)"
             anchor(unused) = "top_left(default)" or "center_fixed" or "center"
         """
@@ -348,7 +348,15 @@ class MsgWindow(UIElementBase):
         self.resize_min_size_to_suit()
         self._pos = [0, 0]
         self.frame_color = (255, 255, 255)
-        self.sizing_style = sizing_style
+        self.__sizing_styles: dict = {
+            "min": self.__resize_on_min_style,
+            "fixed_if_larger_than_min":
+            self.__resize_on_fixed_if_larger_than_min_style
+        }
+        if sizing_style in self.__sizing_styles.keys():
+            self.sizing_style = sizing_style
+        else:
+            raise ValueError("given sizing_style is invalid")
         self.text_anchor = text_anchor
         self._size = [0, 0]
         self._fixed_size = [0, 0]
@@ -391,7 +399,9 @@ class MsgWindow(UIElementBase):
             self._min_size = [
                 self.font.textwidth_by_charcount_into_px(
                     self.singleline_length),
-                self.font.get_linesize()]
+                line_count_of_multiline_text(
+                    self.text,
+                    self.singleline_length)*self.font.get_linesize()]
         else:
             self._min_size = [0, 0]
 
@@ -410,17 +420,20 @@ class MsgWindow(UIElementBase):
         self.resize_on_sizing_style()
 
     def resize_on_sizing_style(self):
-        if self.sizing_style == "fixed":
-            if self.min_size[0] > self.fixed_size[0]:
-                self._size[0] = self.min_size[0]
-            else:
-                self._size[0] = self._fixed_size[0]
-            if self.min_size[1] > self.fixed_size[1]:
-                self._size[1] = self.min_size[1]
-            else:
-                self._size[1] = self._fixed_size[1]
-        elif self.sizing_style == "min":
-            self._size = self.min_size
+        self.__sizing_styles[self.sizing_style]()
+
+    def __resize_on_fixed_if_larger_than_min_style(self):
+        if self.min_size[0] > self.fixed_size[0]:
+            self._size[0] = self.min_size[0]
+        else:
+            self._size[0] = self._fixed_size[0]
+        if self.min_size[1] > self.fixed_size[1]:
+            self._size[1] = self.min_size[1]
+        else:
+            self._size[1] = self._fixed_size[1]
+
+    def __resize_on_min_style(self):
+        self._size = self.min_size
 
     @property
     def real_size(self):
@@ -469,12 +482,11 @@ class MsgWindow(UIElementBase):
             screen, self.frame_color,
             frame_rect, self.frame_width)
         # text_size = self.font.size(self.text)
-        line_count = line_count_of_multiline_text(
-            self.text, self.singleline_length)
         text_size = (
             self.font.textwidth_by_charcount_into_px(
                 self.singleline_length),
-            line_count*self.font.get_linesize())
+            line_count_of_multiline_text(
+                self.text, self.singleline_length)*self.font.get_linesize())
         if self.text_anchor == "center":
             text_pos = tuple(map(sum, zip(
                 map(
