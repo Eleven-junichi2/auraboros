@@ -230,7 +230,7 @@ class Animation:
     def reset_animation(self, reset_all_programs_of_frames=True):
         self.id_current_frame = 0
         self._loop_counter = 0
-        self.__is_timer_delay_phase = False
+        self.__is_timer_delay_phase = True
         self.__timer.reset()
         if reset_all_programs_of_frames:
             [frame.reset() for frame in self.frames]
@@ -267,6 +267,7 @@ class Animation:
             if do_program:
                 self._return_of_script = self.current_frame.do_program()
             return self.return_of_script
+ 
 
 
 class AnimationFactory(MutableMapping):
@@ -348,7 +349,6 @@ class SpriteSheet:
         self.image = pygame.image.load(filename)
 
     def image_by_area(self, x, y, width, height) -> pygame.surface.Surface:
-        """"""
         image = pygame.Surface((width, height))
         image.blit(self.image, (0, 0), (x, y, width, height))
         image.set_colorkey((0, 0, 0))

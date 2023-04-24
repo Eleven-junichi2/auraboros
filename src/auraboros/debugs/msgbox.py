@@ -8,7 +8,7 @@ import pygame
 
 import init_for_dev  # noqa
 from auraboros import engine, global_
-from auraboros.gametext import TextSurfaceFactory
+from auraboros.gametext import GameText, Font2
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.ui import MsgWindow
 from auraboros.utilities import AssetFilePath, draw_grid, pos_on_pixel_scale
@@ -17,18 +17,17 @@ engine.init(caption="Test MsgWindow System", pixel_scale=2)
 
 AssetFilePath.set_asset_root(Path(sys.argv[0]).parent / "assets")
 
-textfactory = TextSurfaceFactory()
-textfactory.register_font(
-    "misaki_gothic",
-    pygame.font.Font(AssetFilePath.font("misaki_gothic.ttf"), 16))
+GameText.setup_font(
+    Font2(AssetFilePath.font("misaki_gothic.ttf"), 16), "misakigothic")
 
 
 class DebugScene(Scene):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        textfactory.set_current_font("misaki_gothic")
         self.msgbox = MsgWindow(
-            textfactory.font(), "frame_width=4", "fixed", frame_width=4)
+            GameText.font,
+            "frame_width=4\nmultiline text MULTILINE TEXT",
+            "fixed", frame_width=4)
         self.msgbox.padding = 4
         self.msgbox.size[0] = global_.w_size[0]*0.95
         self.msgbox.size[1] = global_.w_size[1]*0.22
@@ -36,7 +35,7 @@ class DebugScene(Scene):
         self.msgbox.set_x_to_center()
 
         self.msgbox2 = MsgWindow(
-            textfactory.font(),
+            GameText.font,
             ["click or down up to next | (text 1)",
              "(text 2)",
              "wheel up to back | (text 3)"], "fixed")
