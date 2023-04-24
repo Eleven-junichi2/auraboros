@@ -51,7 +51,6 @@ class Font2(pygame.font.Font):
     def textwidth_by_charcount_into_px(self, textwidth_by_charcount) -> int:
         return textwidth_by_charcount * self.size(" ")[0]
 
-
     def renderln(self, text: Union[str, bytes, None], antialias: bool,
                  color: ColorValue,
                  background_color: Optional[ColorValue] = None,
