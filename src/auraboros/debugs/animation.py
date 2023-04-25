@@ -45,9 +45,8 @@ class DebugScene(Scene):
             "reset", self.reset_animation, text="RESET")
         self.menuui = GameMenuUI(self.menusystem, GameText.font, "filled_box")
         self.menuui.padding = 4
-        self.msgbox = MsgWindow(GameText.font)
+        self.msgbox = MsgWindow(GameText.font, "Press 'Z'")
         self.msgbox.padding = 4
-        self.msgbox.text = "Press 'Z'"
         self.msgbox2 = MsgWindow(GameText.font)
         self.msgbox2.padding = 4
         self.msgbox3 = MsgWindow(GameText.font)
@@ -162,6 +161,7 @@ class DebugScene(Scene):
         self.msgbox9.pos[1] = \
             global_.w_size[1] -\
             self.msgbox8.real_size[1]
+        print(self.msgbox2._min_size)
 
     def draw(self, screen):
         draw_grid(screen, 16, (78, 78, 78))

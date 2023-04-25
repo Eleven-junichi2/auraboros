@@ -363,24 +363,26 @@ class MsgWindow(UIElementBase):
         self.resize_on_sizing_style()
         self.padding = 0
         self.frame_width = frame_width
-        self._frame_imgchip_corner: pygame.Surface
-        self._frame_imgchip_left: pygame.Surface
-        self._frame_imgchip_top: pygame.Surface
-        self._frame_imgchip_bottom: pygame.Surface
-        self._frame_imgchip_right: pygame.Surface
-        self.background_img: Union[pygame.Surface, None]
-        max_singleline_length = \
+        self._singleline_length: int = None
+        self.update_singleline_length(singleline_length)
+
+    def update_singleline_length(
+            self, singleline_length: Optional[int] = None):
+        MAX_SINGLELINE_LENGTH = \
             self.font.textwidth_by_px_into_charcount(global_.w_size[0])
         if singleline_length:
-            if singleline_length >= max_singleline_length:
-                self.singleline_length = max_singleline_length
+            if singleline_length >= MAX_SINGLELINE_LENGTH:
+                self._singleline_length = MAX_SINGLELINE_LENGTH
             else:
-                self.singleline_length = singleline_length
-        else:
-            if len(self.text) >= max_singleline_length:
-                self.singleline_length = max_singleline_length
-            else:
-                self.singleline_length = len(self.text)
+                self._singleline_length = singleline_length
+
+    @property
+    def singleline_length(self):
+        return self._singleline_length
+
+    @singleline_length.setter
+    def singleline_length(self, value: Optional[int] = None):
+        self.update_singleline_length(value)
 
     @property
     def texts(self) -> list:
@@ -392,16 +394,20 @@ class MsgWindow(UIElementBase):
 
     @text.setter
     def text(self, value: str):
+        self.update_singleline_length()
         self._texts[self.id_current_text] = value
 
     def resize_min_size_to_suit(self):
-        if hasattr(self, "singleline_length"):
-            self._min_size = [
-                self.font.textwidth_by_charcount_into_px(
-                    self.singleline_length),
-                line_count_of_multiline_text(
-                    self.text,
-                    self.singleline_length)*self.font.get_linesize()]
+        if hasattr(self, "_singleline_length"):
+            if self.singleline_length:
+                self._min_size = [
+                    self.font.textwidth_by_charcount_into_px(
+                        self.singleline_length),
+                    line_count_of_multiline_text(
+                        self.text,
+                        self.singleline_length)*self.font.get_linesize()]
+            else:
+                self._min_size = self.font.size(self.text)
         else:
             self._min_size = [0, 0]
 
@@ -481,12 +487,15 @@ class MsgWindow(UIElementBase):
         pygame.draw.rect(
             screen, self.frame_color,
             frame_rect, self.frame_width)
-        # text_size = self.font.size(self.text)
-        text_size = (
-            self.font.textwidth_by_charcount_into_px(
-                self.singleline_length),
-            line_count_of_multiline_text(
-                self.text, self.singleline_length)*self.font.get_linesize())
+        if self.singleline_length:
+            text_size = (
+                self.font.textwidth_by_charcount_into_px(
+                    self.singleline_length),
+                line_count_of_multiline_text(
+                    self.text, self.singleline_length)
+                * self.font.get_linesize())
+        else:
+            text_size = self.font.size(self.text)
         if self.text_anchor == "center":
             text_pos = tuple(map(sum, zip(
                 map(
@@ -495,13 +504,14 @@ class MsgWindow(UIElementBase):
                         map(lambda num: -num//2, text_size))
                 ),
                 self.pos)))
-            # text_pos = (
-            #     self.real_size[0]//2-text_size[0]//2,
-            #     self.pos[1])
         elif self.text_anchor == "left":
             text_pos = tuple(map(sum, zip(
                 self.pos, [self.padding, self.padding])))
-        screen.blit(self.font.renderln(
-            self.text, True, (255, 255, 255),
-            line_width_by_char_count=self.singleline_length),
-            text_pos)
+        if self.singleline_length:
+            text_surface = self.font.renderln(
+                self.text, True, (255, 255, 255),
+                line_width_by_char_count=self.singleline_length)
+        else:
+            text_surface = self.font.render(
+                self.text, True, (255, 255, 255))
+        screen.blit(text_surface, text_pos)

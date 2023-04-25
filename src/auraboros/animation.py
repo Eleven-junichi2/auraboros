@@ -267,7 +267,6 @@ class Animation:
             if do_program:
                 self._return_of_script = self.current_frame.do_program()
             return self.return_of_script
- 
 
 
 class AnimationFactory(MutableMapping):

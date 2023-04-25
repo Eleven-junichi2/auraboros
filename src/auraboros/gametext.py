@@ -25,12 +25,16 @@ def split_multiline_text(
         >>> print(texts)
         # -> ('AaBbC', 'FfGg', 'HhIiJjKkLlMm', 'NnOoPp')
     """
-    text_to_split = text_to_split.splitlines()
-    text_lists = [[text[i:i+singleline_width_by_charcount]
-                   for i in range(0, len(text), singleline_width_by_charcount)]
-                  for text in text_to_split]
-    texts = tuple(filter(lambda str_: str_ != "",
-                         itertools.chain.from_iterable(text_lists)))
+    if (singleline_width_by_charcount == 0) or (text_to_split == ""):
+        texts = ("",)
+    else:
+        text_to_split = text_to_split.splitlines()
+        text_lists = [[text[i:i+singleline_width_by_charcount]
+                       for i in range(
+            0, len(text), singleline_width_by_charcount)]
+            for text in text_to_split]
+        texts = tuple(filter(lambda str_: str_ != "",
+                             itertools.chain.from_iterable(text_lists)))
     return texts
 
 
