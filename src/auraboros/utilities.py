@@ -115,6 +115,24 @@ class ArrowToTurnToward:
         return True in set(asdict(self).values())
 
 
+def path_pyinstllr(path):
+    """
+    Convert the given path with the sys._MEIPASS directory as its
+    parent if the app is running with PyInstaller.
+
+    Bootloader of PyInstalle creates a temp folder "sys._MEIPASS"
+    and stores programs and files in it.
+    """
+    try:
+        # PyInstaller creates a temp folder
+        # and stores the programs in _MEIPASS
+        path = Path(sys._MEIPASS) / path
+        # path will be such as: "sys._MEIPASS/assets/imgs/example.png"
+    except AttributeError:
+        path = path
+    return path
+
+
 class AssetFilePath:
     root_dirname = "assets"
     root_dir_parent = Path(sys.argv[0]).parent
