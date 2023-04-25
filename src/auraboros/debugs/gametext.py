@@ -16,10 +16,13 @@ AssetFilePath.set_asset_root(Path(sys.argv[0]).parent / "assets")
 
 GameText.setup_font(
     Font2(AssetFilePath.font("misaki_gothic.ttf"), 16), "misakigothic")
+GameText.setup_font(
+    Font2(AssetFilePath.font("ayu18gothic/9x18gm.bdf"), 16), "ayu18gothic")
 
 
 class DebugScene(Scene):
     def setup(self):
+        GameText.use_font("ayu18gothic")
         self.gametext_sample = GameText(
             "this is a sample of multiline text using GameText object.",
             (0, 0))

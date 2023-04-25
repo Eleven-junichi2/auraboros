@@ -19,11 +19,14 @@ AssetFilePath.set_asset_root(Path(sys.argv[0]).parent / "assets")
 
 GameText.setup_font(
     Font2(AssetFilePath.font("misaki_gothic.ttf"), 16), "misakigothic")
+GameText.setup_font(
+    Font2(AssetFilePath.font("ayu18gothic/9x18gm.bdf"), 16), "ayu18gothic")
 
 
 class DebugScene(Scene):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        GameText.use_font("ayu18gothic")
         self.msgbox = MsgWindow(
             GameText.font,
             "frame_width=4\nmultiline text MULTILINE TEXT",
