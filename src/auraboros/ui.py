@@ -495,9 +495,6 @@ class MsgWindow(UIElementBase):
                         map(lambda num: -num//2, text_size))
                 ),
                 self.pos)))
-            # text_pos = (
-            #     self.real_size[0]//2-text_size[0]//2,
-            #     self.pos[1])
         elif self.text_anchor == "left":
             text_pos = tuple(map(sum, zip(
                 self.pos, [self.padding, self.padding])))
@@ -505,3 +502,6 @@ class MsgWindow(UIElementBase):
             self.text, True, (255, 255, 255),
             line_width_by_char_count=self.singleline_length),
             text_pos)
+
+# class StopWatchUI(UIElementBase):
+#     pass
