@@ -1,7 +1,7 @@
 import abc
 from dataclasses import dataclass
 from inspect import isclass
-from typing import Any, Callable, MutableMapping, Union
+from typing import Any, MutableMapping, Union
 
 import pygame
 
@@ -130,14 +130,15 @@ class AnimFrame:
         duration (int):
             milliseconds for the duration of the program's script execution.
     """
-    program: Union[AnimFrameProgram, Callable, None] = None
+    program: Union[AnimFrameProgram, None] = None
     delay: int = 0
     interval: int = 0
 
     def __post_init__(self):
-        if callable(self.program):
-            if self.program.reset is None:
-                self.program.reset = lambda: None
+        if not isinstance(self.program, AnimFrameProgram) and \
+            not issubclass(self.program, AnimFrameProgram) and \
+                self.program is not None:
+            raise ValueError("program must be AnimFrameProgram object or None")
 
     def do_program(self):
         """
@@ -145,14 +146,9 @@ class AnimFrame:
         for the set duration.
         """
         return_value = None
-        # print("do program")
         if isinstance(self.program, AnimFrameProgram) or \
                 issubclass(self.program, AnimFrameProgram):
-            # print("animframe prg")
             return_value = self.program.script()
-        elif callable(self.program):
-            # print("callable prg")
-            return_value = self.program()
         return return_value
 
     def reset(self):
