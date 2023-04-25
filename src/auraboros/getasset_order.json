@@ -2,16 +2,31 @@
     "misaki": {
         "url": "https://littlelimit.net/arc/misaki/misaki_ttf_2021-05-05.zip",
         "type": "font",
+        "language": "english,japanese",
         "license": "Read the attached file."
     },
     "ayu18mincho": {
         "url": "https://ja.osdn.net/frs/redir.php?m=nchc&f=x-tt%2F8494%2Fayu18mincho-1.1.tar.gz",
         "type": "font",
+        "language": "english",
         "license": "public"
     },
     "ayu18gothic": {
         "url": "https://ja.osdn.net/frs/redir.php?m=rwthaachen&f=x-tt%2F8535%2Fayu18gothic-1.3a.tar.gz",
         "type": "font",
+        "language": "en,ja",
         "license": "public"
+    },
+    "Kappa20": {
+        "url": "http://web.archive.org/web/20101221113130/http://kappa.allnet.ne.jp/20dot.fonts/Kappa20-0.396.tar.bz2",
+        "type": "font",
+        "language": "en,ja",
+        "license": "public"
+    },
+    "PixelMPlus": {
+        "url": "https://ja.osdn.net/frs/redir.php?m=rwthaachen&f=mix-mplus-ipa%2F58930%2FPixelMplus-20130602.zip",
+        "type": "font",
+        "language": "en,ja",
+        "license": "Read the attached file."
     }
 }

@@ -107,6 +107,7 @@ def getasset_process():
     asset_info = list(assets.values())[request_num]
     click.echo(
         f"{asset_name}({asset_info['type']})" +
+        f"{asset_info['language']}"
         f"\nlicense: {asset_info['license']}")
     is_confirmed = click.confirm("Are you sure to download?")
     if not is_confirmed:
