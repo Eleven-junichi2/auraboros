@@ -108,165 +108,6 @@ class AnimationImage:
                     Schedule.deactivate_schedule(self.update_animation)
 
 
-class AnimFrameProgram(metaclass=abc.ABCMeta):
-    """
-    Examples is written in docstring of Animation.
-    """
-    @abc.abstractmethod
-    def script(self):
-        raise NotImplementedError
-
-    def reset(self):
-        pass
-
-
-@dataclass
-class AnimFrame:
-    """
-    Attributes:
-        program: Union[AnimFrameProgram, Callable, None]:
-        interval (int):
-            milliseconds to freeze this frame
-        duration (int):
-            milliseconds for the duration of the program's script execution.
-    """
-    program: Union[AnimFrameProgram, None] = None
-    delay: int = 0
-    interval: int = 0
-
-    def __post_init__(self):
-        if not isinstance(self.program, AnimFrameProgram) and \
-            not issubclass(self.program, AnimFrameProgram) and \
-                self.program is not None:
-            raise ValueError("program must be AnimFrameProgram object or None")
-
-    def do_program(self):
-        """
-        This is called from Animation object every milliseconds
-        for the set duration.
-        """
-        return_value = None
-        if isinstance(self.program, AnimFrameProgram) or \
-                issubclass(self.program, AnimFrameProgram):
-            return_value = self.program.script()
-        return return_value
-
-    def reset(self):
-        self.program.reset()
-        self.is_frame_finished = False
-
-
-class Animation:
-    """
-    Examples:
-        class TextAddRandIntProgram(AnimFrameProgram):
-            @staticmethod
-            def script():
-                self.msgbox.text += str(randint(0, 9))
-
-            @staticmethod
-            def reset():
-                self.msgbox.text = ""
-
-        self.animation_instance = Animation(
-            [AnimFrame(TextAddRandIntProgram, 1000, 0),
-            [AnimFrame(TextAddRandIntProgram, 0, 1000),
-            [AnimFrame(TextAddRandIntProgram, 0, )]
-        )
-        self.animation_instance.let_play()
-
-        # do update() to play animation after let_play()
-    """
-
-    def __init__(self, frames: list[AnimFrame] = []):
-        self.id_current_frame: int = 0
-        self.is_playing = False
-        self.loop_count = 1
-        self._loop_counter = 0
-        self._frames: list[AnimFrame] = frames
-        self._return_of_script = None
-        self.__timer = Stopwatch()
-        self.__is_timer_delay_phase = True
-
-    @property
-    def return_of_script(self):
-        """return value returned from the program of the current frame."""
-        return self._return_of_script
-
-    @property
-    def frames(self):
-        return self._frames
-
-    @property
-    def current_frame(self) -> AnimFrame:
-        return self.frames[self.id_current_frame]
-
-    @property
-    def frame_count(self) -> int:
-        return len(self.frames)
-
-    @property
-    def loop_counter(self) -> int:
-        return self._loop_counter
-
-    @frames.setter
-    def frames(self, value):
-        self._frames = value
-
-    def let_play(self):
-        self.is_playing = True
-        if not self.__timer.is_playing:
-            self.__timer.start()
-
-    def let_stop(self):
-        self.is_playing = False
-        if self.__timer.is_playing:
-            self.__timer.stop()
-
-    def reset_animation(self, reset_all_programs_of_frames=True):
-        self.id_current_frame = 0
-        self._loop_counter = 0
-        self.__is_timer_delay_phase = True
-        self.__timer.reset()
-        if reset_all_programs_of_frames:
-            [frame.reset() for frame in self.frames]
-
-    def is_all_loop_finished(self):
-        return self.loop_count > 0 and self.loop_counter >= self.loop_count
-
-    def seek(self, frame_id: int):
-        self.id_current_frame = frame_id
-
-    def update(self, dt):
-        """Update and animate current frame."""
-        do_program = False
-        if self.is_playing:
-            if not self.__timer.is_playing():
-                self.__timer.start()
-            if self.__is_timer_delay_phase:
-                if self.__timer.read() >= self.current_frame.delay:
-                    do_program = True
-                    self.__is_timer_delay_phase = False
-                    self.__timer.reset()
-                    self.__timer.stop()
-            else:
-                if self.__timer.read() >= \
-                        self.current_frame.interval:
-                    self.id_current_frame = (
-                        self.id_current_frame + 1) % self.frame_count
-                    self.__is_timer_delay_phase = True
-                    self.__timer.reset()
-                    self.__timer.stop()
-                    if self.id_current_frame == 0:
-                        self._loop_counter += 1
-                        if self.is_all_loop_finished():
-                            self.is_playing = False
-                            self.loop_counter = 0
-            if do_program:
-                self._return_of_script = self.current_frame.do_program()
-            return self.return_of_script
-
-
 Keyframe = list[int, list[int, ]]
 
 Keyframes = list[Keyframe, ]
@@ -283,6 +124,8 @@ class KeyframeAnimation:
             [Keyframe((0, [0])),
              Keyframe((1000, [100])),
                 Keyframe((2000, [200]))]))
+
+        self.instance.let_play()
 
         while True:
             # engine do this automatically:
@@ -302,7 +145,7 @@ class KeyframeAnimation:
 
     def __init__(self, script_on_everyframe: Callable,
                  frames: list[Keyframe] = [],):
-        self._frames: list[AnimFrame] = frames
+        self._frames: list[Keyframe] = frames
         self.id_current_frame: int = 0
 
         self.loop_count = 1
@@ -415,7 +258,7 @@ class KeyframeAnimation:
         return self.__timer.read()
 
 
-class AnimationFactory(MutableMapping):
+class AnimationImageFactory(MutableMapping):
     """For AnimationImage
 
     Examples:
@@ -454,7 +297,7 @@ class AnimationFactory(MutableMapping):
         return len(self.__dict__)
 
 
-class AnimationDict(MutableMapping):
+class AnimationImageDict(MutableMapping):
     """For AnimationImage
 
     Examples:
