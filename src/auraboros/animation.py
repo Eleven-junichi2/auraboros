@@ -9,15 +9,8 @@ from .schedule import Schedule, Stopwatch
 class AnimationImage:
     """アニメーションのある画像を設定・描写するためのクラス
 
-        How does it differ from Animation class?
-
-        This class is specified to implement animation of Images,
-        such as Sprite.
-        Animation class can implement it as this class but require
-        executing its update() method after the let_play() method
-        to play.
-        In this class, the update method of the frame is
-        auto-registered to the Schedule class and executed.
+        In this class, update() is
+        auto-registered to the Schedule class and executed automatically.
 
 
     Attributes:
