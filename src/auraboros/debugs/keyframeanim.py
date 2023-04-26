@@ -1,8 +1,6 @@
 
-# from collections import deque
 from pathlib import Path
 import sys
-# from string import ascii_lowercase
 
 import pygame
 
@@ -15,7 +13,6 @@ from auraboros.gameinput import Keyboard
 from auraboros.ui import GameMenuSystem, GameMenuUI, MsgWindow
 from auraboros.utilities import AssetFilePath, draw_grid, pos_on_pixel_scale
 from auraboros.schedule import Stopwatch
-# from auraboros import global_
 
 engine.init(caption="Test Animation System")
 
@@ -76,12 +73,8 @@ class DebugScene(Scene):
 
     def script_on_everyframe(self, *args):
         self.args_of_script_on_everyframe = tuple(map(int, args))
-        # if args[0] == 0.:
-        #     print(self.stopwatch.read())
 
     def play_animation(self):
-        # if not self.anim_textshowing.is_playing:
-        # self.anim_textshowing.let_play()
         if not self.animation.is_playing:
             if self.animation.is_finished():
                 self.stopwatch.reset()
@@ -95,11 +88,9 @@ class DebugScene(Scene):
     def reset_animation(self):
         self.stopwatch.reset()
         self.animation.reset_animation()
-        # self.anim_textshowing.reset_animation()
 
     def update(self, dt):
         self.animation.update(dt)
-        # self.anim_textshowing.update(dt)
         if not self.animation.is_playing:
             if self.animation.is_finished():
                 self.stopwatch.stop()
