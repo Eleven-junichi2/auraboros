@@ -6,6 +6,17 @@ import pygame
 from .schedule import Schedule, Stopwatch
 
 
+class SpriteSheet:
+    def __init__(self, filename):
+        self.image = pygame.image.load(filename)
+
+    def image_by_area(self, x, y, width, height) -> pygame.surface.Surface:
+        image = pygame.Surface((width, height))
+        image.blit(self.image, (0, 0), (x, y, width, height))
+        image.set_colorkey((0, 0, 0))
+        return image
+
+
 class AnimationImage:
     """アニメーションのある画像を設定・描写するためのクラス
 
@@ -99,9 +110,77 @@ class AnimationImage:
                     Schedule.deactivate_schedule(self.update_animation)
 
 
-Keyframe = list[int, list[int, ]]
+class AnimationImageFactory(MutableMapping):
+    """For AnimationImage
 
-Keyframes = list[Keyframe, ]
+    Examples:
+        class ExampleAnimation(AnimationImage):
+            pass
+        a = AnimationFactory()
+        a["animation_a"] = ExampleAnimation
+        animation = a["jump_animation"]
+        animation.let_play_animation()
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.__dict__: dict[Any, AnimationImage]
+        self.__dict__.update(*args, **kwargs)
+
+    def __getitem__(self, key) -> AnimationImage:
+        return self.__dict__[key]()
+
+    def __setitem__(self, key, value: AnimationImage):
+        if isclass(value):
+            self.__dict__[key] = value
+        else:
+            raise ValueError("The value must not be instance.")
+
+    def __delitem__(self, key):
+        del self.__dict__[key]
+
+    def __iter__(self):
+        return iter(self.__dict__)
+
+    def __len__(self):
+        return len(self.__dict__)
+
+
+class AnimationImageDict(MutableMapping):
+    """For AnimationImage
+
+    Examples:
+        class ExampleAnimation(AnimationImage):
+            pass
+        a = AnimationFactory()
+        a["animation_a"] = ExampleAnimation()
+        animation = a["jump_animation"]
+        animation.let_play_animation()
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.__dict__: dict[Any, AnimationImage]
+        self.__dict__.update(*args, **kwargs)
+
+    def __getitem__(self, key) -> AnimationImage:
+        return self.__dict__[key]
+
+    def __setitem__(self, key, value: AnimationImage):
+        if not isclass(value):
+            self.__dict__[key] = value
+        else:
+            raise ValueError("The value must be instance.")
+
+    def __delitem__(self, key):
+        del self.__dict__[key]
+
+    def __iter__(self):
+        return iter(self.__dict__)
+
+    def __len__(self):
+        return len(self.__dict__)
+
+
+Keyframe = list[int, list[int, ]]
 
 
 class KeyframeAnimation:
@@ -247,89 +326,3 @@ class KeyframeAnimation:
 
     def read_current_frame_progress(self) -> int:
         return self.__timer.read()
-
-
-class AnimationImageFactory(MutableMapping):
-    """For AnimationImage
-
-    Examples:
-        class ExampleAnimation(AnimationImage):
-            pass
-        a = AnimationFactory()
-        a["animation_a"] = ExampleAnimation
-        animation = a["jump_animation"]
-        animation.let_play_animation()
-    """
-
-    def __init__(self, *args, **kwargs):
-        self.__dict__: dict[Any, AnimationImage]
-        self.__dict__.update(*args, **kwargs)
-        # self.anim_action_id = 0
-
-    # def register(self, animation: AnimationImage):
-        # self.__setitem__()
-
-    def __getitem__(self, key) -> AnimationImage:
-        return self.__dict__[key]()
-
-    def __setitem__(self, key, value: AnimationImage):
-        if isclass(value):
-            self.__dict__[key] = value
-        else:
-            raise ValueError("The value must not be instance.")
-
-    def __delitem__(self, key):
-        del self.__dict__[key]
-
-    def __iter__(self):
-        return iter(self.__dict__)
-
-    def __len__(self):
-        return len(self.__dict__)
-
-
-class AnimationImageDict(MutableMapping):
-    """For AnimationImage
-
-    Examples:
-        class ExampleAnimation(AnimationImage):
-            pass
-        a = AnimationFactory()
-        a["animation_a"] = ExampleAnimation()
-        animation = a["jump_animation"]
-        animation.let_play_animation()
-    """
-
-    def __init__(self, *args, **kwargs):
-        self.__dict__: dict[Any, AnimationImage]
-        self.__dict__.update(*args, **kwargs)
-
-    def __getitem__(self, key) -> AnimationImage:
-        return self.__dict__[key]
-
-    def __setitem__(self, key, value: AnimationImage):
-        if not isclass(value):
-            self.__dict__[key] = value
-        else:
-            raise ValueError("The value must be instance.")
-
-    def __delitem__(self, key):
-        del self.__dict__[key]
-
-    def __iter__(self):
-        return iter(self.__dict__)
-
-    def __len__(self):
-        return len(self.__dict__)
-
-
-class SpriteSheet:
-    def __init__(self, filename):
-        self.image = pygame.image.load(filename)
-
-    def image_by_area(self, x, y, width, height) -> pygame.surface.Surface:
-        image = pygame.Surface((width, height))
-        image.blit(self.image, (0, 0), (x, y, width, height))
-        image.set_colorkey((0, 0, 0))
-        # image = pg.transform.scale(image, (width // 2, height // 2))
-        return image
