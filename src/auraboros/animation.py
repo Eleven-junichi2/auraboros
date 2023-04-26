@@ -1,5 +1,5 @@
 from inspect import isclass
-from typing import Any, Callable, MutableMapping
+from typing import Any, Callable, MutableMapping, Optional
 
 import pygame
 
@@ -214,7 +214,8 @@ class KeyframeAnimation:
     """
 
     def __init__(self, script_on_everyframe: Callable,
-                 frames: list[Keyframe] = [],):
+                 frames: list[Keyframe],
+                 script_on_finished: Optional[Callable] = None):
         self._frames: list[Keyframe] = frames
         self.id_current_frame: int = 0
 
@@ -229,6 +230,7 @@ class KeyframeAnimation:
         self.__timer = Stopwatch()
 
         self.script_on_everyframe = script_on_everyframe
+        self.script_on_finished = script_on_finished
 
     @property
     def frames(self):
@@ -320,6 +322,8 @@ class KeyframeAnimation:
                     self._loop_counter += 1
                     self._finished_loop_counter += 1
                     if self.__is_all_loop_finished():
+                        if self.script_on_finished:
+                            self.script_on_finished()
                         self.is_playing = False
                         self.__timer.stop()
                         self._loop_counter = 0
