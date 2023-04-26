@@ -515,3 +515,17 @@ class MsgWindow(UIElementBase):
             text_surface = self.font.render(
                 self.text, True, (255, 255, 255))
         screen.blit(text_surface, text_pos)
+
+
+class StopwatchUI(UIElementBase):
+    def __init__(self):
+        pass
+
+    def resize_min_size_to_suit(self):
+        pass
+        """self._min_size = [ calc size here ]"""
+
+    @property
+    def real_size(self) -> list[int, int]:
+        """return calc size here"""
+        pass

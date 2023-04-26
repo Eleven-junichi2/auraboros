@@ -238,6 +238,7 @@ class Animation:
         self.id_current_frame = frame_id
 
     def update(self, dt):
+        """Update and animate current frame."""
         do_program = False
         if self.is_playing:
             if not self.__timer.is_playing():
@@ -263,6 +264,72 @@ class Animation:
             if do_program:
                 self._return_of_script = self.current_frame.do_program()
             return self.return_of_script
+
+
+Keyframe = list[int, list[int, ]]
+
+Keyframes = list[Keyframe, ]
+
+
+class KeyframeAnimation:
+    """http://www.cg.ces.kyutech.ac.jp/lecture/cg2/cg2-06_keyframe1.pdf"""
+
+    def __init__(self, frames: list[Keyframe] = []):
+        self._frames: list[AnimFrame] = frames
+        self.id_current_frame: int = 0
+
+        self.loop_count = 1
+        self._loop_counter = 0
+
+        self.is_playing = False
+
+        self.is_reverse = False
+
+        self.__timer = Stopwatch()
+
+    @property
+    def frames(self):
+        return self._frames
+
+    @property
+    def current_frame(self) -> Keyframe:
+        return self.frames[self.id_current_frame]
+
+    @property
+    def next_frame(self) -> Keyframe:
+        # if not (0 < id_next_frame < len(self.frames) - 1):
+        #     is_reverse = not self.is_reverse
+        # if self.is_reverse:
+        #     id_next_frame = self.id_current_frame-1
+        # else:
+        id_next_frame = self.id_current_frame+1
+        return self.frames[id_next_frame]
+
+    @property
+    def frame_count(self) -> int:
+        return len(self.frames)
+
+    @property
+    def loop_counter(self) -> int:
+        return self._loop_counter
+
+    @frames.setter
+    def frames(self, value):
+        self._frames = value
+
+    def let_play(self):
+        self.is_playing = True
+
+    def let_stop(self):
+        self.is_playing = False
+
+    def reset_animation(self):
+        self.id_current_frame = 0
+        self._loop_counter = 0
+
+    def update(self, dt):
+        """Update and animate current frame."""
+        pass
 
 
 class AnimationFactory(MutableMapping):
