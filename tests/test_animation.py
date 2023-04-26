@@ -4,15 +4,29 @@ from src.auraboros.animation import AnimationImage, KeyframeAnimation, Keyframe
 
 class TestKeyframeAnimation:
     @staticmethod
-    def test_anim_frames():
+    def test_frames():
         anim = KeyframeAnimation(
+            lambda *args: None,
             [Keyframe((0, [20])),
              Keyframe((100, [40])),
              Keyframe((200, [80]))])
-        assert len(anim.frames) == 3
+        assert anim.frame_count == 3
         assert isinstance(anim.frames[0], list)
         assert anim.frames[0][0] == 0
         assert anim.frames[0][1][0] == 20
+
+    @staticmethod
+    def test_next_frame():
+        anim = KeyframeAnimation(
+            lambda *args: None,
+            [Keyframe((0, [20])),
+             Keyframe((100, [40])),
+             Keyframe((200, [80]))])
+        assert anim.next_frame[0] == 100
+        assert anim.next_frame[1][0] == 40
+        anim.id_current_frame += 1
+        assert anim.next_frame[0] == 200
+        assert anim.next_frame[1][0] == 80
 
 
 class TestAnimationImage:

@@ -118,5 +118,13 @@
             "console": "integratedTerminal",
             "justMyCode": true
         },
+        {
+            "name": "Python: example keyframe animation",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/auraboros/debugs/keyframeanim.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
     ]
 }
