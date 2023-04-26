@@ -413,37 +413,6 @@ class KeyframeAnimation:
 
     def read_current_frame_progress(self) -> int:
         return self.__timer.read()
-        # self.__timer.stop()
-
-        # if self.is_playing:
-        #     go_to_next_frame = False
-        #     if not self.__timer.is_playing():
-        #         self.__timer.start()
-        #     time = self.__timer.read()
-        #     between_current_and_next = self.next_frame[0] - \
-        #         self.current_frame[0]
-        #     if between_current_and_next == 0:
-        #         between_current_and_next = time
-        #     weight = time / (between_current_and_next)
-        #     if weight >= 1:
-        #         # self.__timer.stop()
-        #         weight = 1
-        #     if time >= between_current_and_next:
-        #         go_to_next_frame = True
-        #     # else:
-        #     args = [pygame.math.lerp(
-        #         self.current_frame[1][i], self.next_frame[1][i], weight)
-        #         for i in range(len(self.current_frame[1]))]
-        #     self.script_on_everyframe(*args)
-        #     if go_to_next_frame:
-        #         self.__timer.reset()
-        #         self.id_current_frame = (
-        #             self.id_current_frame + 1) % self.frame_count
-        #         if self.id_current_frame == 0:
-        #             self._loop_counter += 1
-        #             if self.is_all_loop_finished():
-        #                 self.is_playing = False
-        #                 self.__timer.stop()
 
 
 class AnimationFactory(MutableMapping):
