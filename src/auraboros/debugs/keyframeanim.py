@@ -70,12 +70,12 @@ class DebugScene(Scene):
         self.args_of_script_on_everyframe = None
         self.animation = KeyframeAnimation(
             self.script_on_everyframe,
-            [Keyframe((0, [0])),
-             Keyframe((1000, [100])),
-                Keyframe((2000, [200]))])
+            [Keyframe(0, [0, 0]),
+             Keyframe(1000, [100, 25]),
+                Keyframe(2000, [200, 200])])
 
     def script_on_everyframe(self, *args):
-        self.args_of_script_on_everyframe = args
+        self.args_of_script_on_everyframe = tuple(map(int, args))
         # if args[0] == 0.:
         #     print(self.stopwatch.read())
 
@@ -128,12 +128,10 @@ class DebugScene(Scene):
         # [frame.delay for frame in self.anim_textshowing.frames],
         # [frame.interval for frame in self.anim_textshowing.frames]
         #         ))))
-        # self.msgbox8.text = \
-        #     "delay:" + str(
-        #         [frame.delay for frame in self.anim_textshowing.frames])
-        self.msgbox9.text = \
-            "keytimes:" + str(
-                [frame[0] for frame in self.animation.frames])
+        self.msgbox8.rewrite_text(
+            f"script_args:{[frame[1] for frame in self.animation.frames]}")
+        self.msgbox9.rewrite_text(
+            f"keytimes:{[frame[0] for frame in self.animation.frames]}")
         self.msgbox2.pos[1] = \
             self.msgbox.real_size[1]
         self.msgbox3.pos[1] = \

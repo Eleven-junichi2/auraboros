@@ -7,21 +7,22 @@ class TestKeyframeAnimation:
     def test_frames():
         anim = KeyframeAnimation(
             lambda *args: None,
-            [Keyframe((0, [20])),
-             Keyframe((100, [40])),
-             Keyframe((200, [80]))])
+            [Keyframe(0, [20, 10]),
+             Keyframe(100, [40, 20]),
+             Keyframe(200, [80, 80])])
         assert anim.frame_count == 3
         assert isinstance(anim.frames[0], list)
         assert anim.frames[0][0] == 0
         assert anim.frames[0][1][0] == 20
+        assert anim.frames[0][1][1] == 10
 
     @staticmethod
     def test_next_frame():
         anim = KeyframeAnimation(
             lambda *args: None,
-            [Keyframe((0, [20])),
-             Keyframe((100, [40])),
-             Keyframe((200, [80]))])
+            [Keyframe(0, [20]),
+             Keyframe(100, [40]),
+             Keyframe(200, [80])])
         assert anim.next_frame[0] == 100
         assert anim.next_frame[1][0] == 40
         anim.id_current_frame += 1

@@ -180,7 +180,29 @@ class AnimationImageDict(MutableMapping):
         return len(self.__dict__)
 
 
-Keyframe = list[int, list[int, ]]
+# Keyframe = list[int, list[int, ]]
+
+class Keyframe(list):
+    """
+    This is subclass of list type.
+    Args of __init__ is stricted to play keyframe role.
+    """
+
+    def __init__(
+            self, frame_milliseconds_on_timeline: int,
+            args_for_script: list[int, ]):
+        if not isinstance(frame_milliseconds_on_timeline, int):
+            raise ValueError(
+                'Argument "frame_milliseconds_on_timeline" must be int')
+        args_for_script_error_msg = \
+            'Argument "args_for_script" must be list of integers'
+        if isinstance(args_for_script, list):
+            if len([arg for arg in args_for_script
+                    if isinstance(arg, int)]) == 0:
+                raise ValueError(args_for_script_error_msg)
+        else:
+            raise ValueError(args_for_script_error_msg)
+        super().__init__((frame_milliseconds_on_timeline, args_for_script))
 
 
 class KeyframeAnimation:
