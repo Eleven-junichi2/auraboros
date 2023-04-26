@@ -1,5 +1,5 @@
 from inspect import isclass
-from typing import Any, Callable, MutableMapping, Optional
+from typing import Any, Callable, MutableMapping, Optional, Union
 
 import pygame
 
@@ -190,7 +190,7 @@ class Keyframe(list):
 
     def __init__(
             self, frame_milliseconds_on_timeline: int,
-            args_for_script: list[int, ]):
+            args_for_script: list[Union[int, float], ]):
         if not isinstance(frame_milliseconds_on_timeline, int):
             raise ValueError(
                 'Argument "frame_milliseconds_on_timeline" must be int')
@@ -198,7 +198,7 @@ class Keyframe(list):
             'Argument "args_for_script" must be list of integers'
         if isinstance(args_for_script, list):
             if len([arg for arg in args_for_script
-                    if isinstance(arg, int)]) == 0:
+                    if isinstance(arg, (int, float))]) == 0:
                 raise ValueError(args_for_script_error_msg)
         else:
             raise ValueError(args_for_script_error_msg)
