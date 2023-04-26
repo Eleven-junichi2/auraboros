@@ -1,3 +1,4 @@
+from inspect import isclass
 from typing import Any, Callable, MutableMapping
 
 import pygame
