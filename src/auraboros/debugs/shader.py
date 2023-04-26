@@ -7,7 +7,7 @@ import pygame
 
 import init_for_dev  # noqa
 from auraboros import engine
-from auraboros.animation import AnimationImage, SpriteSheet, AnimationDict
+from auraboros.animation import AnimationImage, SpriteSheet, AnimationImageDict
 from auraboros.entity import Entity
 from auraboros.gameinput import Keyboard
 from auraboros.gamescene import Scene, SceneManager
@@ -39,7 +39,7 @@ class EntityIdle(AnimationImage):
 class TestEntity(Entity):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.animation = AnimationDict()
+        self.animation = AnimationImageDict()
         self.animation["idle"] = EntityIdle()
         self.animation["idle"].seek(self.animation["idle"].frame_num//4)
         self.image = self.animation["idle"].image
@@ -56,8 +56,8 @@ class TestEntity(Entity):
 
 
 class DebugScene(Scene):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def setup(self):
+        # super().__init__(*args, **kwargs)
         self.testentity = TestEntity()
         self.testentity.set_x_to_center_of_screen()
         self.testentity.set_y_to_center_of_screen()

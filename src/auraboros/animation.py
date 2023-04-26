@@ -215,11 +215,12 @@ class KeyframeAnimation:
 
     def __init__(self, script_on_everyframe: Callable,
                  frames: list[Keyframe],
-                 script_on_finished: Optional[Callable] = None):
+                 script_on_finished: Optional[Callable] = None,
+                 loop_count: Optional[int] = 1):
         self._frames: list[Keyframe] = frames
         self.id_current_frame: int = 0
 
-        self.loop_count = 1
+        self.loop_count = loop_count
         self._loop_counter = 0
         self._finished_loop_counter = 0  # counter to display
 
