@@ -123,11 +123,6 @@ class DebugScene(Scene):
         self.msgbox7.rewrite_text(
             f"loop:{self.animation.finished_loop_counter}/" +
             f"{self.animation.loop_count}")
-        # "delay + interval:" + str(
-        # list(map(sum, zip(
-        # [frame.delay for frame in self.anim_textshowing.frames],
-        # [frame.interval for frame in self.anim_textshowing.frames]
-        #         ))))
         self.msgbox8.rewrite_text(
             f"script_args:{[frame[1] for frame in self.animation.frames]}")
         self.msgbox9.rewrite_text(
