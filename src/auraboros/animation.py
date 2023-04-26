@@ -1,7 +1,7 @@
 import abc
 from dataclasses import dataclass
 from inspect import isclass
-from typing import Any, MutableMapping, Union
+from typing import Any, Callable, MutableMapping, Union
 
 import pygame
 
@@ -261,6 +261,7 @@ class Animation:
                         self._loop_counter += 1
                         if self.is_all_loop_finished():
                             self.is_playing = False
+                            self.loop_counter = 0
             if do_program:
                 self._return_of_script = self.current_frame.do_program()
             return self.return_of_script
@@ -272,20 +273,50 @@ Keyframes = list[Keyframe, ]
 
 
 class KeyframeAnimation:
-    """http://www.cg.ces.kyutech.ac.jp/lecture/cg2/cg2-06_keyframe1.pdf"""
+    """
+    Examples:
+        def script_on_everyframe(given_args_on_frameupdates):
+            print(given_args_on_frameupdates)
 
-    def __init__(self, frames: list[Keyframe] = []):
+        self.instance = KeyframeAnimation(
+            script_on_everyframe,
+            [Keyframe((0, [0])),
+             Keyframe((1000, [100])),
+                Keyframe((2000, [200]))]))
+
+        while True:
+            # engine do this automatically:
+            dt = clock.tick(fps) # clock is pygame.time.Clock
+
+            Stopwatch.update_all_stopwatch(dt)
+
+            self.instance.update(dt)
+        
+        # output 0 if time is at 0 milliseconds
+        # ...
+        # output 100 if time is at 1000
+        # ...
+        # output 120 if time is at 1200
+        # ...
+        # output 2000 if time is at 2000
+    """
+
+    def __init__(self, script_on_everyframe: Callable,
+                 frames: list[Keyframe] = [],):
         self._frames: list[AnimFrame] = frames
         self.id_current_frame: int = 0
 
         self.loop_count = 1
         self._loop_counter = 0
+        self._finished_loop_counter = 0  # counter to display
 
         self.is_playing = False
 
         self.is_reverse = False
 
         self.__timer = Stopwatch()
+
+        self.script_on_everyframe = script_on_everyframe
 
     @property
     def frames(self):
@@ -296,22 +327,28 @@ class KeyframeAnimation:
         return self.frames[self.id_current_frame]
 
     @property
-    def next_frame(self) -> Keyframe:
-        # if not (0 < id_next_frame < len(self.frames) - 1):
-        #     is_reverse = not self.is_reverse
-        # if self.is_reverse:
-        #     id_next_frame = self.id_current_frame-1
-        # else:
-        id_next_frame = self.id_current_frame+1
-        return self.frames[id_next_frame]
-
-    @property
     def frame_count(self) -> int:
         return len(self.frames)
 
     @property
+    def id_final_frame(self) -> int:
+        return self.frame_count - 1
+
+    @property
+    def next_frame(self) -> Keyframe:
+        if self.id_current_frame < self.id_final_frame:
+            id = self.id_current_frame+1
+        else:
+            id = self.id_current_frame
+        return self.frames[id]
+
+    @property
     def loop_counter(self) -> int:
         return self._loop_counter
+
+    @property
+    def finished_loop_counter(self) -> int:
+        return self._finished_loop_counter
 
     @frames.setter
     def frames(self, value):
@@ -319,17 +356,95 @@ class KeyframeAnimation:
 
     def let_play(self):
         self.is_playing = True
+        if self._finished_loop_counter > self._loop_counter:
+            self._finished_loop_counter = 0
 
     def let_stop(self):
         self.is_playing = False
+        self.__timer.stop()
 
     def reset_animation(self):
         self.id_current_frame = 0
         self._loop_counter = 0
+        self.__timer.reset()
+
+    def __is_all_loop_finished(self):
+        return self.loop_count > 0 and self.loop_counter >= self.loop_count
+
+    def is_finished(self):
+        """
+        Use this method to know if all loops of the animation have
+        finished.
+        (For developers of this class: DO NOT USE this method for
+        frame updates).
+        """
+        return self.loop_count > 0 and \
+            self.finished_loop_counter >= self.loop_count
 
     def update(self, dt):
-        """Update and animate current frame."""
-        pass
+        """Update the frame and do script on current frame."""
+
+        if self.is_playing:
+            go_to_next_keyframe = False
+            if not self.__timer.is_playing():
+                self.__timer.start()
+            time = self.__timer.read()
+            between_current_and_next = \
+                self.next_frame[0] - self.current_frame[0]
+            if time >= between_current_and_next:
+                weight = 1
+                go_to_next_keyframe = True
+            else:
+                weight = time / (between_current_and_next)
+            args = [pygame.math.lerp(
+                self.current_frame[1][i], self.next_frame[1][i], weight)
+                for i in range(len(self.current_frame[1]))]
+            self.script_on_everyframe(*args)
+            if go_to_next_keyframe:
+                self.id_current_frame = (
+                    self.id_current_frame + 1) % self.frame_count
+                self.__timer.reset()
+                if self.id_current_frame == 0:
+                    self._loop_counter += 1
+                    self._finished_loop_counter += 1
+                    if self.__is_all_loop_finished():
+                        self.is_playing = False
+                        self.__timer.stop()
+                        self._loop_counter = 0
+
+    def read_current_frame_progress(self) -> int:
+        return self.__timer.read()
+        # self.__timer.stop()
+
+        # if self.is_playing:
+        #     go_to_next_frame = False
+        #     if not self.__timer.is_playing():
+        #         self.__timer.start()
+        #     time = self.__timer.read()
+        #     between_current_and_next = self.next_frame[0] - \
+        #         self.current_frame[0]
+        #     if between_current_and_next == 0:
+        #         between_current_and_next = time
+        #     weight = time / (between_current_and_next)
+        #     if weight >= 1:
+        #         # self.__timer.stop()
+        #         weight = 1
+        #     if time >= between_current_and_next:
+        #         go_to_next_frame = True
+        #     # else:
+        #     args = [pygame.math.lerp(
+        #         self.current_frame[1][i], self.next_frame[1][i], weight)
+        #         for i in range(len(self.current_frame[1]))]
+        #     self.script_on_everyframe(*args)
+        #     if go_to_next_frame:
+        #         self.__timer.reset()
+        #         self.id_current_frame = (
+        #             self.id_current_frame + 1) % self.frame_count
+        #         if self.id_current_frame == 0:
+        #             self._loop_counter += 1
+        #             if self.is_all_loop_finished():
+        #                 self.is_playing = False
+        #                 self.__timer.stop()
 
 
 class AnimationFactory(MutableMapping):
