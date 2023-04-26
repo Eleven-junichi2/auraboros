@@ -291,14 +291,13 @@ class KeyframeAnimation:
             Stopwatch.update_all_stopwatch(dt)
 
             self.instance.update(dt)
-        
-        # output 0 if time is at 0 milliseconds
-        # ...
-        # output 100 if time is at 1000
-        # ...
-        # output 120 if time is at 1200
-        # ...
-        # output 2000 if time is at 2000
+    output 0 if time is at 0 milliseconds
+    ...\n
+    output about 100 if time is at 1000
+    ...\n
+    output about 120 if time is at 1200
+    ...\n
+    output about 2000 if time is at 2000
     """
 
     def __init__(self, script_on_everyframe: Callable,
