@@ -3,6 +3,7 @@ import abc
 
 import pygame
 
+from .gameinput import Keyboard
 from .gametext import Font2, line_count_of_multiline_text
 from . import global_
 from .utilities import calc_pos_to_center, calc_x_to_center, calc_y_to_center
@@ -536,6 +537,8 @@ class StopwatchUI(UIElementBase):
 
 class TextInputSystem:
     def __init__(self):
+        self.keyboard = Keyboard()
+        self.keyboard.register_keyaction()
         pass
 
 
