@@ -151,7 +151,6 @@ FuncsOnMouseEvent = dict[str: dict[str, Callable]]
 
 
 class Mouse:
-    """WIP"""
 
     def __init__(self):
         self.is_dragging = False
