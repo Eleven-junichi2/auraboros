@@ -5,12 +5,11 @@ name = "pypi"
 
 [packages]
 pygame = "*"
-sphinx-autobuild = "*"
-pytest-ordering = "*"
 moderngl = "*"
 click = "*"
 
 [dev-packages]
+pytest-ordering = "*"
 flake8 = "*"
 autopep8 = "*"
 sphinx = "*"
@@ -25,4 +24,4 @@ pytest-cov = "*"
 pytest-logbook = "*"
 
 [requires]
-python_version = "3.10.8"
+python_version = "3.10"

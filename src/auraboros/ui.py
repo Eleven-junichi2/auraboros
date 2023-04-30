@@ -529,3 +529,15 @@ class StopwatchUI(UIElementBase):
     def real_size(self) -> list[int, int]:
         """return calc size here"""
         pass
+
+    def draw(self, screen: pygame.surface.Surface):
+        pass
+
+
+class TextInputSystem:
+    def __init__(self):
+        pass
+
+
+class TextInput(UIElementBase):
+    pass
