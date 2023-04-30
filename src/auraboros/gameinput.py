@@ -135,16 +135,24 @@ class KeyboardSetupDict(UserDict):
 class KeyboardManager(KeyboardSetupDict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.current_setup: Keyboard = None
-        self.current_setup_key = None
+        self._current_setup: Keyboard = None
+        self._current_setup_key = None
+
+    @property
+    def current_setup(self):
+        return self._current_setup
+
+    @property
+    def current_setup_key(self):
+        return self._current_setup_key
 
     def set_current_setup(self, key):
-        if self.current_setup_key == key:
+        if self._current_setup_key == key:
             return
-        if self.current_setup is not None:
-            self.current_setup.release_all_of_keys()
-        self.current_setup = self.data[key]
-        self.current_setup_key = key
+        if self._current_setup is not None:
+            self._current_setup.release_all_of_keys()
+        self._current_setup = self.data[key]
+        self._current_setup_key = key
 
 
 FuncsOnMouseEvent = dict[str: dict[str, Callable]]
