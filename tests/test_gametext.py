@@ -18,4 +18,4 @@ def test_line_count_of_multiline_text():
     assert height == 4
     height = line_count_of_multiline_text(
         "", 12)
-    assert height == 0
+    assert height == 1

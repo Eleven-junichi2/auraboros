@@ -24,7 +24,7 @@ class DebugScene(Scene):
     def setup(self):
         GameText.use_font("ayu18gothic")
         self.gametext_sample = GameText(
-            "this is a sample of multiline text using GameText object.",
+            "this is a sample of\nmultiline text using GameText object.",
             (0, 0))
 
     def draw(self, screen):

@@ -94,7 +94,7 @@ def getasset_process():
     }
     asset_dir = click.prompt(
         "directory to put assets",
-        type=click.Path(file_okay=False, exists=True),
+        type=click.Path(file_okay=False, exists=True, path_type=Path),
         default=Path.cwd() / "assets")
     with open(getasset_order_filepath, "r") as f:
         assets = OrderedDict(json.load(f))

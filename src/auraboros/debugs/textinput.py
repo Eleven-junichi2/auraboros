@@ -31,6 +31,16 @@ class DebugScene(Scene):
         super().__init__(*args, **kwargs)
         self.IMEtextinput = ""
         self.textinput = ""
+        self.debug_msgbox1 = MsgWindow(GameText.font)
+        self.debug_msgbox2 = MsgWindow(GameText.font)
+        self.debug_msgbox1.pos[1] = (
+            global_.w_size[1] - self.debug_msgbox1.real_size[1]
+        )
+        self.debug_msgbox2.pos[1] = (
+            global_.w_size[1]
+            - self.debug_msgbox1.real_size[1]
+            - self.debug_msgbox2.real_size[1]
+        )
         # set pos display of candidates of google japanese IME
         # by Rect[1], Rect[3]
         self.IME_candidate_rect = pygame.rect.Rect(0, 10, 0, 30)
@@ -44,7 +54,10 @@ class DebugScene(Scene):
                 self.textinput += self.IMEtextinput
         elif event.type == pygame.TEXTINPUT:
             # textinput in half-width characters
+            self.debug_msgbox1.rewrite_text(f"event.text: {event.text}")
             self.textinput += event.text
+        elif event.type == pygame.KEYDOWN:
+            self.debug_msgbox2.rewrite_text(f"event.unicode: {event.unicode}")
 
     def update(self, dt):
         pass
@@ -59,6 +72,8 @@ class DebugScene(Scene):
             ),
             (0, 0),
         )
+        self.debug_msgbox1.draw(screen)
+        self.debug_msgbox2.draw(screen)
 
 
 scene_manager = SceneManager()
