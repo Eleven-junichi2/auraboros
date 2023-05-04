@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+
 # from functools import wraps
 import itertools
 from typing import Tuple, Union, Sequence, Optional
@@ -12,13 +13,14 @@ pygame.font.init()
 
 
 RGBAOutput = Tuple[int, int, int, int]
-ColorValue = Union[Color, int, str,
-                   Tuple[int, int, int], RGBAOutput, Sequence[int]]
+ColorValue = Union[
+    Color, int, str, Tuple[int, int, int], RGBAOutput, Sequence[int]
+]
 
 
 def split_multiline_text(
-        text_to_split: str,
-        singleline_width_by_charcount: int) -> tuple[str, ...]:
+    text_to_split: str, singleline_width_by_charcount: int
+) -> tuple[str, ...]:
     """
     Examples:
         >>> texts = split_multiline_text("AaBbC\nFfGg\nHhIiJjKkLlMmNnOoPp", 12)
@@ -29,17 +31,25 @@ def split_multiline_text(
         texts = ("",)
     else:
         text_to_split = text_to_split.splitlines()
-        text_lists = [[text[i:i+singleline_width_by_charcount]
-                       for i in range(
-            0, len(text), singleline_width_by_charcount)]
-            for text in text_to_split]
-        texts = tuple(filter(lambda str_: str_ != "",
-                             itertools.chain.from_iterable(text_lists)))
+        text_lists = [
+            [
+                text[i : i + singleline_width_by_charcount]
+                for i in range(0, len(text), singleline_width_by_charcount)
+            ]
+            for text in text_to_split
+        ]
+        texts = tuple(
+            filter(
+                lambda str_: str_ != "",
+                itertools.chain.from_iterable(text_lists),
+            )
+        )
     return texts
 
 
 def line_count_of_multiline_text(
-        text: str, singleline_width_by_charcount: int):
+    text: str, singleline_width_by_charcount: int
+):
     return len(split_multiline_text(text, singleline_width_by_charcount))
 
 
@@ -55,38 +65,68 @@ class Font2(pygame.font.Font):
     def textwidth_by_charcount_into_px(self, textwidth_by_charcount) -> int:
         return textwidth_by_charcount * self.size(" ")[0]
 
-    def renderln(self, text: Union[str, bytes, None], antialias: bool,
-                 color: ColorValue,
-                 background_color: Optional[ColorValue] = None,
-                 line_width_by_char_count: Optional[int] = None,
-                 line_width_by_px: Optional[int] = None,
-                 *args, **kwargs) -> pygame.surface.Surface:
+    def renderln(
+        self,
+        text: Union[str, bytes, None],
+        antialias: bool,
+        color: ColorValue,
+        background_color: Optional[ColorValue] = None,
+        line_width_by_char_count: Optional[int] = None,
+        line_width_by_px: Optional[int] = None,
+        *args,
+        **kwargs,
+    ) -> pygame.surface.Surface:
         """
         line_width_by_px takes precedence over line_width_by_char_count
         if both are set.
+        (sizing and line breaks about full-width characters is WIP)
+
+        TODO:
+            make sizing and line breaks more appropriate for full-width
+            characters
         """
         if line_width_by_px is None and line_width_by_char_count is None:
             raise ValueError(
-                "line_width_by_px or line_width_by_char_count is required.")
+                "line_width_by_px or line_width_by_char_count is required."
+            )
         else:
             if line_width_by_px:
                 line_width_by_char_count = self.textwidth_by_px_into_charcount(
-                    line_width_by_px)
+                    line_width_by_px
+                )
                 if len(text) == line_width_by_char_count:
-                    return self.render(text, antialias, color,
-                                       background_color, *args, **kwargs)
+                    return self.render(
+                        text,
+                        antialias,
+                        color,
+                        background_color,
+                        *args,
+                        **kwargs,
+                    )
             # make text list
             texts = split_multiline_text(text, line_width_by_char_count)
             # ---
             LINE_HEIGHT = self.get_linesize()
             text_surf = pygame.surface.Surface(
-                (self.size(" ")[0]*line_width_by_char_count,
-                 LINE_HEIGHT*len(texts)))
-            [text_surf.blit(
-                self.render(text, antialias, color,
-                            background_color, *args, **kwargs),
-                (0, LINE_HEIGHT*line_counter))
-                for line_counter, text in enumerate(texts)]
+                (
+                    self.size(" ")[0] * line_width_by_char_count,
+                    LINE_HEIGHT * len(texts),
+                )
+            )
+            [
+                text_surf.blit(
+                    self.render(
+                        text,
+                        antialias,
+                        color,
+                        background_color,
+                        *args,
+                        **kwargs,
+                    ),
+                    (0, LINE_HEIGHT * line_counter),
+                )
+                for line_counter, text in enumerate(texts)
+            ]
             if not background_color == (0, 0, 0):
                 text_surf.set_colorkey((0, 0, 0))
             return text_surf
@@ -111,11 +151,13 @@ class GameText:
     current_font_name: str
 
     def __init__(
-        self, text: Union[str, bytes, None],
-            pos: pygame.math.Vector2,
-            is_antialias_enable: bool = True,
-            color_foreground: ColorValue = pygame.Color(255, 255, 255, 255),
-            color_background: Optional[ColorValue] = None):
+        self,
+        text: Union[str, bytes, None],
+        pos: pygame.math.Vector2,
+        is_antialias_enable: bool = True,
+        color_foreground: ColorValue = pygame.Color(255, 255, 255, 255),
+        color_background: Optional[ColorValue] = None,
+    ):
         self.text = text
         self.is_antialias_enable = is_antialias_enable
         self.pos = pos
@@ -150,62 +192,73 @@ class GameText:
     def rewrite(self, text: str):
         self.text = text
 
-    def render(self, surface_to_blit: Optional[pygame.Surface] = None,
-               *args, **kwargs) -> pygame.surface.Surface:
+    def render(
+        self, surface_to_blit: Optional[pygame.Surface] = None, *args, **kwargs
+    ) -> pygame.surface.Surface:
         """GameText.font.render(with its attributes as args)"""
         text_surface = self.font.render(
-            self.text, self.is_antialias_enable,
-            self.color_foreground, self.color_background,
-            *args, **kwargs)
+            self.text,
+            self.is_antialias_enable,
+            self.color_foreground,
+            self.color_background,
+            *args,
+            **kwargs,
+        )
         if surface_to_blit:
             surface_to_blit.blit(text_surface, self.pos)
         return text_surface
 
-    def renderln(self,
-                 line_width_by_char_count: Optional[int] = None,
-                 line_width_by_px: Optional[int] = None,
-                 surface_to_blit: pygame.surface.Surface = None,
-                 *args, **kwargs) -> pygame.surface.Surface:
+    def renderln(
+        self,
+        line_width_by_char_count: Optional[int] = None,
+        line_width_by_px: Optional[int] = None,
+        surface_to_blit: pygame.surface.Surface = None,
+        *args,
+        **kwargs,
+    ) -> pygame.surface.Surface:
         """GameText.font.renderln(with its attributes as args)"""
         text_surface = self.font.renderln(
-            self.text, self.is_antialias_enable,
-            self.color_foreground, self.color_background,
+            self.text,
+            self.is_antialias_enable,
+            self.color_foreground,
+            self.color_background,
             line_width_by_char_count,
             line_width_by_px,
-            *args, **kwargs)
+            *args,
+            **kwargs,
+        )
         if surface_to_blit:
             surface_to_blit.blit(text_surface, self.pos)
         return text_surface
 
     def set_pos_to_right(self):
-        self.pos[0] = \
-            global_.w_size[0] - \
-            self.font.size(self.text)[0]
+        self.pos[0] = global_.w_size[0] - self.font.size(self.text)[0]
 
     def set_pos_to_bottom(self):
-        self.pos[1] = \
-            global_.w_size[1] - \
-            self.font.size(self.text)[1]
+        self.pos[1] = global_.w_size[1] - self.font.size(self.text)[1]
 
     def set_pos_to_center_x(self):
-        self.pos[0] = \
-            global_.w_size[0]//2 - \
-            self.font.size(self.text)[0]//2
+        self.pos[0] = (
+            global_.w_size[0] // 2 - self.font.size(self.text)[0] // 2
+        )
 
     def set_pos_to_center_y(self):
-        self.pos[1] = \
-            global_.w_size[1]//2 - \
-            self.font.size(self.text)[1]//2
+        self.pos[1] = (
+            global_.w_size[1] // 2 - self.font.size(self.text)[1] // 2
+        )
 
     def height_multiline(
-            self, line_width_by_char_count: Optional[int] = None,
-            line_width_by_px: Optional[int] = None,):
+        self,
+        line_width_by_char_count: Optional[int] = None,
+        line_width_by_px: Optional[int] = None,
+    ):
         pass
 
 
 @dataclass
 class TextData:
     """This class is going to be deprecated"""
+
     text: str
     pos: list
     color_foreground: list

@@ -12,8 +12,7 @@ from auraboros.gamescene import Scene, SceneManager
 
 # from auraboros.gameinput import Keyboard
 from auraboros.ui import MsgWindow
-
-# from auraboros import global_
+from auraboros import global_
 
 os.environ["SDL_IME_SHOW_UI"] = "1"
 
@@ -30,13 +29,13 @@ GameText.setup_font(
 class DebugScene(Scene):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.msgbox1 = MsgWindow(GameText.font)
+        # self.msgbox1 = MsgWindow(GameText.font)
         self.IMEtextinput = ""
         self.textinput = ""
         # set pos display of candidates of google japanese IME
         # by Rect[1], Rect[3]
-        self.textinput_rect = pygame.rect.Rect(0, 10, 0, 30)
-        pygame.key.set_text_input_rect(self.textinput_rect)
+        self.IME_candidate_rect = pygame.rect.Rect(0, 10, 0, 30)
+        pygame.key.set_text_input_rect(self.IME_candidate_rect)
         self.is_inputting_with_IME = False
 
     def event(self, event: pygame.event.Event):
@@ -58,10 +57,20 @@ class DebugScene(Scene):
             #     self.textinput = self.textinput[:-1]
 
     def update(self, dt):
-        self.msgbox1.rewrite_text(self.textinput)
+        pass
+        # self.msgbox1.rewrite_text(self.textinput)
 
     def draw(self, screen):
-        self.msgbox1.draw(screen)
+        screen.blit(
+            GameText.font.renderln(
+                self.textinput,
+                True,
+                (255, 255, 255),
+                line_width_by_px=global_.w_size[0],
+            ),
+            (0, 0),
+        )
+        # self.msgbox1.draw(screen)
 
 
 scene_manager = SceneManager()
