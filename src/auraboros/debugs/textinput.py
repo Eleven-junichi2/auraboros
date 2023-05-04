@@ -64,6 +64,8 @@ class DebugScene(Scene):
             self.debug_msgbox2.rewrite_text(f"event.unicode: {event.unicode}")
             if event.key == pygame.K_RETURN:
                 self.textinput += "\n"
+            if event.key == pygame.K_BACKSPACE:
+                self.textinput = self.textinput[:-1]
 
     def update(self, dt):
         pass
