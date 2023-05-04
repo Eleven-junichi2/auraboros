@@ -166,7 +166,12 @@ class GameText:
 
     @classmethod
     def setup_font(cls, font: Font2, name_for_registering_in_dict: str):
-        """The classmethod to set Font object."""
+        """
+        The classmethod to set Font object.
+
+        Alias:
+            register_font()
+        """
         cls.font_dict[name_for_registering_in_dict] = font
         cls.current_font_name = name_for_registering_in_dict
 

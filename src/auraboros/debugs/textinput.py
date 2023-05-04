@@ -24,11 +24,15 @@ AssetFilePath.set_asset_root(Path(sys.argv[0]).parent / "assets")
 GameText.setup_font(
     Font2(AssetFilePath.font("misaki_gothic.ttf"), 16), "misakigothic"
 )
+GameText.setup_font(
+    Font2(AssetFilePath.font("PixelMPlus/PixelMplus12-Regular.ttf"), 24),
+    "PixelMplus12Regular",
+)
 
 
 class DebugScene(Scene):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def setup(self):
+        GameText.use_font("PixelMplus12Regular")
         self.IMEtextinput = ""
         self.textinput = ""
         self.debug_msgbox1 = MsgWindow(GameText.font)
@@ -58,6 +62,8 @@ class DebugScene(Scene):
             self.textinput += event.text
         elif event.type == pygame.KEYDOWN:
             self.debug_msgbox2.rewrite_text(f"event.unicode: {event.unicode}")
+            if event.key == pygame.K_RETURN:
+                self.textinput += "\n"
 
     def update(self, dt):
         pass
