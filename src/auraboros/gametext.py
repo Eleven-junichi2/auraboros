@@ -252,7 +252,7 @@ class GameText:
         line_width_by_char_count: Optional[int] = None,
         line_width_by_px: Optional[int] = None,
     ):
-        pass
+        raise NotImplementedError
 
 
 @dataclass

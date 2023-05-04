@@ -29,36 +29,25 @@ GameText.setup_font(
 class DebugScene(Scene):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # self.msgbox1 = MsgWindow(GameText.font)
         self.IMEtextinput = ""
         self.textinput = ""
         # set pos display of candidates of google japanese IME
         # by Rect[1], Rect[3]
         self.IME_candidate_rect = pygame.rect.Rect(0, 10, 0, 30)
         pygame.key.set_text_input_rect(self.IME_candidate_rect)
-        self.is_inputting_with_IME = False
 
     def event(self, event: pygame.event.Event):
         if event.type == pygame.TEXTEDITING:
             # textinput in full-width characters
             self.IMEtextinput = event.text
-            self.is_inputting_with_IME = True
             if pygame.key.get_pressed()[pygame.K_RETURN]:
                 self.textinput += self.IMEtextinput
-
         elif event.type == pygame.TEXTINPUT:
             # textinput in half-width characters
             self.textinput += event.text
-            self.is_inputting_with_IME = False
-
-        elif event.type == pygame.KEYDOWN:
-            print(self.is_inputting_with_IME)
-            # if event.key == pygame.K_BACKSPACE:
-            #     self.textinput = self.textinput[:-1]
 
     def update(self, dt):
         pass
-        # self.msgbox1.rewrite_text(self.textinput)
 
     def draw(self, screen):
         screen.blit(
@@ -70,7 +59,6 @@ class DebugScene(Scene):
             ),
             (0, 0),
         )
-        # self.msgbox1.draw(screen)
 
 
 scene_manager = SceneManager()
