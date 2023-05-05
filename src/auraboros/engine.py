@@ -1,4 +1,3 @@
-import moderngl
 import pygame
 
 
@@ -9,13 +8,6 @@ from . import global_
 from .shader import Shader2D
 
 clock = pygame.time.Clock()
-
-
-def surface_to_texture(ctx: moderngl.Context, surface: pygame.surface.Surface):
-    texture = ctx.texture(surface.get_size(), 4)
-    texture.filter = (moderngl.NEAREST, moderngl.NEAREST)
-    # texture.swizzle = "BGRA" if windows
-    return texture
 
 
 def run(scene_manager: SceneManager, fps=60):
@@ -40,11 +32,15 @@ def run(scene_manager: SceneManager, fps=60):
             running = scene_manager.event(event)
         scene_manager.update(dt)
         scene_manager.draw(global_.screen)
-        pygame.transform.scale(global_.screen, global_.w_size_unscaled,
-                               pygame.display.get_surface())
+        pygame.transform.scale(
+            global_.screen,
+            global_.w_size_unscaled,
+            pygame.display.get_surface(),
+        )
         if opengl_is_used:
             shader2d.register_surface_as_texture(
-                global_.screen, "display_surface")
+                global_.screen, "display_surface"
+            )
             shader2d.use_texture("display_surface", 0)
             shader2d.render()
             pygame.display.flip()
