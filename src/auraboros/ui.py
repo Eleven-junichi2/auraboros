@@ -236,10 +236,7 @@ class GameMenuUI(UIElementBase):
 
     @property
     def real_size(self):
-        if (
-            self.option_highlight_style == "cursor"
-            and self.locate_cursor_inside_window
-        ):
+        if self.option_highlight_style == "cursor" and self.locate_cursor_inside_window:
             size = [
                 self.min_size[0] + self.padding * 3 + self.cursor_size[0],
                 self.min_size[1] + self.padding * 2,
@@ -293,9 +290,7 @@ class GameMenuUI(UIElementBase):
                 self.system.select_action_by_index(i)
 
     def draw(self, screen: pygame.surface.Surface):
-        pygame.draw.rect(
-            screen, self.frame_color, self.pos + self.real_size, 1
-        )
+        pygame.draw.rect(screen, self.frame_color, self.pos + self.real_size, 1)
         if self.option_highlight_style == "cursor":
             if (
                 self.option_highlight_style == "cursor"
@@ -303,25 +298,19 @@ class GameMenuUI(UIElementBase):
             ):
                 cursor_polygon_points = (
                     (
-                        self.cursor_pos[0]
-                        + self.cursor_size[0]
-                        + self.padding,
+                        self.cursor_pos[0] + self.cursor_size[0] + self.padding,
                         self.cursor_pos[1]
                         + self.cursor_size[1] * self.system.menu_selected_index
                         + self.padding,
                     ),
                     (
-                        self.cursor_pos[0]
-                        + self.cursor_size[0] * 2
-                        + self.padding,
+                        self.cursor_pos[0] + self.cursor_size[0] * 2 + self.padding,
                         (self.cursor_pos[1] + self.cursor_size[1] // 2)
                         + self.cursor_size[1] * self.system.menu_selected_index
                         + self.padding,
                     ),
                     (
-                        self.cursor_pos[0]
-                        + self.cursor_size[0]
-                        + self.padding,
+                        self.cursor_pos[0] + self.cursor_size[0] + self.padding,
                         (self.cursor_pos[1] + self.cursor_size[1])
                         + self.cursor_size[1] * self.system.menu_selected_index
                         + self.padding,
@@ -373,10 +362,7 @@ class GameMenuUI(UIElementBase):
                 and self.locate_cursor_inside_window
             ):
                 text_pos = (
-                    self.pos[0]
-                    + self.padding
-                    + self.cursor_size[0]
-                    + self.padding,
+                    self.pos[0] + self.padding + self.cursor_size[0] + self.padding,
                     self.pos[1] + self.font.size(" ")[1] * i + self.padding,
                 )
             else:
@@ -384,9 +370,7 @@ class GameMenuUI(UIElementBase):
                     self.pos[0] + self.padding,
                     self.pos[1] + self.font.size(" ")[1] * i + self.padding,
                 )
-            screen.blit(
-                self.font.render(text, True, (255, 255, 255)), text_pos
-            )
+            screen.blit(self.font.render(text, True, (255, 255, 255)), text_pos)
 
 
 class MsgWindow(UIElementBase):
@@ -440,9 +424,7 @@ class MsgWindow(UIElementBase):
         self._singleline_length: int = None
         self.update_singleline_length(singleline_length)
 
-    def update_singleline_length(
-        self, singleline_length: Optional[int] = None
-    ):
+    def update_singleline_length(self, singleline_length: Optional[int] = None):
         MAX_SINGLELINE_LENGTH = self.font.textwidth_by_px_into_charcount(
             global_.w_size[0]
         )
@@ -477,12 +459,8 @@ class MsgWindow(UIElementBase):
         if hasattr(self, "_singleline_length"):
             if self.singleline_length:
                 self._min_size = [
-                    self.font.textwidth_by_charcount_into_px(
-                        self.singleline_length
-                    ),
-                    line_count_of_multiline_text(
-                        self.text, self.singleline_length
-                    )
+                    self.font.textwidth_by_charcount_into_px(self.singleline_length),
+                    line_count_of_multiline_text(self.text, self.singleline_length)
                     * self.font.get_linesize(),
                 ]
             else:
@@ -525,9 +503,7 @@ class MsgWindow(UIElementBase):
         return self.calc_real_size()
 
     def calc_real_size(self) -> list[int, int]:
-        return list(
-            map(sum, zip(self.size, [self.padding * 2, self.padding * 2]))
-        )
+        return list(map(sum, zip(self.size, [self.padding * 2, self.padding * 2])))
 
     def rewrite_text(self, text: str, id: Union[int, None] = None):
         if id:
@@ -564,14 +540,10 @@ class MsgWindow(UIElementBase):
 
     def draw(self, screen: pygame.surface.Surface):
         frame_rect = self.pos + self.real_size
-        pygame.draw.rect(
-            screen, self.frame_color, frame_rect, self.frame_width
-        )
+        pygame.draw.rect(screen, self.frame_color, frame_rect, self.frame_width)
         if self.singleline_length:
             text_size = (
-                self.font.textwidth_by_charcount_into_px(
-                    self.singleline_length
-                ),
+                self.font.textwidth_by_charcount_into_px(self.singleline_length),
                 line_count_of_multiline_text(self.text, self.singleline_length)
                 * self.font.get_linesize(),
             )
@@ -594,9 +566,7 @@ class MsgWindow(UIElementBase):
                 )
             )
         elif self.text_anchor == "left":
-            text_pos = tuple(
-                map(sum, zip(self.pos, [self.padding, self.padding]))
-            )
+            text_pos = tuple(map(sum, zip(self.pos, [self.padding, self.padding])))
         if self.singleline_length:
             text_surface = self.font.renderln(
                 self.text,
