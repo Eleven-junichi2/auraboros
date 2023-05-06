@@ -21,10 +21,13 @@ def run(scene_manager: SceneManager, fps=60):
     running = True
 
     while running:
+        # -control FPS and return delta time-
         dt = clock.tick(fps)
+        # ---
+        # -update timers of all stopwatch instances-
         Stopwatch.update_all_stopwatch(dt)
+        # ---
         Schedule.execute()
-        # Schedule._debug()
         global_.screen.fill((0, 0, 0))
         if opengl_is_used:
             pass
