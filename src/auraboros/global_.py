@@ -1,8 +1,6 @@
 """
 Use to define global variables common use in the modules.
 """
-from functools import wraps
-
 import pygame
 
 pygame.init()
