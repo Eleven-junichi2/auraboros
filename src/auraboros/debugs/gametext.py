@@ -4,7 +4,7 @@ from pathlib import Path
 import sys
 # from string import ascii_lowercase
 
-import init_for_dev  # noqa
+import setup_syspath  # noqa
 from auraboros import engine
 from auraboros.gametext import GameText, Font2
 from auraboros.gamescene import Scene, SceneManager

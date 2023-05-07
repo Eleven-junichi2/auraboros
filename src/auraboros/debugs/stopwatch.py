@@ -1,12 +1,12 @@
-
 # from collections import deque
 from pathlib import Path
 import sys
+
 # from string import ascii_lowercase
 
 import pygame
 
-import init_for_dev  # noqa
+import setup_syspath  # noqa
 from auraboros import engine
 from auraboros.animation import AnimationImage, SpriteSheet
 from auraboros.gametext import GameText, Font2
@@ -20,8 +20,7 @@ engine.init(caption="Test Stopwatch System", pixel_scale=3)
 
 AssetFilePath.set_asset_root(Path(sys.argv[0]).parent / "assets")
 
-GameText.setup_font(
-    Font2(AssetFilePath.font("misaki_gothic.ttf"), 16), "misakigothic")
+GameText.setup_font(Font2(AssetFilePath.font("misaki_gothic.ttf"), 16), "misakigothic")
 
 
 class TestAnimImg(AnimationImage):
@@ -31,12 +30,13 @@ class TestAnimImg(AnimationImage):
         self.anim_frames: list[pygame.surface.Surface] = [
             self.sprite_sheet.image_by_area(0, 0, 32, 32),
             self.sprite_sheet.image_by_area(0, 32, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32*2, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32*3, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32*4, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32*3, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32*2, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32, 32, 32)]
+            self.sprite_sheet.image_by_area(0, 32 * 2, 32, 32),
+            self.sprite_sheet.image_by_area(0, 32 * 3, 32, 32),
+            self.sprite_sheet.image_by_area(0, 32 * 4, 32, 32),
+            self.sprite_sheet.image_by_area(0, 32 * 3, 32, 32),
+            self.sprite_sheet.image_by_area(0, 32 * 2, 32, 32),
+            self.sprite_sheet.image_by_area(0, 32, 32, 32),
+        ]
         self.anim_interval = 1000
         self.loop_count = 1
 
@@ -50,17 +50,17 @@ class DebugScene(Scene):
         self.keyboard.set_current_setup("menu")
         self.menusystem = GameMenuSystem()
         self.keyboard["menu"].register_keyaction(
-            pygame.K_UP, 0, 122, 122, self.menusystem.menu_cursor_up)
+            pygame.K_UP, 0, 122, 122, self.menusystem.menu_cursor_up
+        )
         self.keyboard["menu"].register_keyaction(
-            pygame.K_DOWN, 0, 122, 122, self.menusystem.menu_cursor_down)
+            pygame.K_DOWN, 0, 122, 122, self.menusystem.menu_cursor_down
+        )
         self.keyboard["menu"].register_keyaction(
-            pygame.K_z, 0, 0, 0, self.menusystem.do_selected_action)
-        self.menusystem.add_menu_item(
-            "play", self.start_stopwatch, text="Play")
-        self.menusystem.add_menu_item(
-            "stop", self.stop_stopwatch, text="STOP")
-        self.menusystem.add_menu_item(
-            "reset", self.reset_stopwatch, text="RESET")
+            pygame.K_z, 0, 0, 0, self.menusystem.do_selected_action
+        )
+        self.menusystem.add_menu_item("play", self.start_stopwatch, text="Play")
+        self.menusystem.add_menu_item("stop", self.stop_stopwatch, text="STOP")
+        self.menusystem.add_menu_item("reset", self.reset_stopwatch, text="RESET")
         self.menuui = GameMenuUI(self.menusystem, GameText.font, "filled_box")
         self.menuui.padding = 4
         self.msgbox = MsgWindow(GameText.font)
@@ -96,45 +96,45 @@ class DebugScene(Scene):
         self.keyboard.current_setup.do_action_on_keyinput(pygame.K_z)
         self.menuui.set_pos_to_center()
         self.menusystem.update()
-        self.msgbox2.text = \
-            f"1 elapsed time:{self.stopwatch.read()/1000}"
-        self.msgbox3.text = \
-            f"1 pausing time:{self.stopwatch.read_pausing()/1000}"
-        self.msgbox2.pos[1] = \
+        self.msgbox2.text = f"1 elapsed time:{self.stopwatch.read()/1000}"
+        self.msgbox3.text = f"1 pausing time:{self.stopwatch.read_pausing()/1000}"
+        self.msgbox2.pos[1] = self.msgbox.real_size[1]
+        self.msgbox3.pos[1] = self.msgbox.real_size[1] + self.msgbox2.real_size[1]
+        self.msgbox4.pos[1] = (
             self.msgbox.real_size[1]
-        self.msgbox3.pos[1] = \
-            self.msgbox.real_size[1] +\
-            self.msgbox2.real_size[1]
-        self.msgbox4.pos[1] = \
-            self.msgbox.real_size[1] +\
-            self.msgbox2.real_size[1] +\
-            self.msgbox3.real_size[1]
-        self.msgbox5.pos[1] = \
-            self.msgbox.real_size[1] +\
-            self.msgbox2.real_size[1] +\
-            self.msgbox3.real_size[1] +\
-            self.msgbox4.real_size[1]
-        self.msgbox6.pos[1] = \
-            self.msgbox.real_size[1] +\
-            self.msgbox2.real_size[1] +\
-            self.msgbox3.real_size[1] +\
-            self.msgbox4.real_size[1] +\
-            self.msgbox5.real_size[1]
-        self.msgbox7.pos[1] = \
-            self.msgbox.real_size[1] +\
-            self.msgbox2.real_size[1] +\
-            self.msgbox3.real_size[1] +\
-            self.msgbox4.real_size[1] +\
-            self.msgbox5.real_size[1] +\
-            self.msgbox6.real_size[1]
-        self.msgbox8.pos[1] = \
-            self.msgbox.real_size[1] +\
-            self.msgbox2.real_size[1] +\
-            self.msgbox3.real_size[1] +\
-            self.msgbox4.real_size[1] +\
-            self.msgbox5.real_size[1] +\
-            self.msgbox6.real_size[1] +\
-            self.msgbox7.real_size[1]
+            + self.msgbox2.real_size[1]
+            + self.msgbox3.real_size[1]
+        )
+        self.msgbox5.pos[1] = (
+            self.msgbox.real_size[1]
+            + self.msgbox2.real_size[1]
+            + self.msgbox3.real_size[1]
+            + self.msgbox4.real_size[1]
+        )
+        self.msgbox6.pos[1] = (
+            self.msgbox.real_size[1]
+            + self.msgbox2.real_size[1]
+            + self.msgbox3.real_size[1]
+            + self.msgbox4.real_size[1]
+            + self.msgbox5.real_size[1]
+        )
+        self.msgbox7.pos[1] = (
+            self.msgbox.real_size[1]
+            + self.msgbox2.real_size[1]
+            + self.msgbox3.real_size[1]
+            + self.msgbox4.real_size[1]
+            + self.msgbox5.real_size[1]
+            + self.msgbox6.real_size[1]
+        )
+        self.msgbox8.pos[1] = (
+            self.msgbox.real_size[1]
+            + self.msgbox2.real_size[1]
+            + self.msgbox3.real_size[1]
+            + self.msgbox4.real_size[1]
+            + self.msgbox5.real_size[1]
+            + self.msgbox6.real_size[1]
+            + self.msgbox7.real_size[1]
+        )
 
     def draw(self, screen):
         draw_grid(screen, 16, (78, 78, 78))

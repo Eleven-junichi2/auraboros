@@ -7,7 +7,7 @@ import sys
 
 import pygame
 
-import init_for_dev  # noqa
+import setup_syspath # noqa
 from auraboros import engine, global_
 from auraboros.animation import Animation, AnimFrameProgram, AnimFrame
 from auraboros.gametext import GameText, Font2

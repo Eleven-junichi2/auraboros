@@ -6,7 +6,7 @@ import sys
 
 import pygame
 
-import init_for_dev  # noqa
+import setup_syspath  # noqa
 from auraboros import engine
 from auraboros.animation import AnimationImage, SpriteSheet
 from auraboros.gametext import TextSurfaceFactory

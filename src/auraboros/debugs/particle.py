@@ -6,7 +6,7 @@ import sys
 
 import pygame
 
-import init_for_dev  # noqa
+import setup_syspath  # noqa
 from auraboros import engine
 from auraboros.utilities import AssetFilePath, draw_grid
 from auraboros.gametext import GameText, Font2

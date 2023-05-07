@@ -1,12 +1,12 @@
-
 # from collections import deque
 from pathlib import Path
 import sys
+
 # from string import ascii_lowercase
 
 import pygame
 
-import init_for_dev  # noqa
+import setup_syspath  # noqa
 from auraboros import engine
 from auraboros.animation import AnimationImage, SpriteSheet
 from auraboros.gametext import TextSurfaceFactory
@@ -23,8 +23,8 @@ AssetFilePath.set_asset_root(Path(sys.argv[0]).parent / "assets")
 
 textfactory = TextSurfaceFactory()
 textfactory.register_font(
-    "misaki_gothic",
-    pygame.font.Font(AssetFilePath.font("misaki_gothic.ttf"), 16))
+    "misaki_gothic", pygame.font.Font(AssetFilePath.font("misaki_gothic.ttf"), 16)
+)
 
 
 class TestAnimImg(AnimationImage):
@@ -34,12 +34,13 @@ class TestAnimImg(AnimationImage):
         self.anim_frames: list[pygame.surface.Surface] = [
             self.sprite_sheet.image_by_area(0, 0, 32, 32),
             self.sprite_sheet.image_by_area(0, 32, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32*2, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32*3, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32*4, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32*3, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32*2, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32, 32, 32)]
+            self.sprite_sheet.image_by_area(0, 32 * 2, 32, 32),
+            self.sprite_sheet.image_by_area(0, 32 * 3, 32, 32),
+            self.sprite_sheet.image_by_area(0, 32 * 4, 32, 32),
+            self.sprite_sheet.image_by_area(0, 32 * 3, 32, 32),
+            self.sprite_sheet.image_by_area(0, 32 * 2, 32, 32),
+            self.sprite_sheet.image_by_area(0, 32, 32, 32),
+        ]
         self.anim_interval = 1000
         self.loop_count = 1
 
@@ -53,17 +54,17 @@ class DebugScene(Scene):
         self.keyboard.set_current_setup("menu")
         self.menusystem = GameMenuSystem()
         self.keyboard["menu"].register_keyaction(
-            pygame.K_UP, 0, 122, 122, self.menusystem.menu_cursor_up)
+            pygame.K_UP, 0, 122, 122, self.menusystem.menu_cursor_up
+        )
         self.keyboard["menu"].register_keyaction(
-            pygame.K_DOWN, 0, 122, 122, self.menusystem.menu_cursor_down)
+            pygame.K_DOWN, 0, 122, 122, self.menusystem.menu_cursor_down
+        )
         self.keyboard["menu"].register_keyaction(
-            pygame.K_z, 0, 0, 0, self.menusystem.do_selected_action)
-        self.menusystem.add_menu_item(
-            "play", self.play_animation, text="Play")
-        self.menusystem.add_menu_item(
-            "stop", self.stop_animation, text="STOP")
-        self.menusystem.add_menu_item(
-            "reset", self.reset_animation, text="RESET")
+            pygame.K_z, 0, 0, 0, self.menusystem.do_selected_action
+        )
+        self.menusystem.add_menu_item("play", self.play_animation, text="Play")
+        self.menusystem.add_menu_item("stop", self.stop_animation, text="STOP")
+        self.menusystem.add_menu_item("reset", self.reset_animation, text="RESET")
         self.menuui = GameMenuUI(self.menusystem, textfactory, "filled_box")
         self.menuui.padding = 4
         self.msgbox = MsgWindow(textfactory.font())
@@ -87,7 +88,9 @@ class DebugScene(Scene):
         self.mouse.register_mouseaction(
             "down",
             on_left=lambda: self.menuui.do_option_if_givenpos_on_ui(
-                pos_on_pixel_scale(pygame.mouse.get_pos())))
+                pos_on_pixel_scale(pygame.mouse.get_pos())
+            ),
+        )
 
     def play_animation(self):
         self.test_anim_img.let_play()
@@ -110,63 +113,64 @@ class DebugScene(Scene):
         self.menuui.set_pos_to_center()
         self.menusystem.update()
         self.menuui.highlight_option_on_givenpos(
-            pos_on_pixel_scale(pygame.mouse.get_pos()))
-        self.msgbox2.text = \
-            f"loop_count:{self.test_anim_img.loop_count}"
-        self.msgbox3.text = \
+            pos_on_pixel_scale(pygame.mouse.get_pos())
+        )
+        self.msgbox2.text = f"loop_count:{self.test_anim_img.loop_count}"
+        self.msgbox3.text = (
             f"anim_interval:{self.test_anim_img.anim_interval} milliseconds"
-        self.msgbox4.text = \
-            f"anim_frame_id:{self.test_anim_img.anim_frame_id}"
-        self.msgbox5.text = \
-            f"is_playing:{self.test_anim_img.is_playing}"
-        self.msgbox6.text = \
-            f"loop_counter:{self.test_anim_img.loop_counter}"
-        self.msgbox7.text = \
-            f"elapsed time:{self.stopwatch.read()/1000}"
-        self.msgbox8.text = \
-            f"pausing time:{self.stopwatch.read_pausing()/1000}"
-        self.msgbox2.pos[1] = \
+        )
+        self.msgbox4.text = f"anim_frame_id:{self.test_anim_img.anim_frame_id}"
+        self.msgbox5.text = f"is_playing:{self.test_anim_img.is_playing}"
+        self.msgbox6.text = f"loop_counter:{self.test_anim_img.loop_counter}"
+        self.msgbox7.text = f"elapsed time:{self.stopwatch.read()/1000}"
+        self.msgbox8.text = f"pausing time:{self.stopwatch.read_pausing()/1000}"
+        self.msgbox2.pos[1] = self.msgbox.real_size[1]
+        self.msgbox3.pos[1] = self.msgbox.real_size[1] + self.msgbox2.real_size[1]
+        self.msgbox4.pos[1] = (
             self.msgbox.real_size[1]
-        self.msgbox3.pos[1] = \
-            self.msgbox.real_size[1] +\
-            self.msgbox2.real_size[1]
-        self.msgbox4.pos[1] = \
-            self.msgbox.real_size[1] +\
-            self.msgbox2.real_size[1] +\
-            self.msgbox3.real_size[1]
-        self.msgbox5.pos[1] = \
-            self.msgbox.real_size[1] +\
-            self.msgbox2.real_size[1] +\
-            self.msgbox3.real_size[1] +\
-            self.msgbox4.real_size[1]
-        self.msgbox6.pos[1] = \
-            self.msgbox.real_size[1] +\
-            self.msgbox2.real_size[1] +\
-            self.msgbox3.real_size[1] +\
-            self.msgbox4.real_size[1] +\
-            self.msgbox5.real_size[1]
-        self.msgbox7.pos[1] = \
-            self.msgbox.real_size[1] +\
-            self.msgbox2.real_size[1] +\
-            self.msgbox3.real_size[1] +\
-            self.msgbox4.real_size[1] +\
-            self.msgbox5.real_size[1] +\
-            self.msgbox6.real_size[1]
-        self.msgbox8.pos[1] = \
-            self.msgbox.real_size[1] +\
-            self.msgbox2.real_size[1] +\
-            self.msgbox3.real_size[1] +\
-            self.msgbox4.real_size[1] +\
-            self.msgbox5.real_size[1] +\
-            self.msgbox6.real_size[1] +\
-            self.msgbox7.real_size[1]
+            + self.msgbox2.real_size[1]
+            + self.msgbox3.real_size[1]
+        )
+        self.msgbox5.pos[1] = (
+            self.msgbox.real_size[1]
+            + self.msgbox2.real_size[1]
+            + self.msgbox3.real_size[1]
+            + self.msgbox4.real_size[1]
+        )
+        self.msgbox6.pos[1] = (
+            self.msgbox.real_size[1]
+            + self.msgbox2.real_size[1]
+            + self.msgbox3.real_size[1]
+            + self.msgbox4.real_size[1]
+            + self.msgbox5.real_size[1]
+        )
+        self.msgbox7.pos[1] = (
+            self.msgbox.real_size[1]
+            + self.msgbox2.real_size[1]
+            + self.msgbox3.real_size[1]
+            + self.msgbox4.real_size[1]
+            + self.msgbox5.real_size[1]
+            + self.msgbox6.real_size[1]
+        )
+        self.msgbox8.pos[1] = (
+            self.msgbox.real_size[1]
+            + self.msgbox2.real_size[1]
+            + self.msgbox3.real_size[1]
+            + self.msgbox4.real_size[1]
+            + self.msgbox5.real_size[1]
+            + self.msgbox6.real_size[1]
+            + self.msgbox7.real_size[1]
+        )
 
     def draw(self, screen):
         draw_grid(screen, 16, (78, 78, 78))
         screen.blit(
             self.test_anim_img.image,
-            (global_.w_size[0]//2-self.test_anim_img.image.get_width()//2,
-             self.menuui.pos[1]-self.test_anim_img.image.get_height()))
+            (
+                global_.w_size[0] // 2 - self.test_anim_img.image.get_width() // 2,
+                self.menuui.pos[1] - self.test_anim_img.image.get_height(),
+            ),
+        )
         self.menuui.draw(screen)
         self.msgbox.draw(screen)
         self.msgbox2.draw(screen)

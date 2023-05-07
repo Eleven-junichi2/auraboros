@@ -3,7 +3,7 @@ import sys
 
 import pygame
 
-import init_for_dev  # noqa
+import setup_syspath  # noqa
 from auraboros import engine
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.entity import Entity
@@ -23,12 +23,13 @@ class EntityIdle(AnimationImage):
         self.anim_frames: list[pygame.surface.Surface] = [
             self.sprite_sheet.image_by_area(0, 0, 32, 32),
             self.sprite_sheet.image_by_area(0, 32, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32*2, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32*3, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32*4, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32*3, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32*2, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32, 32, 32)]
+            self.sprite_sheet.image_by_area(0, 32 * 2, 32, 32),
+            self.sprite_sheet.image_by_area(0, 32 * 3, 32, 32),
+            self.sprite_sheet.image_by_area(0, 32 * 4, 32, 32),
+            self.sprite_sheet.image_by_area(0, 32 * 3, 32, 32),
+            self.sprite_sheet.image_by_area(0, 32 * 2, 32, 32),
+            self.sprite_sheet.image_by_area(0, 32, 32, 32),
+        ]
         self.anim_interval = 75
         self.loop_count = -1
 
@@ -38,7 +39,7 @@ class TestEntity(Entity):
         super().__init__(*args, **kwargs)
         self.animation = AnimationDict()
         self.animation["idle"] = EntityIdle()
-        self.animation["idle"].seek(self.animation["idle"].frame_num//4)
+        self.animation["idle"].seek(self.animation["idle"].frame_num // 4)
         self.image = self.animation["idle"].image
         self.rect = self.image.get_rect()
         self.movement_speed = 2
@@ -60,21 +61,33 @@ class DebugScene(Scene):
         self.testentity.set_y_to_center_of_screen()
         self.keyboard["player"] = Keyboard()
         self.keyboard["player"].register_keyaction(
-            pygame.K_LEFT, 0, 0,
+            pygame.K_LEFT,
+            0,
+            0,
             lambda: self.testentity.set_move_direction(Arrow.LEFT),
-            lambda: self.testentity.cancel_move_direction(Arrow.LEFT))
+            lambda: self.testentity.cancel_move_direction(Arrow.LEFT),
+        )
         self.keyboard["player"].register_keyaction(
-            pygame.K_UP, 0, 0,
+            pygame.K_UP,
+            0,
+            0,
             lambda: self.testentity.set_move_direction(Arrow.UP),
-            lambda: self.testentity.cancel_move_direction(Arrow.UP))
+            lambda: self.testentity.cancel_move_direction(Arrow.UP),
+        )
         self.keyboard["player"].register_keyaction(
-            pygame.K_RIGHT, 0, 0,
+            pygame.K_RIGHT,
+            0,
+            0,
             lambda: self.testentity.set_move_direction(Arrow.RIGHT),
-            lambda: self.testentity.cancel_move_direction(Arrow.RIGHT))
+            lambda: self.testentity.cancel_move_direction(Arrow.RIGHT),
+        )
         self.keyboard["player"].register_keyaction(
-            pygame.K_DOWN, 0, 0,
+            pygame.K_DOWN,
+            0,
+            0,
             lambda: self.testentity.set_move_direction(Arrow.DOWN),
-            lambda: self.testentity.cancel_move_direction(Arrow.DOWN))
+            lambda: self.testentity.cancel_move_direction(Arrow.DOWN),
+        )
         self.keyboard.set_current_setup("player")
 
     def update(self, dt):

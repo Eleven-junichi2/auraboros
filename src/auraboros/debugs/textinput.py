@@ -4,7 +4,7 @@ import os
 
 import pygame
 
-import init_for_dev  # noqa
+import setup_syspath  # noqa
 from auraboros import engine
 from auraboros.utilities import AssetFilePath
 from auraboros.gametext import GameText, Font2
