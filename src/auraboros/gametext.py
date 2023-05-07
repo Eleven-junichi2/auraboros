@@ -13,9 +13,7 @@ pygame.font.init()
 
 
 RGBAOutput = Tuple[int, int, int, int]
-ColorValue = Union[
-    Color, int, str, Tuple[int, int, int], RGBAOutput, Sequence[int]
-]
+ColorValue = Union[Color, int, str, Tuple[int, int, int], RGBAOutput, Sequence[int]]
 
 
 def split_multiline_text(
@@ -32,24 +30,22 @@ def split_multiline_text(
     else:
         text_to_split = text_to_split.splitlines()
         text_lists = [
-            [
-                text[i : i + singleline_width_by_charcount]
-                for i in range(0, len(text), singleline_width_by_charcount)
+            [""] if item == [] else item
+            for item in [
+                [
+                    text[i : i + singleline_width_by_charcount]
+                    for i in range(0, len(text), singleline_width_by_charcount)
+                ]
+                for text in text_to_split
             ]
-            for text in text_to_split
         ]
         texts = tuple(
-            filter(
-                lambda str_: str_ != "",
-                itertools.chain.from_iterable(text_lists),
-            )
+            itertools.chain.from_iterable(text_lists),
         )
     return texts
 
 
-def line_count_of_multiline_text(
-    text: str, singleline_width_by_charcount: int
-):
+def line_count_of_multiline_text(text: str, singleline_width_by_charcount: int):
     return len(split_multiline_text(text, singleline_width_by_charcount))
 
 
@@ -243,14 +239,10 @@ class GameText:
         self.pos[1] = global_.w_size[1] - self.font.size(self.text)[1]
 
     def set_pos_to_center_x(self):
-        self.pos[0] = (
-            global_.w_size[0] // 2 - self.font.size(self.text)[0] // 2
-        )
+        self.pos[0] = global_.w_size[0] // 2 - self.font.size(self.text)[0] // 2
 
     def set_pos_to_center_y(self):
-        self.pos[1] = (
-            global_.w_size[1] // 2 - self.font.size(self.text)[1] // 2
-        )
+        self.pos[1] = global_.w_size[1] // 2 - self.font.size(self.text)[1] // 2
 
     def height_multiline(
         self,
