@@ -45,7 +45,7 @@ class DebugScene(Scene):
             - self.debug_msgbox1.real_size[1]
             - self.debug_msgbox2.real_size[1]
         )
-        # set pos display of candidates of google japanese IME
+        # set pos display of candidates of IME
         # by Rect[1], Rect[3]
         self.IME_candidate_rect = pygame.rect.Rect(0, 10, 0, 30)
         pygame.key.set_text_input_rect(self.IME_candidate_rect)
