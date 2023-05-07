@@ -8,47 +8,28 @@ import pygame
 from . import global_
 
 
-def test_renderln():
-    # TEXT_SIZE = self.size(text)
-    text = "AaBbCc\nDdEeFf\nGgHhIi"
-    line_width_by_px = 48
-    TEXT_SIZE = (16*len(text), 16)
-    # CHAR_SIZE = TEXT_SIZE // len(text)
-    CHAR_SIZE = TEXT_SIZE[0] // len(text)
-    len_of_single_line = line_width_by_px // CHAR_SIZE
-    texts = [text[i:i+len_of_single_line]
-             for i in range(0, len(text), len_of_single_line)]
-    text_lists = tuple(map(str.splitlines, texts))
-    output_list = []
-    for str_list in text_lists:
-        for str_ in str_list:
-            output_list.append(str_)
-    [output_list.append(str_)]
-
-    [text for i in text for text in texts]
-    return texts
-
-
 def pos_on_pixel_scale(pos) -> tuple[int, int]:
     """
     map(lambda num: num//global_.PIXEL_SCALE,
         pygame.mouse.get_pos())
     """
-    return tuple(map(lambda num: num//global_.PIXEL_SCALE, pos))
+    return tuple(map(lambda num: num // global_.PIXEL_SCALE, pos))
 
 
 def calc_x_to_center(width_of_stuff_to_be_centered: int) -> int:
-    return global_.w_size[0]//2-width_of_stuff_to_be_centered//2
+    return global_.w_size[0] // 2 - width_of_stuff_to_be_centered // 2
 
 
 def calc_y_to_center(height_of_stuff_to_be_centered: int) -> int:
-    return global_.w_size[1]//2-height_of_stuff_to_be_centered//2
+    return global_.w_size[1] // 2 - height_of_stuff_to_be_centered // 2
 
 
 def calc_pos_to_center(
-        size_of_stuff_to_be_centered: tuple[int, int]) -> tuple[int, int]:
-    return calc_x_to_center(size_of_stuff_to_be_centered[0]),\
-        calc_y_to_center(size_of_stuff_to_be_centered[1])
+    size_of_stuff_to_be_centered: tuple[int, int]
+) -> tuple[int, int]:
+    return calc_x_to_center(size_of_stuff_to_be_centered[0]), calc_y_to_center(
+        size_of_stuff_to_be_centered[1]
+    )
 
 
 def open_json_file(filepath):
@@ -77,6 +58,7 @@ def open_json_file(filepath):
 @dataclass
 class Arrow:
     """Arrow symbol"""
+
     LEFT = 0
     UP = 1
     RIGHT = 2
@@ -86,6 +68,7 @@ class Arrow:
 @dataclass
 class ArrowToTurnToward:
     """Use to set direction"""
+
     is_up: bool = field(default=False)
     is_down: bool = field(default=False)
     is_right: bool = field(default=False)
@@ -142,7 +125,7 @@ class AssetFilePath:
     font_dirname = "fonts"
     sound_dirname = "sounds"
 
-    @ classmethod
+    @classmethod
     def pyinstaller_path(cls, filepath):
         try:
             # PyInstaller creates a temp folder
@@ -153,19 +136,19 @@ class AssetFilePath:
             path = cls.root / filepath
         return path
 
-    @ classmethod
+    @classmethod
     def img(cls, filename):
         return cls.pyinstaller_path(Path(cls.img_dirname) / filename)
 
-    @ classmethod
+    @classmethod
     def font(cls, filename):
         return cls.pyinstaller_path(Path(cls.font_dirname) / filename)
 
-    @ classmethod
+    @classmethod
     def sound(cls, filename):
         return cls.pyinstaller_path(Path(cls.sound_dirname) / filename)
 
-    @ classmethod
+    @classmethod
     def set_asset_root(cls, root_dir_path: str):
         cls.__root = root_dir_path
         cls.root = Path(cls.__root)
@@ -173,10 +156,11 @@ class AssetFilePath:
         cls.root_dirname = Path(root_dir_path).name
 
 
-def draw_grid(
-        screen: pygame.surface.Surface, grid_size: int, color: int):
-    [pygame.draw.rect(
-        screen, color,
-        (x*grid_size, y*grid_size) + (grid_size, grid_size), 1)
-        for x in range(screen.get_size()[0]//grid_size)
-        for y in range(screen.get_size()[1]//grid_size)]
+def draw_grid(screen: pygame.surface.Surface, grid_size: int, color: int):
+    [
+        pygame.draw.rect(
+            screen, color, (x * grid_size, y * grid_size) + (grid_size, grid_size), 1
+        )
+        for x in range(screen.get_size()[0] // grid_size)
+        for y in range(screen.get_size()[1] // grid_size)
+    ]
