@@ -1,3 +1,8 @@
+"""
+This module implements classes for event handlers for mouse, keyboard, joystick
+and other input events.
+"""
+
 from collections import UserDict
 from dataclasses import dataclass
 from typing import Callable, Union
@@ -33,18 +38,24 @@ class Keyboard:
         return self.keyactions[key]
 
     def register_keyaction(
-            self, pygame_key_const: int,
-            delay: int,
-            interval: int,
-            first_interval: int,
-            keydown: Callable = lambda: None,
-            keyup: Callable = lambda: None):
+        self,
+        pygame_key_const: int,
+        delay: int,
+        interval: int,
+        first_interval: int,
+        keydown: Callable = lambda: None,
+        keyup: Callable = lambda: None,
+    ):
         """first_interval = interval if first_interval is None"""
         if first_interval is None:
             first_interval = interval
         self.keyactions[pygame_key_const] = KeyAction(
-            delay=delay, interval=interval, first_interval=first_interval,
-            keydown=keydown, keyup=keyup)
+            delay=delay,
+            interval=interval,
+            first_interval=first_interval,
+            keydown=keydown,
+            keyup=keyup,
+        )
 
     def is_keyaction_regitered(self, pygame_key_const: int) -> bool:
         return True if self.keyactions.get(pygame_key_const) else False
@@ -57,10 +68,8 @@ class Keyboard:
             if self.is_keyaction_regitered(event.key):
                 self.keyactions[event.key]._is_pressed = False
 
-    def do_action_on_keyinput(
-            self, pygame_key_const, ignore_unregistered=True):
-        if not self.is_keyaction_regitered(pygame_key_const)\
-                and ignore_unregistered:
+    def do_action_on_keyinput(self, pygame_key_const, ignore_unregistered=True):
+        if not self.is_keyaction_regitered(pygame_key_const) and ignore_unregistered:
             return
         KEY = pygame_key_const
         DELAY = self.keyactions[KEY].delay
@@ -75,13 +84,11 @@ class Keyboard:
             self.keyactions[KEY]._input_timer.start()
             if self.keyactions[KEY]._is_delayinput_finished:
                 if self.keyactions[KEY]._is_firstinterval_finished:
-                    if self.keyactions[KEY]._input_timer.read()\
-                            >= INTERVAL:
+                    if self.keyactions[KEY]._input_timer.read() >= INTERVAL:
                         do_keydown = True
                         self.keyactions[KEY]._input_timer.reset()
                 else:
-                    if self.keyactions[KEY]._input_timer.read()\
-                            >= FIRST_INTERVAL:
+                    if self.keyactions[KEY]._input_timer.read() >= FIRST_INTERVAL:
                         do_keydown = True
                         self.keyactions[KEY]._is_firstinterval_finished = True
                         self.keyactions[KEY]._input_timer.reset()
@@ -155,55 +162,63 @@ class KeyboardManager(KeyboardSetupDict):
         self._current_setup_key = key
 
 
-FuncsOnMouseEvent = dict[str: dict[str, Callable]]
+FuncsOnMouseEvent = dict[str : dict[str, Callable]]
 
 
 class Mouse:
-
     def __init__(self):
         self.is_dragging = False
         self.pos_drag_start = None
         self._funcs_on_event: FuncsOnMouseEvent = {
-            "up": {"left": lambda: None,
-                   "middle": lambda: None,
-                   "right": lambda: None,
-                   "wheel_up": lambda: None,
-                   "wheel_down": lambda: None},
-            "down": {"left": lambda: None,
-                     "middle": lambda: None,
-                     "right": lambda: None,
-                     "wheel_up": lambda: None,
-                     "wheel_down": lambda: None},
-            "motion": {"left": lambda: None,
-                       "middle": lambda: None,
-                       "right": lambda: None},
-            "drag": {"left": lambda drag_pos: None,
-                     "middle": lambda drag_pos: None,
-                     "right": lambda drag_pos: None}}
-        self.is_dragging = {"left": False,
-                            "middle": False,
-                            "right": False}
-        self.pos_prev_drag = {"left": None,
-                              "middle": None,
-                              "right": None}
+            "up": {
+                "left": lambda: None,
+                "middle": lambda: None,
+                "right": lambda: None,
+                "wheel_up": lambda: None,
+                "wheel_down": lambda: None,
+            },
+            "down": {
+                "left": lambda: None,
+                "middle": lambda: None,
+                "right": lambda: None,
+                "wheel_up": lambda: None,
+                "wheel_down": lambda: None,
+            },
+            "motion": {
+                "left": lambda: None,
+                "middle": lambda: None,
+                "right": lambda: None,
+            },
+            "drag": {
+                "left": lambda drag_pos: None,
+                "middle": lambda drag_pos: None,
+                "right": lambda drag_pos: None,
+            },
+        }
+        self.is_dragging = {"left": False, "middle": False, "right": False}
+        self.pos_prev_drag = {"left": None, "middle": None, "right": None}
 
     @staticmethod
     def _translate_int_pygame_mouse_event_to_str(int_pygame_mouse_event_type):
-        return {pygame.MOUSEBUTTONDOWN: "down",
-                pygame.MOUSEBUTTONUP: "up",
-                pygame.MOUSEMOTION: "motion"}[
-            int_pygame_mouse_event_type]
+        return {
+            pygame.MOUSEBUTTONDOWN: "down",
+            pygame.MOUSEBUTTONUP: "up",
+            pygame.MOUSEMOTION: "motion",
+        }[int_pygame_mouse_event_type]
 
     def register_mouseaction(
-            self, keyname_or_int_pygame_mouse_event_type: Union[str, int],
-            on_left: Union[Callable, None] = None,
-            on_middle: Union[Callable, None] = None,
-            on_right: Union[Callable, None] = None,
-            on_wheel_up: Union[Callable, None] = None,
-            on_wheel_down: Union[Callable, None] = None):
+        self,
+        keyname_or_int_pygame_mouse_event_type: Union[str, int],
+        on_left: Union[Callable, None] = None,
+        on_middle: Union[Callable, None] = None,
+        on_right: Union[Callable, None] = None,
+        on_wheel_up: Union[Callable, None] = None,
+        on_wheel_down: Union[Callable, None] = None,
+    ):
         if isinstance(keyname_or_int_pygame_mouse_event_type, int):
             key = self._translate_int_pygame_mouse_event_to_str(
-                keyname_or_int_pygame_mouse_event_type)
+                keyname_or_int_pygame_mouse_event_type
+            )
         else:
             key = keyname_or_int_pygame_mouse_event_type
         if on_left:
@@ -276,3 +291,25 @@ class Mouse:
             if self.is_dragging["right"]:
                 self._funcs_on_event[KEY]["right"](event.pos)
                 self.pos_prev_drag["right"] = event.pos
+
+
+class TextInput:
+    def __init__(self):
+        self._IMEinput = ""
+        self.text = ""
+
+    def event(self, event: pygame.event.Event):
+        if event.type == pygame.TEXTEDITING:
+            # textinput in full-width characters
+            self._IMEtextinput = event.text
+            if pygame.key.get_pressed()[pygame.K_RETURN]:
+                self.text += self._IMEtextinput
+        elif event.type == pygame.TEXTINPUT:
+            # textinput in half-width characters
+            self.text += event.text
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RETURN:
+                self.text += "\n"
+            if event.key == pygame.K_BACKSPACE:
+                self.text = self.text[:-1]
+            print(self.text)

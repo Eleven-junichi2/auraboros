@@ -1,7 +1,11 @@
 """
 Use to define global variables common use in the modules.
 """
+import os
+
 import pygame
+
+os.environ["SDL_IME_SHOW_UI"] = "1"
 
 pygame.init()
 
@@ -28,9 +32,7 @@ def init(
     global_.TARGET_FPS = 60
     global_.PIXEL_SCALE = pixel_scale
     global_.w_size_unscaled = window_size
-    global_.w_size = tuple(
-        [length // global_.PIXEL_SCALE for length in window_size]
-    )
+    global_.w_size = tuple([length // global_.PIXEL_SCALE for length in window_size])
     pygame.display.set_mode(global_.w_size_unscaled, set_mode_flags)
     global_.screen = pygame.Surface(global_.w_size)
     pygame.display.set_caption(caption)

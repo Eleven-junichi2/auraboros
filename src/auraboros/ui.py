@@ -1,9 +1,11 @@
+# TODO implement UI with component system to be more readable
+
 from typing import Callable, Optional, Union
 import abc
 
 import pygame
 
-from .gameinput import Keyboard
+from .gameinput import TextInput
 from .gametext import Font2, line_count_of_multiline_text
 from . import global_
 from .utilities import calc_pos_to_center, calc_x_to_center, calc_y_to_center
@@ -202,10 +204,8 @@ class GameMenuUI(UIElementBase):
         menu_system: GameMenuSystem,
         font: Font2,
         option_highlight_style="cursor",
-        *args,
-        **kwargs,
     ):
-        super().__init__(*args, **kwargs)
+        super().__init__()
         self.system = menu_system
         self.font = font
         self.resize_min_size_to_suit()
@@ -397,6 +397,7 @@ class MsgWindow(UIElementBase):
             text_anchor (str):= "left" or "center(default)"
             anchor(unused) = "top_left(default)" or "center_fixed" or "center"
         """
+        super().__init__()
         self.id_current_text = 0
         self._texts: list[str] = []
         if isinstance(text_or_textlist, str):
@@ -500,9 +501,6 @@ class MsgWindow(UIElementBase):
 
     @property
     def real_size(self):
-        return self.calc_real_size()
-
-    def calc_real_size(self) -> list[int, int]:
         return list(map(sum, zip(self.size, [self.padding * 2, self.padding * 2])))
 
     def rewrite_text(self, text: str, id: Union[int, None] = None):
@@ -596,12 +594,94 @@ class StopwatchUI(UIElementBase):
         pass
 
 
-class TextInputSystem:
-    def __init__(self):
-        self.keyboard = Keyboard()
-        self.keyboard.register_keyaction()
-        pass
+class TextInputUI(UIElementBase):
+    def __init__(
+        self,
+        font: Font2,
+        textinput: TextInput,
+        singleline_length: Optional[int] = None,
+        cursor_style="i-beam",
+    ):
+        """
+        Args:
+            font (Font2):
+            textinput (TextInput):
+            cursor_style (str):
+                "i-beam" or "underline", "block". "i-beam" is default.
+        """
+        super().__init__()
+        self.font = font
+        self.textinput_system = textinput
+        self.cursor_style = cursor_style  # or box, underline
+        self._singleline_length: int = None
+        self.update_singleline_length(singleline_length)
 
+    def update_singleline_length(self, singleline_length: Optional[int] = None):
+        MAX_SINGLELINE_LENGTH = self.font.textwidth_by_px_into_charcount(
+            global_.w_size[0]
+        )
+        if singleline_length:
+            if singleline_length >= MAX_SINGLELINE_LENGTH:
+                self._singleline_length = MAX_SINGLELINE_LENGTH
+            else:
+                self._singleline_length = singleline_length
 
-class TextInput(UIElementBase):
-    pass
+    @property
+    def singleline_length(self):
+        return self._singleline_length
+
+    @singleline_length.setter
+    def singleline_length(self, value: Optional[int] = None):
+        self.update_singleline_length(value)
+
+    def resize_min_size_to_suit(self):
+        """self._min_size = [ calc size here ]"""
+        if hasattr(self, "_singleline_length"):
+            if self.singleline_length:
+                self._min_size = [
+                    self.font.size(self.textinput_system.text)[0],
+                    line_count_of_multiline_text(
+                        self.textinput_system.text, self.singleline_length
+                    )
+                    * self.font.get_linesize(),
+                ]
+            else:
+                self._min_size = self.font.size(self.textinput_system.text)
+        else:
+            self._min_size = [0, 0]
+
+    @property
+    def real_size(self) -> list[int, int]:
+        """return calc size here"""
+        return list(
+            map(
+                lambda w_or_h: w_or_h + self.padding * 2,
+                self.min_size,
+            )
+        )
+
+    def draw(self, screen: pygame.surface.Surface):
+        screen.blit(
+            self.font.renderln(
+                self.textinput_system.text,
+                True,
+                (255, 255, 255),
+                line_width_by_px=self.min_size[0],
+            ),
+            self.pos,
+        )
+        if self.cursor_style == "i-beam":
+            cursor_char = "|"
+        elif self.cursor_style == "underline":
+            cursor_char = "_"
+        elif self.cursor_style == "block":
+            cursor_char = "█"
+        print(self.min_size)
+        screen.blit(
+            self.font.render(
+                cursor_char,
+                True,
+                (255, 255, 255),
+            ),
+            self.min_size,
+        )

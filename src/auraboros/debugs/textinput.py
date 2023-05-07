@@ -1,6 +1,5 @@
 from pathlib import Path
 import sys
-import os
 
 import pygame
 
@@ -10,45 +9,39 @@ from auraboros.utilities import AssetFilePath
 from auraboros.gametext import GameText, Font2
 from auraboros.gamescene import Scene, SceneManager
 
-# from auraboros.gameinput import Keyboard
-from auraboros.ui import MsgWindow
+from auraboros.gameinput import TextInput
+from auraboros.ui import MsgWindow, TextInputUI
 from auraboros import global_
-
-os.environ["SDL_IME_SHOW_UI"] = "1"
 
 engine.init()
 
 AssetFilePath.set_asset_root(Path(sys.argv[0]).parent / "assets")
 
 
-GameText.setup_font(
-    Font2(AssetFilePath.font("misaki_gothic.ttf"), 16), "misakigothic"
-)
+GameText.setup_font(Font2(AssetFilePath.font("misaki_gothic.ttf"), 16), "misakigothic")
 GameText.setup_font(
     Font2(AssetFilePath.font("PixelMPlus/PixelMplus12-Regular.ttf"), 24),
     "PixelMplus12Regular",
 )
 
 
-class DebugScene(Scene):
+class RawImplementedTextInputScene(Scene):
     def setup(self):
         GameText.use_font("PixelMplus12Regular")
         self.IMEtextinput = ""
         self.textinput = ""
         self.debug_msgbox1 = MsgWindow(GameText.font)
         self.debug_msgbox2 = MsgWindow(GameText.font)
-        self.debug_msgbox1.pos[1] = (
-            global_.w_size[1] - self.debug_msgbox1.real_size[1]
-        )
+        self.debug_msgbox1.pos[1] = global_.w_size[1] - self.debug_msgbox1.real_size[1]
         self.debug_msgbox2.pos[1] = (
             global_.w_size[1]
             - self.debug_msgbox1.real_size[1]
             - self.debug_msgbox2.real_size[1]
         )
-        # set pos display of candidates of IME
+        # you can set pos of displaying candidates of IME
         # by Rect[1], Rect[3]
-        self.IME_candidate_rect = pygame.rect.Rect(0, 10, 0, 30)
-        pygame.key.set_text_input_rect(self.IME_candidate_rect)
+        # self.IME_candidate_rect = pygame.rect.Rect(0, 10, 0, 30)
+        # pygame.key.set_text_input_rect(self.IME_candidate_rect)
 
     def event(self, event: pygame.event.Event):
         if event.type == pygame.TEXTEDITING:
@@ -84,7 +77,39 @@ class DebugScene(Scene):
         self.debug_msgbox2.draw(screen)
 
 
+class DebugScene(Scene):
+    def setup(self):
+        GameText.use_font("PixelMplus12Regular")
+        self.debug_msgbox1 = MsgWindow(GameText.font)
+        self.debug_msgbox2 = MsgWindow(GameText.font)
+        self.debug_msgbox1.pos[1] = global_.w_size[1] - self.debug_msgbox1.real_size[1]
+        self.debug_msgbox2.pos[1] = (
+            global_.w_size[1]
+            - self.debug_msgbox1.real_size[1]
+            - self.debug_msgbox2.real_size[1]
+        )
+        self.textinput = TextInput()
+        self.textinputbox1 = TextInputUI(GameText.font, self.textinput)
+        # set pos display of candidates of IME
+        # by Rect[1], Rect[3]
+        pass
+
+    def event(self, event: pygame.event.Event):
+        self.textinput.event(event)
+        # self.
+        pass
+
+    def update(self, dt):
+        pass
+
+    def draw(self, screen):
+        self.textinputbox1.draw(screen)
+        self.debug_msgbox1.draw(screen)
+        self.debug_msgbox2.draw(screen)
+
+
 scene_manager = SceneManager()
+# scene_manager.push(RawImplementedTextInputScene(scene_manager))
 scene_manager.push(DebugScene(scene_manager))
 
 if __name__ == "__main__":

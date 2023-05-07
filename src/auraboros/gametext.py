@@ -86,7 +86,7 @@ class Font2(pygame.font.Font):
                 "line_width_by_px or line_width_by_char_count is required."
             )
         else:
-            if line_width_by_px:
+            if line_width_by_px is not None:
                 line_width_by_char_count = self.textwidth_by_px_into_charcount(
                     line_width_by_px
                 )
