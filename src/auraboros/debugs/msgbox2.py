@@ -10,7 +10,7 @@ import setup_syspath  # noqa
 from auraboros import engine, global_
 from auraboros.gametext import GameText, Font2
 from auraboros.gamescene import Scene, SceneManager
-from auraboros.ui import MsgBox
+from auraboros.ui import MsgBoxUI
 from auraboros.utilities import AssetFilePath, draw_grid
 
 engine.init(caption="Test MsgBox", pixel_scale=2)
@@ -27,9 +27,9 @@ class DebugScene(Scene):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         GameText.use_font("PixelMplus12Regular")
-        self.msgbox1 = MsgBox(
+        self.msgbox1 = MsgBoxUI(
             GameText.font,
-            "test",
+            "first line text\nsecond line text",
         )
 
     def draw(self, screen):

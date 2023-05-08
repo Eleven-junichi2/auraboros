@@ -14,8 +14,10 @@ from .utilities import calc_pos_to_center, calc_x_to_center, calc_y_to_center
 # class MenuHasNoItemError(Exception):
 #     pass
 
+
 class UIElement:
     pass
+
 
 class UIProperty:
     pass
@@ -34,26 +36,26 @@ class UICoordinate(UIProperty):
 class UISizing(UIProperty):
     def __init__(self):
         super().__init__()
-        self.padding = 0
-        self._min_size = [0, 0]
-        self.calc_real_size = lambda: [0, 0]
+        self.padding = 10
+        self.calc_min_size: Callable[..., list[int]] = None
+        self.calc_real_size: Callable[..., list[int]] = None
 
     @property
-    def min_size(self):
+    def min_size(self) -> list[int]:
         if self.calc_min_size is None:
             raise NotImplementedError(
-                "Set the calc_min_size function before getting the value."
+                "Set 'calc_min_size: Callable[..., list[int]] function'"
+                + " before getting the value."
             )
-        self.calc_min_size()
-        return self._min_size
+        return self.calc_min_size()
 
     @property
-    def real_size(self):
+    def real_size(self) -> list[int]:
         if self.calc_real_size is None:
             raise NotImplementedError(
-                "Set the calc_real_size function before getting the value."
+                "Set 'calc_real_size: Callable[..., list[int]] function'"
+                + " before getting the value."
             )
-        self.calc_real_size()
         return self.calc_real_size()
 
 
@@ -118,24 +120,51 @@ class UITextWithPages(UIProperty):
         return self._texts.pop(page_id)
 
 
-class MsgBoxProperty(UITextWithPages, UICoordinate):
+class MsgBoxProperty(UITextWithPages, UICoordinate, UISizing):
     pass
 
 
-class MsgBox(UIElement):
+class MsgBoxUI(UIElement):
     def __init__(
-        self,
-        font: Font2,
-        text_or_textlist: Union[str, list[str]] = "",
+        self, font: Font2, text_or_textlist: Union[str, list[str]] = "", frame_width=1
     ):
+        super().__init__()
         self.font = font
         self.property = MsgBoxProperty()
         self.property.texts = text_or_textlist
+        self.property.calc_min_size = self._calc_min_size
+        self.property.calc_real_size = self._calc_real_size
+        self.frame_width = frame_width
+
+    def _calc_min_size(self) -> list[int]:
+        return list(self.font.size(self.property.current_page_text))
+
+    def _calc_real_size(self) -> list[int]:
+        print(self.property.min_size)
+        print(self.property.calc_min_size())
+        print(self.property.padding)
+        return list(
+            map(
+                lambda w_or_h: w_or_h + self.property.padding * 2,
+                self.property.min_size,
+            )
+        )
 
     def draw(self, screen: pygame.Surface):
+        pygame.draw.rect(
+            screen,
+            (255, 255, 255),
+            self.property.pos + self.property.real_size,
+            self.frame_width,
+        )
         screen.blit(
             self.font.render(self.property.current_page_text, True, (255, 255, 255)),
-            self.property.pos,
+            list(
+                map(
+                    lambda pos: pos + self.property.padding,
+                    self.property.pos,
+                )
+            ),
         )
 
 
