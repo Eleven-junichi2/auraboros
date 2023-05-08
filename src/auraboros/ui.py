@@ -1,6 +1,6 @@
 # TODO implement UI with component system to be more readable
 
-from typing import Callable, Optional, Union
+from typing import Callable, Optional, Generic, TypeVar, Union
 import abc
 
 import pygame
@@ -21,6 +21,14 @@ class UIElement:
 
 class UIProperty:
     pass
+
+
+class UISystem:
+    def __init__(self, property: UIProperty):
+        if isinstance(property, UIProperty):
+            self.property = property
+        else:
+            raise ValueError("property must be an instance of UIProperty")
 
 
 class UICoordinate(UIProperty):
@@ -120,7 +128,25 @@ class UITextWithPages(UIProperty):
         return self._texts.pop(page_id)
 
 
-class MsgBoxProperty(UITextWithPages, UICoordinate, UISizing):
+class UIRect(UICoordinate, UISizing):
+    def __init__(self):
+        super().__init__()
+
+    def is_given_x_on_ui(self, x):
+        return self.pos[0] <= x <= self.pos[0] + self.real_size[0]
+
+    def is_given_y_on_ui(self, y):
+        return self.pos[1] <= y <= self.pos[1] + self.real_size[1]
+
+    def is_givenpos_on_ui(self, pos):
+        return self.is_given_x_on_ui(pos[0]) and self.is_given_y_on_ui(pos[1])
+
+    def do_func_if_pos_is_on_ui(self, pos, func: Callable):
+        if self.is_givenpos_on_ui(pos):
+            return func()
+
+
+class MsgBoxProperty(UITextWithPages, UIRect):
     pass
 
 
