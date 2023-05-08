@@ -119,7 +119,6 @@ class UITextWithPages(UIProperty):
 
 
 class MsgBoxProperty(UITextWithPages, UICoordinate):
-    """ERROR: cant inherite UICoordinate attribute"""
     pass
 
 
