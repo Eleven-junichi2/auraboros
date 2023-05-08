@@ -1,3 +1,5 @@
+# TODO: implement func that return px size of multiline text to GameText
+
 from dataclasses import dataclass
 
 # from functools import wraps
