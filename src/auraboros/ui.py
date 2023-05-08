@@ -36,7 +36,7 @@ class UICoordinate(UIProperty):
 class UISizing(UIProperty):
     def __init__(self):
         super().__init__()
-        self.padding = 10
+        self.padding = 0
         self.calc_min_size: Callable[..., list[int]] = None
         self.calc_real_size: Callable[..., list[int]] = None
 
