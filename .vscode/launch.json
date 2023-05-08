@@ -134,5 +134,13 @@
             "console": "integratedTerminal",
             "justMyCode": true
         },
+        {
+            "name": "Python: example msgbox2",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/auraboros/debugs/msgbox2.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
     ]
 }
