@@ -14,7 +14,13 @@ pip install auraboros
 ## how to use CLI
 
 ```:
-python -m auraboros 
+python -m auraboros
+
+# run examples
+python -m auraboros --example
+
+# download assets
+python -m auraboros --getasset
 ```
 
 ## how to PyInstaller
