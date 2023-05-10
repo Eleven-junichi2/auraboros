@@ -123,11 +123,6 @@ class Font2(pygame.font.Font):
                     self.size(longest_line)[0],
                     line_count * self.get_linesize(),
                 )
-            # else:
-            #     size = (
-            #         len(longest_line),
-            #         line_count_of_multiline_text(text, linelength_limit_in_char),
-            #     )
             size = (0, 0)
         else:
             raise ValueError(
