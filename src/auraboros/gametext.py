@@ -8,6 +8,7 @@ from pygame.color import Color
 import pygame
 
 from . import global_
+from .utilities import is_char_fullwidth
 
 pygame.font.init()
 
@@ -66,6 +67,54 @@ class Font2(pygame.font.Font):
 
     def textwidth_in_charcount_into_px(self, textwidth_in_charcount) -> int:
         return textwidth_in_charcount * self.size(" ")[0]
+
+    def size_of_multiline_text(
+        self,
+        multiline_text: str,
+        linelength_limit_in_px: int,
+        in_charcount: Optional[bool] = False,
+    ):
+        text = "".join(multiline_text.splitlines())  # erase escape sequence
+        halfwidth_charcount = 0
+        fullwidth_charcount = 0
+        for char in text:
+            if is_char_fullwidth(char):
+                fullwidth_charcount += 1
+            else:
+                halfwidth_charcount += 1
+        linelength_in_px_of_text = 0
+        if halfwidth_charcount > 0:
+            linelength_in_px_of_text = (
+                self.halfwidth_charsize()[0] * halfwidth_charcount
+            )
+        elif fullwidth_charcount > 0:
+            linelength_in_px_of_text = (
+                self.fullwidth_charsize()[0] * fullwidth_charcount
+            )
+        if linelength_in_px_of_text < 0:
+            size = (0, 0)
+        else:
+            checked_charcount = 0
+            while linelength_in_px_of_text > linelength_limit_in_px:
+                if is_char_fullwidth(text[-(1 + checked_charcount)]):
+                    fullwidth_charcount -= 1
+                    linelength_in_px_of_text -= self.fullwidth_charsize()[0]
+                else:
+                    halfwidth_charcount -= 1
+                    linelength_in_px_of_text -= self.halfwidth_charsize()[0]
+                checked_charcount += 1
+            linelength_in_charcount = fullwidth_charcount + halfwidth_charcount
+            line_count = len(
+                split_multiline_text(multiline_text, linelength_in_charcount)
+            )
+            if in_charcount:
+                size = (linelength_in_charcount, line_count)
+            else:
+                size = (
+                    linelength_in_px_of_text,
+                    line_count * self.get_linesize(),
+                )
+        return size
 
     def renderln(
         self,
