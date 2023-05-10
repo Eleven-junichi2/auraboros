@@ -1,13 +1,10 @@
 # TODO implement UI with component system to be more readable
 
 from typing import Callable, Optional, Union
-import unicodedata
 
 import pygame
 
-from .gametext import Font2, line_count_of_multiline_text, split_multiline_text
-from . import global_
-from .utilities import is_char_fullwidth
+from .gametext import Font2
 
 
 # class MenuHasNoItemError(Exception):

@@ -7,7 +7,7 @@ import sys
 import pygame
 
 import setup_syspath  # noqa
-from auraboros import engine, global_
+from auraboros import engine
 from auraboros.gametext import GameText, Font2
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.ui import MsgBoxUI
@@ -53,7 +53,7 @@ class DebugScene(Scene):
                 self.msgbox1.property.font.size_of_multiline_text(
                     self.msgbox1.property.current_page_text,
                     self.msgbox1.property.linelength_in_px,
-                    in_charcount=True,
+                    getsize_in_charcount=True,
                 )
             )
         )

@@ -67,7 +67,7 @@ class Font2(pygame.font.Font):
         text: str,
         linelength_limit_in_px: Optional[int] = None,
         linelength_limit_in_char: Optional[int] = None,
-        in_charcount: bool = False,
+        getsize_in_charcount: bool = False,
     ):
         longest_line = max(text.splitlines(), key=len)  # erase escape sequence
         if linelength_limit_in_px is not None:
@@ -101,7 +101,7 @@ class Font2(pygame.font.Font):
                     checked_charcount += 1
                 linelength_in_charcount = fullwidth_charcount + halfwidth_charcount
                 line_count = len(split_multiline_text(text, linelength_in_charcount))
-                if in_charcount:
+                if getsize_in_charcount:
                     size = (linelength_in_charcount, line_count)
                 else:
                     size = (
@@ -113,7 +113,7 @@ class Font2(pygame.font.Font):
             if longest_line_charcount > linelength_limit_in_char:
                 longest_line_charcount = linelength_limit_in_char
             line_count = len(split_multiline_text(text, longest_line_charcount))
-            if in_charcount:
+            if getsize_in_charcount:
                 size = (
                     longest_line_charcount,
                     line_count,
@@ -160,7 +160,7 @@ class Font2(pygame.font.Font):
         else:
             if linelength_in_px is not None:
                 linelength_in_charcount = self.size_of_multiline_text(
-                    text, linelength_in_px, in_charcount=True
+                    text, linelength_in_px, getsize_in_charcount=True
                 )[0]
             # make text list
             texts = split_multiline_text(text, linelength_in_charcount)
