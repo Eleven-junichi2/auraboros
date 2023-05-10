@@ -33,6 +33,7 @@ class DebugScene(Scene):
         )
         self.msgbox1.property.linelength_in_px = 200
         self.msgbox2 = MsgBoxUI(GameText.font)
+        self.msgbox1.property.padding = 10
         self.msgbox2.property.pos[1] = self.msgbox1.property.real_size[1]
         self.msgbox3 = MsgBoxUI(GameText.font)
         self.msgbox3.property.pos[1] = (
