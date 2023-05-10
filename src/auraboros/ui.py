@@ -132,10 +132,6 @@ class UITextWithPages(UIProperty):
         if self.line_length_in_px is None:
             size = self.font.size(self.current_page_text)
         else:
-            # split_multiline_textのために、self.line_length_in_pxに応じたcharcountを取りたい
-            # textwidthがself.line_length_in_pxを超えるまで行う:
-            #   全文字をeast_asian_widthにかけて、半角文字、全角文字かどうかを判定してそれぞれのpxサイズを取得。
-            #   取得したpxサイズをtextwidthに足していく。
             text = "".join(self.texts[page_id].splitlines())  # erase escape sequence
             halfwidth_charcount = 0
             fullwidth_charcount = 0
