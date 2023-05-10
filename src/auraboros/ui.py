@@ -120,7 +120,9 @@ class UITextWithPages(UIProperty):
     def tear_up_page(self, page_id: int) -> str:
         return self._texts.pop(page_id)
 
-    def size_of_text_surface(self, page_id: Optional[int] = None):
+    def size_of_text_surface(
+        self, in_charcount: Optional[bool] = False, page_id: Optional[int] = None
+    ):
         if page_id is None:
             page_id = self.current_page_id
         if self.font is None:
@@ -157,17 +159,23 @@ class UITextWithPages(UIProperty):
                 checked_charcount = 0
                 while linelength_in_px_of_text > self.line_length_in_px:
                     if is_char_fullwidth(text[-(1 + checked_charcount)]):
-                        linelength_in_px_of_text -= self.font.fullwidth_charsize()[0]
                         fullwidth_charcount -= 1
+                        linelength_in_px_of_text -= self.font.fullwidth_charsize()[0]
                     else:
-                        linelength_in_px_of_text -= self.font.halfwidth_charsize()[0]
                         halfwidth_charcount -= 1
+                        linelength_in_px_of_text -= self.font.halfwidth_charsize()[0]
                     checked_charcount += 1
                 line_length_in_charcount = fullwidth_charcount + halfwidth_charcount
                 line_count = len(
                     split_multiline_text(self.texts[page_id], line_length_in_charcount)
                 )
-                size = (self.line_length_in_px, line_count * self.font.get_linesize())
+                if in_charcount:
+                    size = (line_length_in_charcount, line_count)
+                else:
+                    size = (
+                        linelength_in_px_of_text,
+                        line_count * self.font.get_linesize(),
+                    )
         return size
 
 
@@ -212,9 +220,9 @@ class MsgBoxUI(UIElement):
         return list(self.property.font.size(self.property.current_page_text))
 
     def _calc_real_size(self) -> list[int]:
-        print(self.property.min_size)
-        print(self.property.calc_min_size())
-        print(self.property.padding)
+        # print(self.property.min_size)
+        # print(self.property.calc_min_size())
+        # print(self.property.padding)
         return list(
             map(
                 lambda w_or_h: w_or_h + self.property.padding * 2,

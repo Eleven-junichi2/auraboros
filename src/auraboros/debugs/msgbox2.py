@@ -31,18 +31,27 @@ class DebugScene(Scene):
             GameText.font,
             "first line text\nsecond line text",
         )
+        self.msgbox1.property.line_length_in_px = 200
         self.msgbox2 = MsgBoxUI(GameText.font)
         self.msgbox2.property.pos[1] = self.msgbox1.property.real_size[1]
+        self.msgbox3 = MsgBoxUI(GameText.font)
+        self.msgbox3.property.pos[1] = (
+            self.msgbox2.property.pos[1] + self.msgbox2.property.real_size[1]
+        )
 
     def update(self, dt):
         self.msgbox2.property.rewrite_text(
-            f"size_of_text_surface()={self.msgbox2.property.size_of_text_surface()}"
+            f"↑size_of_text_surface()={self.msgbox1.property.size_of_text_surface()}"
+        )
+        self.msgbox3.property.rewrite_text(
+            f"↑〃(in_charcount)={self.msgbox1.property.size_of_text_surface(True)}"
         )
 
-    def draw(self, screen):
-        draw_grid(screen, 16, (78, 78, 78))
+    def draw(self, screen: pygame.Surface):
+        draw_grid(screen, 10, (78, 78, 78))
         self.msgbox1.draw(screen)
         self.msgbox2.draw(screen)
+        self.msgbox3.draw(screen)
 
 
 scene_manager = SceneManager()
