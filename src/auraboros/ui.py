@@ -180,9 +180,6 @@ class MsgBoxUI(UIElement):
         return size
 
     def _calc_real_size(self) -> list[int]:
-        # print(self.property.min_size)
-        # print(self.property.calc_min_size())
-        # print(self.property.padding)
         return list(
             map(
                 lambda w_or_h: w_or_h

@@ -308,13 +308,6 @@ class GameText:
     def set_pos_to_center_y(self):
         self.pos[1] = global_.w_size[1] // 2 - self.font.size(self.text)[1] // 2
 
-    def height_multiline(
-        self,
-        linelength_in_charcount: Optional[int] = None,
-        linelength_in_px: Optional[int] = None,
-    ):
-        raise NotImplementedError
-
 
 @dataclass
 class TextData:
