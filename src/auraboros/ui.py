@@ -55,12 +55,17 @@ class UISizing(UIProperty):
         return self.calc_real_size()
 
 
+class UIFontProperty(UIProperty):
+    def __init__(self):
+        super().__init__()
+        self.font: Optional[Font2] = None
+
+
 class UITextWithPages(UIProperty):
     def __init__(self):
         super().__init__()
         self._texts: list[str] = [""]
         self._current_page_id: int = 0
-        self.font: Optional[Font2] = None
         self.linelength_in_px: Optional[int] = None  # None means no length limit
         self.linelength_in_char: Optional[int] = None  # None means no length limit
 
@@ -144,7 +149,7 @@ class UIRect(UICoordinate, UISizing):
             return func()
 
 
-class MsgBoxProperty(UITextWithPages, UIRect):
+class MsgBoxProperty(UITextWithPages, UIRect, UIFontProperty):
     pass
 
 
@@ -294,7 +299,7 @@ class MenuInterface:
         if 0 < self.selected_index:
             self.selected_index -= 1
         elif self.loop_cursor:
-            self.selected_index = self.count_menuitems() - 1
+            self.selected_index = self.option_count - 1
         self.action_on_cursor_up()
 
     def cursor_down(self):
@@ -320,18 +325,20 @@ class MenuInterface:
         else:
             raise ValueError("Given index is out of range in the menu.")
 
-    def count_menuitems(self) -> int:
+    @property
+    def option_count(self) -> int:
         return len(self.option_keys)
 
-    def longest_optiontext(self) -> int:
+    def longest_optiontext(self) -> str:
         return max(self.option_texts, key=len)
 
-    def update(self):
-        self.action_on_highlight()
 
-
-class MenuUIProperty(UITextWithPages, UIRect):
-    pass
+class MenuUIProperty(UIRect, UIFontProperty):
+    def __init__(self):
+        super().__init__()
+        self.frameborder_width: int
+        self.option_highlight_style: str
+        self.option_highlight_bg_color = (127, 127, 127)
 
 
 class MenuUI(UIElement):
@@ -347,21 +354,51 @@ class MenuUI(UIElement):
         self.interface = interface
         self.property.calc_min_size = self._calc_min_size
         self.property.calc_real_size = self._calc_real_size
-        self.frameborder_width = frameborder_width
+        self.property.frameborder_width = frameborder_width
+        self.property.option_highlight_style = "filled-box"
 
     def _calc_min_size(self) -> list[int]:
         size = list(
-            self.property.font.size_of_multiline_text(
-                "\n".join(self.interface.option_texts),
-                linelength_limit_in_char=len(self.interface.longest_optiontext()),
-            )
+            self.property.font.size(self.interface.longest_optiontext()),
         )
+        size[1] *= self.interface.option_count
         return size
 
     def _calc_real_size(self) -> list[int]:
-        return self.property.min_size
+        return list(
+            map(
+                lambda w_or_h: w_or_h
+                + self.property.padding * 2
+                + self.property.frameborder_width * 2,
+                self.property.min_size,
+            )
+        )
 
     def draw(self, screen: pygame.Surface):
+        pygame.draw.rect(
+            screen,
+            (255, 255, 255),
+            self.property.pos + self.property.real_size,
+            self.property.frameborder_width,
+        )
+        if self.property.option_highlight_style == "filled-box":
+            pygame.draw.rect(
+                screen,
+                self.property.option_highlight_bg_color,
+                (
+                    (
+                        self.property.pos[0]
+                        + self.property.padding
+                        + self.property.frameborder_width,
+                        self.property.pos[1]
+                        + self.property.padding
+                        + self.property.frameborder_width
+                        + self.property.font.get_height()
+                        * self.interface.selected_index,
+                    ),
+                    (self.property.min_size[0], self.property.font.get_height()),
+                ),
+            )
         for index, menutext in enumerate(self.interface.option_texts):
             screen.blit(
                 self.property.font.render(menutext, True, (255, 255, 255)),
