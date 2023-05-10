@@ -149,11 +149,6 @@ class Font2(pygame.font.Font):
         """
         linelength_in_px takes precedence over linelength_in_charcount
         if both are set.
-        (sizing and line breaks about full-width characters is WIP)
-
-        TODO:
-            make sizing and line breaks more appropriate for full-width
-            characters
         """
         if linelength_in_px is None and linelength_in_charcount is None:
             raise ValueError("linelength_in_px or linelength_in_charcount is required.")
