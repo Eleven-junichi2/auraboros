@@ -219,123 +219,162 @@ class MsgBoxUI(UIElement):
             )
 
 
-# class GameMenuSystem:
-#     def __init__(self):
-#         self.menu_selected_index = 0
-#         self.menu_option_keys: list[str] = []
-#         self.menu_option_texts: list[str] = []
-#         self.option_actions_on_select: dict[str, Callable] = {}
-#         self.option_actions_on_highlight: dict[str, Callable] = {}
-#         self.loop_cursor = True
-#         self.action_on_cursor_up = lambda: None
-#         self.action_on_cursor_down = lambda: None
+class MenuInterface:
+    def __init__(self):
+        self.selected_index = 0
+        self.option_keys: list[str] = []
+        self.option_texts: list[str] = []
+        self.option_actions_on_select: dict[str, Callable] = {}
+        self.option_actions_on_highlight: dict[str, Callable] = {}
+        self.loop_cursor = True
+        self.action_on_cursor_up = lambda: None
+        self.action_on_cursor_down = lambda: None
 
-#     def add_menu_item(
-#         self,
-#         option_key: str,
-#         action_on_select: Callable = lambda: None,
-#         action_on_highlight: Callable = lambda: None,
-#         text: str = None,
-#     ):
-#         if text is None:
-#             text = option_key
-#         self.menu_option_keys.append(option_key)
-#         self.menu_option_texts.append(text)
-#         self.option_actions_on_select[option_key] = action_on_select
-#         self.option_actions_on_highlight[option_key] = action_on_highlight
+    def add_menuitem(
+        self,
+        option_key: str,
+        action_on_select: Callable = lambda: None,
+        action_on_highlight: Callable = lambda: None,
+        text: str = None,
+    ):
+        if text is None:
+            text = option_key
+        self.option_keys.append(option_key)
+        self.option_texts.append(text)
+        self.option_actions_on_select[option_key] = action_on_select
+        self.option_actions_on_highlight[option_key] = action_on_highlight
 
-#     def replace_menu_item_by_index(
-#         self,
-#         index: int,
-#         option_key: str,
-#         action_on_select: Callable = lambda: None,
-#         action_on_highlight: Callable = lambda: None,
-#         text: str = None,
-#     ):
-#         if text is None:
-#             text = option_key
-#         self.menu_option_keys[index] = option_key
-#         self.menu_option_texts[index] = text
-#         del self.option_actions_on_select[
-#             tuple(self.option_actions_on_select.keys())[index]
-#         ]
-#         del self.option_actions_on_highlight[
-#             tuple(self.option_actions_on_highlight.keys())[index]
-#         ]
-#         self.option_actions_on_select[option_key] = action_on_select
-#         self.option_actions_on_highlight[option_key] = action_on_highlight
+    def replace_menuitem_by_index(
+        self,
+        index: int,
+        option_key: str,
+        action_on_select: Callable = lambda: None,
+        action_on_highlight: Callable = lambda: None,
+        text: str = None,
+    ):
+        if text is None:
+            text = option_key
+        self.option_keys[index] = option_key
+        self.option_texts[index] = text
+        del self.option_actions_on_select[
+            tuple(self.option_actions_on_select.keys())[index]
+        ]
+        del self.option_actions_on_highlight[
+            tuple(self.option_actions_on_highlight.keys())[index]
+        ]
+        self.option_actions_on_select[option_key] = action_on_select
+        self.option_actions_on_highlight[option_key] = action_on_highlight
 
-#     def replace_menu_item_by_key(
-#         self,
-#         option_key: str,
-#         new_option_key: str,
-#         action_on_select: Callable = lambda: None,
-#         action_on_highlight: Callable = lambda: None,
-#         text: str = None,
-#     ):
-#         if text is None:
-#             text = new_option_key
-#         index = self.menu_option_keys.index(option_key)
-#         self.replace_menu_item_by_index(
-#             index=index,
-#             option_key=new_option_key,
-#             action_on_select=action_on_select,
-#             action_on_highlight=action_on_highlight,
-#             text=text,
-#         )
+    def replace_menuitem_by_key(
+        self,
+        option_key: str,
+        new_option_key: str,
+        action_on_select: Callable = lambda: None,
+        action_on_highlight: Callable = lambda: None,
+        text: str = None,
+    ):
+        if text is None:
+            text = new_option_key
+        index = self.option_keys.index(option_key)
+        self.replace_menuitem_by_index(
+            index=index,
+            option_key=new_option_key,
+            action_on_select=action_on_select,
+            action_on_highlight=action_on_highlight,
+            text=text,
+        )
 
-#     def set_action_on_cursor_up(self, action: Callable):
-#         self.action_on_cursor_up = action
+    def set_action_on_cursor_up(self, action: Callable):
+        self.action_on_cursor_up = action
 
-#     def set_action_on_cursor_down(self, action: Callable):
-#         self.action_on_cursor_down = action
+    def set_action_on_cursor_down(self, action: Callable):
+        self.action_on_cursor_down = action
 
-#     def menu_cursor_up(self):
-#         if 0 < self.menu_selected_index:
-#             self.menu_selected_index -= 1
-#         elif self.loop_cursor:
-#             self.menu_selected_index = self.count_menu_items() - 1
-#         self.action_on_cursor_up()
+    def cursor_up(self):
+        if 0 < self.selected_index:
+            self.selected_index -= 1
+        elif self.loop_cursor:
+            self.selected_index = self.count_menuitems() - 1
+        self.action_on_cursor_up()
 
-#     def menu_cursor_down(self):
-#         if self.menu_selected_index < len(self.menu_option_keys) - 1:
-#             self.menu_selected_index += 1
-#         elif self.loop_cursor:
-#             self.menu_selected_index = 0
-#         self.action_on_cursor_down()
+    def cursor_down(self):
+        if self.selected_index < len(self.option_keys) - 1:
+            self.selected_index += 1
+        elif self.loop_cursor:
+            self.selected_index = 0
+        self.action_on_cursor_down()
 
-#     def do_selected_action(self):
-#         if len(self.menu_option_keys) == 0:
-#             raise MenuHasNoItemError(
-#                 "At least one menu item is required to take action."
-#             )
-#         return self.option_actions_on_select[
-#             self.menu_option_keys[self.menu_selected_index]
-#         ]()
+    def do_selected_action(self):
+        if len(self.option_keys) == 0:
+            raise AttributeError("At least one menu item is required to take action.")
+        return self.option_actions_on_select[self.option_keys[self.selected_index]]()
 
-#     def action_on_highlight(self):
-#         if len(self.menu_option_keys) == 0:
-#             raise MenuHasNoItemError(
-#                 "At least one menu item is required to take action."
-#             )
-#         return self.option_actions_on_highlight[
-#             self.menu_option_keys[self.menu_selected_index]
-#         ]()
+    def action_on_highlight(self):
+        if len(self.option_keys) == 0:
+            raise AttributeError("At least one menu item is required to take action.")
+        return self.option_actions_on_highlight[self.option_keys[self.selected_index]]()
 
-#     def select_action_by_index(self, index):
-#         if 0 <= index < len(self.menu_option_keys):
-#             self.menu_selected_index = index
-#         else:
-#             raise ValueError("Given index is out of range in the menu.")
+    def select_action_by_index(self, index):
+        if 0 <= index < len(self.option_keys):
+            self.selected_index = index
+        else:
+            raise ValueError("Given index is out of range in the menu.")
 
-#     def count_menu_items(self) -> int:
-#         return len(self.menu_option_keys)
+    def count_menuitems(self) -> int:
+        return len(self.option_keys)
 
-#     def max_option_text_length(self) -> int:
-#         return max([len(i) for i in self.menu_option_texts])
+    def longest_optiontext(self) -> int:
+        return max(self.option_texts, key=len)
 
-#     def update(self):
-#         self.action_on_highlight()
+    def update(self):
+        self.action_on_highlight()
+
+
+class MenuUIProperty(UITextWithPages, UIRect):
+    pass
+
+
+class MenuUI(UIElement):
+    def __init__(
+        self,
+        font: Font2,
+        interface: MenuInterface = MenuInterface(),
+        frameborder_width: int = 1,
+    ):
+        super().__init__()
+        self.property = MenuUIProperty()
+        self.property.font = font
+        self.interface = interface
+        self.property.calc_min_size = self._calc_min_size
+        self.property.calc_real_size = self._calc_real_size
+        self.frameborder_width = frameborder_width
+
+    def _calc_min_size(self) -> list[int]:
+        size = list(
+            self.property.font.size_of_multiline_text(
+                "\n".join(self.interface.option_texts),
+                linelength_limit_in_char=len(self.interface.longest_optiontext()),
+            )
+        )
+        return size
+
+    def _calc_real_size(self) -> list[int]:
+        return self.property.min_size
+
+    def draw(self, screen: pygame.Surface):
+        for index, menutext in enumerate(self.interface.option_texts):
+            screen.blit(
+                self.property.font.render(menutext, True, (255, 255, 255)),
+                tuple(
+                    map(
+                        sum,
+                        zip(
+                            self.property.pos,
+                            (0, index * self.property.font.get_height()),
+                        ),
+                    )
+                ),
+            )
 
 
 # class UIElementBase(metaclass=abc.ABCMeta):

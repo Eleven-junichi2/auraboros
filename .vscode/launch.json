@@ -142,5 +142,13 @@
             "console": "integratedTerminal",
             "justMyCode": true
         },
+        {
+            "name": "Python: example gamemenu2",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/auraboros/debugs/gamemenu2.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
     ]
 }
