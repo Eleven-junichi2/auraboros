@@ -99,7 +99,7 @@ class UITextWithPages(UIProperty):
         elif isinstance(text_or_textlist, list[str]):
             self._texts = text_or_textlist
         else:
-            raise TypeError(
+            raise ValueError(
                 "text_or_textlist must be str or list[str], "
                 + f"not {type(text_or_textlist)}"
             )
