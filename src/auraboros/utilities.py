@@ -2,6 +2,7 @@ from dataclasses import dataclass, field, asdict
 from pathlib import Path
 import json
 import sys
+import unicodedata
 
 import pygame
 
@@ -35,6 +36,13 @@ def calc_pos_to_center(
 def open_json_file(filepath):
     with open(filepath, "r") as f:
         return json.load(f)
+
+
+def is_char_fullwidth(char: str):
+    if unicodedata.east_asian_width(char) in ("F", "W", "A"):
+        return True
+    else:
+        return False
 
 
 # class Position2d(deque):

@@ -1,10 +1,8 @@
 # TODO: implement func that return px size of multiline text to GameText
 
 from dataclasses import dataclass
-
-# from functools import wraps
-import itertools
 from typing import Tuple, Union, Sequence, Optional
+import itertools
 
 from pygame.color import Color
 import pygame
@@ -57,11 +55,17 @@ class Font2(pygame.font.Font):
     helpful features for multiline text.
     """
 
-    def textwidth_by_px_into_charcount(self, text_width_by_px) -> int:
+    def fullwidth_charsize(self) -> Tuple[int, int]:
+        return self.size("　")
+
+    def halfwidth_charsize(self) -> Tuple[int, int]:
+        return self.size(" ")
+
+    def textwidth_in_px_into_charcount(self, text_width_by_px) -> int:
         return text_width_by_px // self.size(" ")[0]
 
-    def textwidth_by_charcount_into_px(self, textwidth_by_charcount) -> int:
-        return textwidth_by_charcount * self.size(" ")[0]
+    def textwidth_in_charcount_into_px(self, textwidth_in_charcount) -> int:
+        return textwidth_in_charcount * self.size(" ")[0]
 
     def renderln(
         self,
@@ -89,7 +93,7 @@ class Font2(pygame.font.Font):
             )
         else:
             if line_width_by_px is not None:
-                line_width_by_char_count = self.textwidth_by_px_into_charcount(
+                line_width_by_char_count = self.textwidth_in_px_into_charcount(
                     line_width_by_px
                 )
                 if len(text) == line_width_by_char_count:

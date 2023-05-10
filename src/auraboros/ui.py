@@ -1,14 +1,13 @@
 # TODO implement UI with component system to be more readable
 
-from typing import Callable, Optional, Generic, TypeVar, Union
-import abc
+from typing import Callable, Optional, Union
+import unicodedata
 
 import pygame
 
-from .gameinput import TextInput
-from .gametext import Font2, line_count_of_multiline_text
+from .gametext import Font2, line_count_of_multiline_text, split_multiline_text
 from . import global_
-from .utilities import calc_pos_to_center, calc_x_to_center, calc_y_to_center
+from .utilities import is_char_fullwidth
 
 
 # class MenuHasNoItemError(Exception):
@@ -21,14 +20,6 @@ class UIElement:
 
 class UIProperty:
     pass
-
-
-class UISystem:
-    def __init__(self, property: UIProperty):
-        if isinstance(property, UIProperty):
-            self.property = property
-        else:
-            raise ValueError("property must be an instance of UIProperty")
 
 
 class UICoordinate(UIProperty):
@@ -72,6 +63,8 @@ class UITextWithPages(UIProperty):
         super().__init__()
         self._texts: list[str] = [""]
         self._current_page_id: int = 0
+        self.line_length_in_px: Optional[int] = None  # None means no length limit
+        self.font: Optional[Font2] = None
 
     @property
     def texts(self) -> list[str]:
@@ -127,6 +120,56 @@ class UITextWithPages(UIProperty):
     def tear_up_page(self, page_id: int) -> str:
         return self._texts.pop(page_id)
 
+    def size_of_text_surface(self, page_id: Optional[int] = None):
+        if page_id is None:
+            page_id = self.current_page_id
+        if self.font is None:
+            raise AttributeError(
+                "Set 'font: Font2' attribute" + " before getting the size."
+            )
+        if self.line_length_in_px is None:
+            size = self.font.size(self.current_page_text)
+        else:
+            # split_multiline_textのために、self.line_length_in_pxに応じたcharcountを取りたい
+            # textwidthがself.line_length_in_pxを超えるまで行う:
+            #   全文字をeast_asian_widthにかけて、半角文字、全角文字かどうかを判定してそれぞれのpxサイズを取得。
+            #   取得したpxサイズをtextwidthに足していく。
+            text = "".join(self.texts[page_id].splitlines())  # erase escape sequence
+            halfwidth_charcount = 0
+            fullwidth_charcount = 0
+            for char in text:
+                if is_char_fullwidth(char):
+                    fullwidth_charcount += 1
+                else:
+                    halfwidth_charcount += 1
+            linelength_in_px_of_text = 0
+            if halfwidth_charcount > 0:
+                linelength_in_px_of_text = (
+                    self.font.halfwidth_charsize()[0] * halfwidth_charcount
+                )
+            elif fullwidth_charcount > 0:
+                linelength_in_px_of_text = (
+                    self.font.fullwidth_charsize()[0] * fullwidth_charcount
+                )
+            if linelength_in_px_of_text < 0:
+                size = (0, 0)
+            else:
+                checked_charcount = 0
+                while linelength_in_px_of_text > self.line_length_in_px:
+                    if is_char_fullwidth(text[-(1 + checked_charcount)]):
+                        linelength_in_px_of_text -= self.font.fullwidth_charsize()[0]
+                        fullwidth_charcount -= 1
+                    else:
+                        linelength_in_px_of_text -= self.font.halfwidth_charsize()[0]
+                        halfwidth_charcount -= 1
+                    checked_charcount += 1
+                line_length_in_charcount = fullwidth_charcount + halfwidth_charcount
+                line_count = len(
+                    split_multiline_text(self.texts[page_id], line_length_in_charcount)
+                )
+                size = (self.line_length_in_px, line_count * self.font.get_linesize())
+        return size
+
 
 class UIRect(UICoordinate, UISizing):
     def __init__(self):
@@ -152,18 +195,21 @@ class MsgBoxProperty(UITextWithPages, UIRect):
 
 class MsgBoxUI(UIElement):
     def __init__(
-        self, font: Font2, text_or_textlist: Union[str, list[str]] = "", frame_width=1
+        self,
+        font: Font2,
+        text_or_textlist: Union[str, list[str]] = "",
+        frameborder_width=1,
     ):
         super().__init__()
-        self.font = font
         self.property = MsgBoxProperty()
+        self.property.font = font
         self.property.texts = text_or_textlist
         self.property.calc_min_size = self._calc_min_size
         self.property.calc_real_size = self._calc_real_size
-        self.frame_width = frame_width
+        self.frameborder_width = frameborder_width
 
     def _calc_min_size(self) -> list[int]:
-        return list(self.font.size(self.property.current_page_text))
+        return list(self.property.font.size(self.property.current_page_text))
 
     def _calc_real_size(self) -> list[int]:
         print(self.property.min_size)
@@ -181,10 +227,12 @@ class MsgBoxUI(UIElement):
             screen,
             (255, 255, 255),
             self.property.pos + self.property.real_size,
-            self.frame_width,
+            self.frameborder_width,
         )
         screen.blit(
-            self.font.render(self.property.current_page_text, True, (255, 255, 255)),
+            self.property.font.render(
+                self.property.current_page_text, True, (255, 255, 255)
+            ),
             list(
                 map(
                     lambda pos: pos + self.property.padding,
