@@ -63,8 +63,9 @@ class UITextWithPages(UIProperty):
         super().__init__()
         self._texts: list[str] = [""]
         self._current_page_id: int = 0
-        self.line_length_in_px: Optional[int] = None  # None means no length limit
         self.font: Optional[Font2] = None
+        self.linelength_in_px: Optional[int] = None  # None means no length limit
+        self.linelength_in_char: Optional[int] = None  # None means no length limit
 
     @property
     def texts(self) -> list[str]:
@@ -120,59 +121,12 @@ class UITextWithPages(UIProperty):
     def tear_up_page(self, page_id: int) -> str:
         return self._texts.pop(page_id)
 
-    def size_of_text_surface(
-        self, in_charcount: Optional[bool] = False, page_id: Optional[int] = None
-    ):
-        if page_id is None:
-            page_id = self.current_page_id
-        if self.font is None:
-            raise AttributeError(
-                "Set 'font: Font2' attribute" + " before getting the size."
-            )
-        if self.line_length_in_px is None:
-            size = self.font.size(self.current_page_text)
+    def is_linelength_enable(self):
+        for linelength in (self.linelength_in_px, self.linelength_in_char):
+            if linelength is not None:
+                return True
         else:
-            text = "".join(self.texts[page_id].splitlines())  # erase escape sequence
-            halfwidth_charcount = 0
-            fullwidth_charcount = 0
-            for char in text:
-                if is_char_fullwidth(char):
-                    fullwidth_charcount += 1
-                else:
-                    halfwidth_charcount += 1
-            linelength_in_px_of_text = 0
-            if halfwidth_charcount > 0:
-                linelength_in_px_of_text = (
-                    self.font.halfwidth_charsize()[0] * halfwidth_charcount
-                )
-            elif fullwidth_charcount > 0:
-                linelength_in_px_of_text = (
-                    self.font.fullwidth_charsize()[0] * fullwidth_charcount
-                )
-            if linelength_in_px_of_text < 0:
-                size = (0, 0)
-            else:
-                checked_charcount = 0
-                while linelength_in_px_of_text > self.line_length_in_px:
-                    if is_char_fullwidth(text[-(1 + checked_charcount)]):
-                        fullwidth_charcount -= 1
-                        linelength_in_px_of_text -= self.font.fullwidth_charsize()[0]
-                    else:
-                        halfwidth_charcount -= 1
-                        linelength_in_px_of_text -= self.font.halfwidth_charsize()[0]
-                    checked_charcount += 1
-                line_length_in_charcount = fullwidth_charcount + halfwidth_charcount
-                line_count = len(
-                    split_multiline_text(self.texts[page_id], line_length_in_charcount)
-                )
-                if in_charcount:
-                    size = (line_length_in_charcount, line_count)
-                else:
-                    size = (
-                        linelength_in_px_of_text,
-                        line_count * self.font.get_linesize(),
-                    )
-        return size
+            return False
 
 
 class UIRect(UICoordinate, UISizing):
@@ -213,7 +167,17 @@ class MsgBoxUI(UIElement):
         self.frameborder_width = frameborder_width
 
     def _calc_min_size(self) -> list[int]:
-        return list(self.property.font.size(self.property.current_page_text))
+        if self.property.is_linelength_enable():
+            size = list(
+                self.property.font.size_of_multiline_text(
+                    self.property.current_page_text,
+                    linelength_limit_in_px=self.property.linelength_in_px,
+                    linelength_limit_in_char=self.property.linelength_in_char,
+                )
+            )
+        else:
+            size = list(self.property.font.size(self.property.current_page_text))
+        return size
 
     def _calc_real_size(self) -> list[int]:
         # print(self.property.min_size)
@@ -221,7 +185,9 @@ class MsgBoxUI(UIElement):
         # print(self.property.padding)
         return list(
             map(
-                lambda w_or_h: w_or_h + self.property.padding * 2,
+                lambda w_or_h: w_or_h
+                + self.property.padding * 2
+                + self.frameborder_width * 2,
                 self.property.min_size,
             )
         )
@@ -233,17 +199,30 @@ class MsgBoxUI(UIElement):
             self.property.pos + self.property.real_size,
             self.frameborder_width,
         )
-        screen.blit(
-            self.property.font.render(
-                self.property.current_page_text, True, (255, 255, 255)
-            ),
-            list(
-                map(
-                    lambda pos: pos + self.property.padding,
-                    self.property.pos,
-                )
-            ),
+        text_pos = list(
+            map(
+                lambda pos: pos + self.property.padding + self.frameborder_width,
+                self.property.pos,
+            )
         )
+        if self.property.is_linelength_enable():
+            screen.blit(
+                self.property.font.renderln(
+                    self.property.current_page_text,
+                    True,
+                    (255, 255, 255),
+                    linelength_in_charcount=self.property.linelength_in_char,
+                    linelength_in_px=self.property.linelength_in_px,
+                ),
+                text_pos,
+            )
+        else:
+            screen.blit(
+                self.property.font.render(
+                    self.property.current_page_text, True, (255, 255, 255)
+                ),
+                text_pos,
+            )
 
 
 # class GameMenuSystem:

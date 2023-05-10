@@ -18,7 +18,7 @@ ColorValue = Union[Color, int, str, Tuple[int, int, int], RGBAOutput, Sequence[i
 
 
 def split_multiline_text(
-    text_to_split: str, singleline_width_by_charcount: int
+    text_to_split: str, singlelinelength_in_charcount: int
 ) -> tuple[str, ...]:
     """
     Examples:
@@ -26,7 +26,7 @@ def split_multiline_text(
         >>> print(texts)
         # -> ('AaBbC', 'FfGg', 'HhIiJjKkLlMm', 'NnOoPp')
     """
-    if (singleline_width_by_charcount == 0) or (text_to_split == ""):
+    if (singlelinelength_in_charcount == 0) or (text_to_split == ""):
         texts = ("",)
     else:
         text_to_split = text_to_split.splitlines()
@@ -34,8 +34,8 @@ def split_multiline_text(
             [""] if item == [] else item
             for item in [
                 [
-                    text[i : i + singleline_width_by_charcount]
-                    for i in range(0, len(text), singleline_width_by_charcount)
+                    text[i : i + singlelinelength_in_charcount]
+                    for i in range(0, len(text), singlelinelength_in_charcount)
                 ]
                 for text in text_to_split
             ]
@@ -46,8 +46,8 @@ def split_multiline_text(
     return texts
 
 
-def line_count_of_multiline_text(text: str, singleline_width_by_charcount: int):
-    return len(split_multiline_text(text, singleline_width_by_charcount))
+def line_count_of_multiline_text(text: str, singlelinelength_in_charcount: int):
+    return len(split_multiline_text(text, singlelinelength_in_charcount))
 
 
 class Font2(pygame.font.Font):
@@ -62,58 +62,77 @@ class Font2(pygame.font.Font):
     def halfwidth_charsize(self) -> Tuple[int, int]:
         return self.size(" ")
 
-    def textwidth_in_px_into_charcount(self, text_width_by_px) -> int:
-        return text_width_by_px // self.size(" ")[0]
-
-    def textwidth_in_charcount_into_px(self, textwidth_in_charcount) -> int:
-        return textwidth_in_charcount * self.size(" ")[0]
-
     def size_of_multiline_text(
         self,
-        multiline_text: str,
-        linelength_limit_in_px: int,
-        in_charcount: Optional[bool] = False,
+        text: str,
+        linelength_limit_in_px: Optional[int] = None,
+        linelength_limit_in_char: Optional[int] = None,
+        in_charcount: bool = False,
     ):
-        text = "".join(multiline_text.splitlines())  # erase escape sequence
-        halfwidth_charcount = 0
-        fullwidth_charcount = 0
-        for char in text:
-            if is_char_fullwidth(char):
-                fullwidth_charcount += 1
-            else:
-                halfwidth_charcount += 1
-        linelength_in_px_of_text = 0
-        if halfwidth_charcount > 0:
-            linelength_in_px_of_text = (
-                self.halfwidth_charsize()[0] * halfwidth_charcount
-            )
-        elif fullwidth_charcount > 0:
-            linelength_in_px_of_text = (
-                self.fullwidth_charsize()[0] * fullwidth_charcount
-            )
-        if linelength_in_px_of_text < 0:
-            size = (0, 0)
-        else:
-            checked_charcount = 0
-            while linelength_in_px_of_text > linelength_limit_in_px:
-                if is_char_fullwidth(text[-(1 + checked_charcount)]):
-                    fullwidth_charcount -= 1
-                    linelength_in_px_of_text -= self.fullwidth_charsize()[0]
+        longest_line = max(text.splitlines(), key=len)  # erase escape sequence
+        if linelength_limit_in_px is not None:
+            halfwidth_charcount = 0
+            fullwidth_charcount = 0
+            for char in longest_line:
+                if is_char_fullwidth(char):
+                    fullwidth_charcount += 1
                 else:
-                    halfwidth_charcount -= 1
-                    linelength_in_px_of_text -= self.halfwidth_charsize()[0]
-                checked_charcount += 1
-            linelength_in_charcount = fullwidth_charcount + halfwidth_charcount
-            line_count = len(
-                split_multiline_text(multiline_text, linelength_in_charcount)
-            )
+                    halfwidth_charcount += 1
+            linelength_in_px_of_text = 0
+            if halfwidth_charcount > 0:
+                linelength_in_px_of_text = (
+                    self.halfwidth_charsize()[0] * halfwidth_charcount
+                )
+            elif fullwidth_charcount > 0:
+                linelength_in_px_of_text = (
+                    self.fullwidth_charsize()[0] * fullwidth_charcount
+                )
+            if linelength_in_px_of_text < 0:
+                size = (0, 0)
+            else:
+                checked_charcount = 0
+                while linelength_in_px_of_text > linelength_limit_in_px:
+                    if is_char_fullwidth(text[-(1 + checked_charcount)]):
+                        fullwidth_charcount -= 1
+                        linelength_in_px_of_text -= self.fullwidth_charsize()[0]
+                    else:
+                        halfwidth_charcount -= 1
+                        linelength_in_px_of_text -= self.halfwidth_charsize()[0]
+                    checked_charcount += 1
+                linelength_in_charcount = fullwidth_charcount + halfwidth_charcount
+                line_count = len(split_multiline_text(text, linelength_in_charcount))
+                if in_charcount:
+                    size = (linelength_in_charcount, line_count)
+                else:
+                    size = (
+                        linelength_in_px_of_text,
+                        line_count * self.get_linesize(),
+                    )
+        elif linelength_limit_in_char is not None:
+            longest_line_charcount = len(longest_line)
+            if longest_line_charcount > linelength_limit_in_char:
+                longest_line_charcount = linelength_limit_in_char
+            line_count = len(split_multiline_text(text, longest_line_charcount))
             if in_charcount:
-                size = (linelength_in_charcount, line_count)
+                size = (
+                    longest_line_charcount,
+                    line_count,
+                )
             else:
                 size = (
-                    linelength_in_px_of_text,
+                    self.size(longest_line)[0],
                     line_count * self.get_linesize(),
                 )
+            # else:
+            #     size = (
+            #         len(longest_line),
+            #         line_count_of_multiline_text(text, linelength_limit_in_char),
+            #     )
+            size = (0, 0)
+        else:
+            raise ValueError(
+                "linelength_limit_in_px or linelength_limit_in_charcount is required."
+            )
         return size
 
     def renderln(
@@ -122,13 +141,13 @@ class Font2(pygame.font.Font):
         antialias: bool,
         color: ColorValue,
         background_color: Optional[ColorValue] = None,
-        line_width_by_char_count: Optional[int] = None,
-        line_width_by_px: Optional[int] = None,
+        linelength_in_charcount: Optional[int] = None,
+        linelength_in_px: Optional[int] = None,
         *args,
         **kwargs,
     ) -> pygame.surface.Surface:
         """
-        line_width_by_px takes precedence over line_width_by_char_count
+        linelength_in_px takes precedence over linelength_in_charcount
         if both are set.
         (sizing and line breaks about full-width characters is WIP)
 
@@ -136,32 +155,22 @@ class Font2(pygame.font.Font):
             make sizing and line breaks more appropriate for full-width
             characters
         """
-        if line_width_by_px is None and line_width_by_char_count is None:
-            raise ValueError(
-                "line_width_by_px or line_width_by_char_count is required."
-            )
+        if linelength_in_px is None and linelength_in_charcount is None:
+            raise ValueError("linelength_in_px or linelength_in_charcount is required.")
         else:
-            if line_width_by_px is not None:
-                line_width_by_char_count = self.textwidth_in_px_into_charcount(
-                    line_width_by_px
-                )
-                if len(text) == line_width_by_char_count:
-                    return self.render(
-                        text,
-                        antialias,
-                        color,
-                        background_color,
-                        *args,
-                        **kwargs,
-                    )
+            if linelength_in_px is not None:
+                linelength_in_charcount = self.size_of_multiline_text(
+                    text, linelength_in_px, in_charcount=True
+                )[0]
             # make text list
-            texts = split_multiline_text(text, line_width_by_char_count)
+            texts = split_multiline_text(text, linelength_in_charcount)
+            # longest_line = max(texts, key=len)
             # ---
-            LINE_HEIGHT = self.get_linesize()
             text_surf = pygame.surface.Surface(
-                (
-                    self.size(" ")[0] * line_width_by_char_count,
-                    LINE_HEIGHT * len(texts),
+                self.size_of_multiline_text(
+                    text,
+                    linelength_limit_in_px=linelength_in_px,
+                    linelength_limit_in_char=linelength_in_charcount,
                 )
             )
             [
@@ -174,7 +183,7 @@ class Font2(pygame.font.Font):
                         *args,
                         **kwargs,
                     ),
-                    (0, LINE_HEIGHT * line_counter),
+                    (0, self.get_linesize() * line_counter),
                 )
                 for line_counter, text in enumerate(texts)
             ]
@@ -266,8 +275,8 @@ class GameText:
 
     def renderln(
         self,
-        line_width_by_char_count: Optional[int] = None,
-        line_width_by_px: Optional[int] = None,
+        linelength_in_charcount: Optional[int] = None,
+        linelength_in_px: Optional[int] = None,
         surface_to_blit: pygame.surface.Surface = None,
         *args,
         **kwargs,
@@ -278,8 +287,8 @@ class GameText:
             self.is_antialias_enable,
             self.color_foreground,
             self.color_background,
-            line_width_by_char_count,
-            line_width_by_px,
+            linelength_in_charcount,
+            linelength_in_px,
             *args,
             **kwargs,
         )
@@ -301,8 +310,8 @@ class GameText:
 
     def height_multiline(
         self,
-        line_width_by_char_count: Optional[int] = None,
-        line_width_by_px: Optional[int] = None,
+        linelength_in_charcount: Optional[int] = None,
+        linelength_in_px: Optional[int] = None,
     ):
         raise NotImplementedError
 
