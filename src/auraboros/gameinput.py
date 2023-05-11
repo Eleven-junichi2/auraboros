@@ -215,6 +215,17 @@ class Mouse:
         on_wheel_up: Union[Callable, None] = None,
         on_wheel_down: Union[Callable, None] = None,
     ):
+        """
+        Args:
+            keyname_or_int_pygame_mouse_event_type (Union[str, int]):
+                The keyname or the int value of the mouse event.
+
+                "up" or "down" or "motion", "drag".
+
+                You can also use the int value of the pygame mouse event.
+
+                MOUSEBUTTONDOWN or MOUSEBUTTONUP, MOUSEMOTION.
+        """
         if isinstance(keyname_or_int_pygame_mouse_event_type, int):
             key = self._translate_int_pygame_mouse_event_to_str(
                 keyname_or_int_pygame_mouse_event_type

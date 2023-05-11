@@ -9,7 +9,7 @@ import pygame
 from . import global_
 
 
-def pos_on_pixel_scale(pos) -> tuple[int, int]:
+def pos_on_px_scale(pos) -> tuple[int, int]:
     """
     map(lambda num: num//global_.PIXEL_SCALE,
         pygame.mouse.get_pos())

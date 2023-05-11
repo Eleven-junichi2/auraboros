@@ -1,14 +1,8 @@
-# TODO implement UI with component system to be more readable
-
 from typing import Callable, Optional, Union
 
 import pygame
 
 from .gametext import Font2
-
-
-# class MenuHasNoItemError(Exception):
-#     pass
 
 
 class UIElement:
@@ -92,7 +86,7 @@ class UITextWithPages(UIProperty):
                 self._texts = [text_or_textlist]
             else:
                 self.rewrite_text(text_or_textlist)
-        elif isinstance(text_or_textlist, list[str]):
+        elif isinstance(text_or_textlist, list):
             self._texts = text_or_textlist
         else:
             raise ValueError(
@@ -314,7 +308,11 @@ class MenuInterface:
             raise AttributeError("At least one menu item is required to take action.")
         return self.option_actions_on_select[self.option_keys[self.selected_index]]()
 
-    def action_on_highlight(self):
+    def do_action_on_highlight(self, do_once_each_highlighting: bool = False):
+        """
+        Args:
+            do_once_each_highlighting (bool, optional): WIP
+        """
         if len(self.option_keys) == 0:
             raise AttributeError("At least one menu item is required to take action.")
         return self.option_actions_on_highlight[self.option_keys[self.selected_index]]()
@@ -339,6 +337,14 @@ class MenuUIProperty(UIRect, UIFontProperty):
         self.frameborder_width: int
         self.option_highlight_style: str
         self.option_highlight_bg_color = (127, 127, 127)
+
+    def is_givenpos_on_option(self, pos: tuple[int, int], index: int):
+        is_on_y = (
+            self.pos[1] + self.font.get_height() * index
+            <= pos[1]
+            <= self.pos[1] + self.font.get_height() * (index + 1)
+        )
+        return self.is_given_x_on_ui(pos[0]) and is_on_y
 
 
 class MenuUI(UIElement):
@@ -373,6 +379,11 @@ class MenuUI(UIElement):
                 self.property.min_size,
             )
         )
+
+    def highlight_option_on_givenpos(self, pos):
+        for i in range(len(self.interface.option_keys)):
+            if self.property.is_givenpos_on_option(pos, i):
+                self.interface.select_action_by_index(i)
 
     def draw(self, screen: pygame.Surface):
         pygame.draw.rect(
