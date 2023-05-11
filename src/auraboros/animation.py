@@ -35,7 +35,8 @@ class AnimationImage:
 
     def __init__(self):
         self._anim_frames: list[pygame.surface.Surface] = [
-            pygame.surface.Surface((0, 0)), ]
+            pygame.surface.Surface((0, 0)),
+        ]
         self.anim_frame_id = 0
         self.anim_interval = 1
         self.image = self.anim_frames[self.anim_frame_id]
@@ -98,10 +99,10 @@ class AnimationImage:
         Schedule.reset_interval_clock(self.update_animation)
 
     def update_animation(self):
-        if self.is_playing and (self.loop_counter < self.loop_count or
-                                self.loop_count < 0):
-            self.anim_frame_id = (self.anim_frame_id + 1) % len(
-                self._anim_frames)
+        if self.is_playing and (
+            self.loop_counter < self.loop_count or self.loop_count < 0
+        ):
+            self.anim_frame_id = (self.anim_frame_id + 1) % len(self._anim_frames)
             self.image = self._anim_frames[self.anim_frame_id]
             if self.anim_frame_id == 0:
                 self.loop_counter += 1
@@ -182,6 +183,7 @@ class AnimationImageDict(MutableMapping):
 
 # Keyframe = list[int, list[int, ]]
 
+
 class Keyframe(list):
     """
     This is subclass of list type.
@@ -189,16 +191,20 @@ class Keyframe(list):
     """
 
     def __init__(
-            self, frame_milliseconds_on_timeline: int,
-            args_for_script: list[Union[int, float], ]):
+        self,
+        frame_milliseconds_on_timeline: int,
+        args_for_script: list[Union[int, float]],
+    ):
         if not isinstance(frame_milliseconds_on_timeline, int):
-            raise ValueError(
-                'Argument "frame_milliseconds_on_timeline" must be int')
-        args_for_script_error_msg = \
+            raise ValueError('Argument "frame_milliseconds_on_timeline" must be int')
+        args_for_script_error_msg = (
             'Argument "args_for_script" must be list of integers'
+        )
         if isinstance(args_for_script, list):
-            if len([arg for arg in args_for_script
-                    if isinstance(arg, (int, float))]) == 0:
+            if (
+                len([arg for arg in args_for_script if isinstance(arg, (int, float))])
+                == 0
+            ):
                 raise ValueError(args_for_script_error_msg)
         else:
             raise ValueError(args_for_script_error_msg)
@@ -235,10 +241,13 @@ class KeyframeAnimation:
     output about 2000 if time is at 2000
     """
 
-    def __init__(self, script_on_everyframe: Callable,
-                 frames: list[Keyframe],
-                 script_on_finished: Optional[Callable] = None,
-                 loop_count: Optional[int] = 1):
+    def __init__(
+        self,
+        script_on_everyframe: Callable,
+        frames: list[Keyframe],
+        script_on_finished: Optional[Callable] = None,
+        loop_count: Optional[int] = 1,
+    ):
         self._frames: list[Keyframe] = frames
         self.id_current_frame: int = 0
 
@@ -274,7 +283,7 @@ class KeyframeAnimation:
     @property
     def next_frame(self) -> Keyframe:
         if self.id_current_frame < self.id_final_frame:
-            id = self.id_current_frame+1
+            id = self.id_current_frame + 1
         else:
             id = self.id_current_frame
         return self.frames[id]
@@ -315,8 +324,7 @@ class KeyframeAnimation:
         (For developers of this class: DO NOT USE this method for
         frame updates).
         """
-        return self.loop_count > 0 and \
-            self.finished_loop_counter >= self.loop_count
+        return self.loop_count > 0 and self.finished_loop_counter >= self.loop_count
 
     def update(self, dt):
         """Update the frame and do script on current frame."""
@@ -326,20 +334,21 @@ class KeyframeAnimation:
             if not self.__timer.is_playing():
                 self.__timer.start()
             time = self.__timer.read()
-            between_current_and_next = \
-                self.next_frame[0] - self.current_frame[0]
+            between_current_and_next = self.next_frame[0] - self.current_frame[0]
             if time >= between_current_and_next:
                 weight = 1
                 go_to_next_keyframe = True
             else:
                 weight = time / (between_current_and_next)
-            args = [pygame.math.lerp(
-                self.current_frame[1][i], self.next_frame[1][i], weight)
-                for i in range(len(self.current_frame[1]))]
+            args = [
+                pygame.math.lerp(
+                    self.current_frame[1][i], self.next_frame[1][i], weight
+                )
+                for i in range(len(self.current_frame[1]))
+            ]
             self.script_on_everyframe(*args)
             if go_to_next_keyframe:
-                self.id_current_frame = (
-                    self.id_current_frame + 1) % self.frame_count
+                self.id_current_frame = (self.id_current_frame + 1) % self.frame_count
                 self.__timer.reset()
                 if self.id_current_frame == 0:
                     self._loop_counter += 1
