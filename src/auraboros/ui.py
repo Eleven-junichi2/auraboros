@@ -3,6 +3,7 @@ from typing import Callable, Optional, Union
 import pygame
 
 from .gametext import Font2
+from .utilities import calc_pos_to_center, calc_x_to_center, calc_y_to_center
 
 
 class UIElement:
@@ -141,6 +142,15 @@ class UIRect(UICoordinate, UISizing):
     def do_func_if_pos_is_on_ui(self, pos, func: Callable):
         if self.is_givenpos_on_ui(pos):
             return func()
+
+    def set_x_to_center(self):
+        self._pos[0] = calc_x_to_center(self.real_size[0])
+
+    def set_y_to_center(self):
+        self._pos[1] = calc_y_to_center(self.real_size[1])
+
+    def set_pos_to_center(self):
+        self._pos = list(calc_pos_to_center(self.real_size))
 
 
 class MsgBoxProperty(UITextWithPages, UIRect, UIFontProperty):
@@ -417,6 +427,8 @@ class MenuUI(UIElement):
                     map(
                         sum,
                         zip(
+                            [self.property.frameborder_width] * 2,
+                            [self.property.padding] * 2,
                             self.property.pos,
                             (0, index * self.property.font.get_height()),
                         ),
