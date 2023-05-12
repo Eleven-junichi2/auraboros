@@ -129,7 +129,7 @@ class UITextWithPages(UIProperty):
 class UIRect(UICoordinate, UISizing):
     def __init__(self):
         super().__init__()
-        self.frameborder_width: int
+        self.frameborder_width: int = 0
 
     def is_given_x_on_ui(self, x):
         return self.pos[0] <= x <= self.pos[0] + self.real_size[0]
