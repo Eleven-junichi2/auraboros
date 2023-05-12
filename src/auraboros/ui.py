@@ -130,6 +130,7 @@ class UIRect(UICoordinate, UISizing):
     def __init__(self):
         super().__init__()
         self.frameborder_width: int = 0
+        self.frameborder_color = (255, 255, 255)
 
     def is_given_x_on_ui(self, x):
         return self.pos[0] <= x <= self.pos[0] + self.real_size[0]
@@ -152,6 +153,14 @@ class UIRect(UICoordinate, UISizing):
 
     def set_pos_to_center(self):
         self._pos = list(calc_pos_to_center(self.real_size))
+
+    def draw_frame(self, surface: pygame.Surface):
+        pygame.draw.rect(
+            surface,
+            self.frameborder_color,
+            self.pos + self.real_size,
+            self.frameborder_width,
+        )
 
 
 class MsgBoxProperty(UITextWithPages, UIRect, UIFontProperty):
@@ -197,12 +206,7 @@ class MsgBoxUI(UIElement):
         )
 
     def draw(self, screen: pygame.Surface):
-        pygame.draw.rect(
-            screen,
-            (255, 255, 255),
-            self.property.pos + self.property.real_size,
-            self.property.frameborder_width,
-        )
+        self.property.draw_frame(screen)
         text_pos = list(
             map(
                 lambda pos: pos
@@ -348,7 +352,11 @@ class MenuUIProperty(UIRect, UIFontProperty):
     def __init__(self):
         super().__init__()
         self.option_highlight_style: str
+        self.option_highlight_fg_color = (222, 222, 222)
         self.option_highlight_bg_color = (127, 127, 127)
+        self.cursor_size: int
+        self.locate_cursor_inside_frame = True
+        self.padding_between_cursor_n_menu = 0
 
     def is_givenpos_on_option(self, pos: tuple[int, int], index: int):
         is_on_y = (
@@ -365,15 +373,19 @@ class MenuUI(UIElement):
         font: Font2,
         interface: MenuInterface = MenuInterface(),
         frameborder_width: int = 1,
+        option_highlight_style: str = "filled-box",
+        locate_cursor_inside_frame: bool = True,
     ):
         super().__init__()
+        self.interface = interface
         self.property = MenuUIProperty()
         self.property.font = font
-        self.interface = interface
         self.property.calc_min_size = self._calc_min_size
         self.property.calc_real_size = self._calc_real_size
         self.property.frameborder_width = frameborder_width
-        self.property.option_highlight_style = "filled-box"
+        self.property.option_highlight_style = option_highlight_style
+        self.property.locate_cursor_inside_frame = locate_cursor_inside_frame
+        self.property.cursor_size = self.property.font.get_height()
 
     def _calc_min_size(self) -> list[int]:
         size = list(
@@ -383,7 +395,7 @@ class MenuUI(UIElement):
         return size
 
     def _calc_real_size(self) -> list[int]:
-        return list(
+        size = list(
             map(
                 lambda w_or_h: w_or_h
                 + self.property.padding * 2
@@ -391,6 +403,8 @@ class MenuUI(UIElement):
                 self.property.min_size,
             )
         )
+        size[0] += self.property.cursor_size
+        return size
 
     def highlight_option_on_givenpos(self, pos):
         for i in range(len(self.interface.option_keys)):
@@ -398,12 +412,7 @@ class MenuUI(UIElement):
                 self.interface.select_action_by_index(i)
 
     def draw(self, screen: pygame.Surface):
-        pygame.draw.rect(
-            screen,
-            (255, 255, 255),
-            self.property.pos + self.property.real_size,
-            self.property.frameborder_width,
-        )
+        self.property.draw_frame(screen)
         if self.property.option_highlight_style == "filled-box":
             pygame.draw.rect(
                 screen,
@@ -422,13 +431,54 @@ class MenuUI(UIElement):
                     (self.property.min_size[0], self.property.font.get_height()),
                 ),
             )
+        elif self.property.option_highlight_style == "cursor":
+            if self.property.locate_cursor_inside_frame:
+                polygon_points_to_draw = (
+                    (
+                        self.property.padding + self.property.pos[0],
+                        self.property.padding
+                        + self.property.pos[1]
+                        + self.property.cursor_size * self.interface.selected_index,
+                    ),
+                    (
+                        self.property.padding
+                        + self.property.pos[0]
+                        + self.property.cursor_size // 2,
+                        self.property.padding
+                        + (self.property.pos[1] + self.property.cursor_size // 2)
+                        + self.property.cursor_size * self.interface.selected_index,
+                    ),
+                    (
+                        self.property.padding + self.property.pos[0],
+                        self.property.padding
+                        + self.property.pos[1]
+                        + self.property.cursor_size
+                        + self.property.cursor_size * self.interface.selected_index,
+                    ),
+                )
+                pygame.draw.polygon(
+                    screen,
+                    self.property.option_highlight_fg_color,
+                    polygon_points_to_draw,
+                )
+            else:
+                pass
         for index, menutext in enumerate(self.interface.option_texts):
+            if self.property.option_highlight_style == "cursor":
+                cursor_space_size = self.property.cursor_size
+            else:
+                cursor_space_size = 0
             screen.blit(
                 self.property.font.render(menutext, True, (255, 255, 255)),
                 tuple(
                     map(
                         sum,
                         zip(
+                            (
+                                cursor_space_size
+                                + self.property.padding_between_cursor_n_menu,
+                                0,
+                            ),
                             [self.property.frameborder_width] * 2,
                             [self.property.padding] * 2,
                             self.property.pos,

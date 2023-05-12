@@ -49,7 +49,7 @@ class DebugScene(Scene):
             GameText.font,
             "(Press 'Z' to select)",
         )
-        self.menu1 = MenuUI(GameText.font)
+        self.menu1 = MenuUI(GameText.font, option_highlight_style="cursor")
         self.menu1.interface.add_menuitem(
             "option1",
             action_on_select=lambda: self.msgbox1.property.go_to_page(0),
