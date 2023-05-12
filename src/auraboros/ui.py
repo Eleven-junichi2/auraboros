@@ -3,7 +3,12 @@ from typing import Callable, Optional, Union
 import pygame
 
 from .gametext import Font2
-from .utilities import calc_pos_to_center, calc_x_to_center, calc_y_to_center
+from .utilities import (
+    calc_pos_to_center,
+    calc_x_to_center,
+    calc_y_to_center,
+    render_rightpointing_triangle,
+)
 
 
 class UIElement:
@@ -433,33 +438,17 @@ class MenuUI(UIElement):
             )
         elif self.property.option_highlight_style == "cursor":
             if self.property.locate_cursor_inside_frame:
-                polygon_points_to_draw = (
-                    (
-                        self.property.padding + self.property.pos[0],
-                        self.property.padding
-                        + self.property.pos[1]
-                        + self.property.cursor_size * self.interface.selected_index,
-                    ),
-                    (
-                        self.property.padding
-                        + self.property.pos[0]
-                        + self.property.cursor_size // 2,
-                        self.property.padding
-                        + (self.property.pos[1] + self.property.cursor_size // 2)
-                        + self.property.cursor_size * self.interface.selected_index,
-                    ),
-                    (
-                        self.property.padding + self.property.pos[0],
-                        self.property.padding
-                        + self.property.pos[1]
-                        + self.property.cursor_size
-                        + self.property.cursor_size * self.interface.selected_index,
-                    ),
+                cursor_surface = render_rightpointing_triangle(
+                    self.property.cursor_size, self.property.option_highlight_fg_color
                 )
-                pygame.draw.polygon(
-                    screen,
-                    self.property.option_highlight_fg_color,
-                    polygon_points_to_draw,
+                cursor_surface.set_colorkey((0, 0, 0))
+                screen.blit(
+                    cursor_surface,
+                    (
+                        self.property.pos[0] + self.property.cursor_size // 4,
+                        self.property.pos[1]
+                        + self.property.cursor_size * self.interface.selected_index,
+                    ),
                 )
             else:
                 pass

@@ -2,11 +2,17 @@ from dataclasses import dataclass, field, asdict
 from pathlib import Path
 import json
 import sys
+from typing import Sequence, Union
 import unicodedata
 
 import pygame
 
 from . import global_
+
+RGBAOutput = tuple[int, int, int, int]
+ColorValue = Union[
+    pygame.color.Color, int, str, tuple[int, int, int], RGBAOutput, Sequence[int]
+]
 
 
 def pos_on_px_scale(pos) -> tuple[int, int]:
@@ -164,7 +170,7 @@ class AssetFilePath:
         cls.root_dirname = Path(root_dir_path).name
 
 
-def draw_grid(screen: pygame.surface.Surface, grid_size: int, color: int):
+def draw_grid(screen: pygame.surface.Surface, grid_size: int, color: ColorValue):
     [
         pygame.draw.rect(
             screen, color, (x * grid_size, y * grid_size) + (grid_size, grid_size), 1
@@ -172,3 +178,24 @@ def draw_grid(screen: pygame.surface.Surface, grid_size: int, color: int):
         for x in range(screen.get_size()[0] // grid_size)
         for y in range(screen.get_size()[1] // grid_size)
     ]
+
+
+def render_rightpointing_triangle(height, color: ColorValue) -> pygame.surface.Surface:
+    polygon_points_to_draw = (
+        (0, 0),
+        (
+            height // 2,
+            height // 2,
+        ),
+        (
+            0,
+            height,
+        ),
+    )
+    surface = pygame.surface.Surface((height // 2, height))
+    pygame.draw.polygon(
+        surface,
+        color,
+        polygon_points_to_draw,
+    )
+    return surface
