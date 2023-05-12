@@ -37,14 +37,6 @@ class Scene(object):
         """
         pass
 
-    # @property
-    # def joystick(self) -> Optional[Joystick2]:
-    #     return self._joystick
-
-    # @joystick.setter
-    # def joystick(self, value: Union[Joystick2, None]):
-    #     self._joystick = value
-
     def event(self, event: pygame.event):
         pass
 
@@ -103,8 +95,6 @@ class SceneManager:
             if not self.scenes[self.current].gameworld.pause:
                 [entity.update()
                  for entity in self.scenes[self.current].gameworld.entities]
-        [visual_effect.update()
-         for visual_effect in self.scenes[self.current].visual_effects]
 
     def draw(self, screen: pygame.surface.Surface):
         self.scenes[self.current].draw(screen)
@@ -112,13 +102,6 @@ class SceneManager:
             if not self.scenes[self.current].gameworld.pause:
                 [entity.draw(screen)
                  for entity in self.scenes[self.current].gameworld.entities]
-        [visual_effect.draw(screen)
-         for visual_effect in self.scenes[self.current].visual_effects]
-        # Delete finished animations
-        [self.scenes[self.current].visual_effects.pop(i)
-         for i, visual_effect in enumerate(
-            self.scenes[self.current].visual_effects)
-         if visual_effect.was_played_once]
 
     def push(self, scene: Scene):
         self.scenes.append(scene)

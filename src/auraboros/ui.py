@@ -3,6 +3,7 @@ from typing import Callable, Optional, Union
 import pygame
 
 from .gametext import Font2
+from .gameinput import TextInput
 from .utilities import (
     calc_pos_to_center,
     calc_x_to_center,
@@ -430,10 +431,10 @@ class MenuUI(UIElement):
                         self.property.pos[1]
                         + self.property.padding
                         + self.property.frameborder_width
-                        + self.property.font.get_height()
+                        + self.property.cursor_size
                         * self.interface.selected_index,
                     ),
-                    (self.property.min_size[0], self.property.font.get_height()),
+                    (self.property.min_size[0], self.property.cursor_size),
                 ),
             )
         elif self.property.option_highlight_style == "cursor":
@@ -445,8 +446,12 @@ class MenuUI(UIElement):
                 screen.blit(
                     cursor_surface,
                     (
-                        self.property.pos[0] + self.property.cursor_size // 4,
-                        self.property.pos[1]
+                        self.property.frameborder_width
+                        + self.property.padding
+                        + self.property.pos[0],
+                        self.property.frameborder_width
+                        + self.property.padding
+                        + self.property.pos[1]
                         + self.property.cursor_size * self.interface.selected_index,
                     ),
                 )
@@ -476,6 +481,27 @@ class MenuUI(UIElement):
                     )
                 ),
             )
+
+
+class TextInputProperty(MsgBoxProperty):
+    pass
+
+
+class TextInputUI(MsgBoxUI):
+    def __init__(
+        self,
+        font: Font2,
+        textinput: TextInput,
+        text_or_textlist: Union[str, list[str]] = "",
+        frameborder_width=1,
+    ):
+        self.property = TextInputProperty()
+        super().__init__(
+            font=font,
+            text_or_textlist=text_or_textlist,
+            frameborder_width=frameborder_width,
+        )
+        self.interface = textinput
 
 
 # class UIElementBase(metaclass=abc.ABCMeta):
