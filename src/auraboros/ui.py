@@ -129,6 +129,7 @@ class UITextWithPages(UIProperty):
 class UIRect(UICoordinate, UISizing):
     def __init__(self):
         super().__init__()
+        self.frameborder_width: int
 
     def is_given_x_on_ui(self, x):
         return self.pos[0] <= x <= self.pos[0] + self.real_size[0]
@@ -170,7 +171,7 @@ class MsgBoxUI(UIElement):
         self.property.texts = text_or_textlist
         self.property.calc_min_size = self._calc_min_size
         self.property.calc_real_size = self._calc_real_size
-        self.frameborder_width = frameborder_width
+        self.property.frameborder_width = frameborder_width
 
     def _calc_min_size(self) -> list[int]:
         if self.property.is_linelength_enable():
@@ -190,7 +191,7 @@ class MsgBoxUI(UIElement):
             map(
                 lambda w_or_h: w_or_h
                 + self.property.padding * 2
-                + self.frameborder_width * 2,
+                + self.property.frameborder_width * 2,
                 self.property.min_size,
             )
         )
@@ -200,11 +201,13 @@ class MsgBoxUI(UIElement):
             screen,
             (255, 255, 255),
             self.property.pos + self.property.real_size,
-            self.frameborder_width,
+            self.property.frameborder_width,
         )
         text_pos = list(
             map(
-                lambda pos: pos + self.property.padding + self.frameborder_width,
+                lambda pos: pos
+                + self.property.padding
+                + self.property.frameborder_width,
                 self.property.pos,
             )
         )
@@ -344,7 +347,6 @@ class MenuInterface:
 class MenuUIProperty(UIRect, UIFontProperty):
     def __init__(self):
         super().__init__()
-        self.frameborder_width: int
         self.option_highlight_style: str
         self.option_highlight_bg_color = (127, 127, 127)
 
