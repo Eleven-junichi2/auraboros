@@ -51,22 +51,8 @@ def is_char_fullwidth(char: str):
         return False
 
 
-# class Position2d(deque):
-
-#     def __init__(self, iterable=None):
-#         super().__init__(iterable, maxlen=2)
-
-#     def append(self):
-#         raise NotImplementedError
-
-#     @property
-#     def x(self):
-#         return self.
-
-
-# Pos2d = Position2d
-# Coordinate2d = Position2d
-# Coord2d = Coordinate2d
+def len_str_contain_fullwidth_char(str_: str) -> int:
+    return sum(2 if is_char_fullwidth(char) else 1 for char in str_)
 
 
 @dataclass
