@@ -30,7 +30,7 @@ class StateMachine:
 
     def is_state_exist(self, name: str) -> bool:
         return name in self.states.keys()
-    
+
     def is_current_state(self, name: str) -> bool:
         return self.current_state_name == name
 
