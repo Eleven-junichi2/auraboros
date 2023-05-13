@@ -1,5 +1,6 @@
-
 from dataclasses import dataclass
+from typing import Any, Callable
+
 # from typing import Optional, Union
 
 import pygame
@@ -11,11 +12,43 @@ from .gameinput import KeyboardManager, Mouse
 
 
 @dataclass
-class Scene(object):
+class State:
+    script: Callable
 
+
+class StateMachine:
+    def __init__(self):
+        self.states: dict[str, State] = {}
+        self.current_state_name: str = ""
+
+    @property
+    def current_state(self) -> State:
+        return self.states[self.current_state_name]
+
+    def add_state(self, name: str, state: State):
+        self.states[name] = state
+
+    def is_state_exist(self, name: str) -> bool:
+        return name in self.states.keys()
+    
+    def is_current_state(self, name: str) -> bool:
+        return self.current_state_name == name
+
+    def trans_to(self, state_name: str):
+        if self.is_state_exist(state_name):
+            self.current_state_name = state_name
+
+    def run_script_on_state(self) -> Any:
+        return self.current_state.script()
+
+
+@dataclass
+class Scene:
     def __init__(self, manager: "SceneManager"):
         from .gamelevel import Level
+
         self.manager = manager
+        self.statemachine: StateMachine = StateMachine()
         self.gameworld: Level = None
         self.keyboard: KeyboardManager = KeyboardManager()
         self.mouse: Mouse = Mouse()
@@ -23,8 +56,9 @@ class Scene(object):
         self.visual_effects: list[AnimationImage] = []
         attrs_of_class = set(dir(self.__class__)) - set(dir(Scene))
         for attr_name in attrs_of_class:
-            attrs_of_object = set(
-                getattr(self, attr_name).__class__.__mro__) - {object, }
+            attrs_of_object = set(getattr(self, attr_name).__class__.__mro__) - {
+                object,
+            }
             is_gameworld = Level in attrs_of_object
             if is_gameworld:
                 getattr(self, attr_name).scene = self
@@ -93,15 +127,19 @@ class SceneManager:
         self.scenes[self.current].update(dt)
         if self.is_current_scene_has_gameworld():
             if not self.scenes[self.current].gameworld.pause:
-                [entity.update()
-                 for entity in self.scenes[self.current].gameworld.entities]
+                [
+                    entity.update()
+                    for entity in self.scenes[self.current].gameworld.entities
+                ]
 
     def draw(self, screen: pygame.surface.Surface):
         self.scenes[self.current].draw(screen)
         if self.is_current_scene_has_gameworld():
             if not self.scenes[self.current].gameworld.pause:
-                [entity.draw(screen)
-                 for entity in self.scenes[self.current].gameworld.entities]
+                [
+                    entity.draw(screen)
+                    for entity in self.scenes[self.current].gameworld.entities
+                ]
 
     def push(self, scene: Scene):
         self.scenes.append(scene)
@@ -111,8 +149,7 @@ class SceneManager:
 
     def transition_to(self, index: int):
         if self.scenes[self.current].keyboard.current_setup is not None:
-            self.scenes[
-                self.current].keyboard.current_setup.release_all_of_keys()
+            self.scenes[self.current].keyboard.current_setup.release_all_of_keys()
         self.current = index
         self.scenes[self.current].setup()
         self.scenes[self.current]._is_setup_finished = True
