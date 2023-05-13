@@ -8,7 +8,6 @@ from .utilities import (
     calc_pos_to_center,
     calc_x_to_center,
     calc_y_to_center,
-    render_rightpointing_triangle,
 )
 
 
@@ -360,8 +359,8 @@ class MenuUIProperty(UIRect, UIFontProperty):
         self.option_highlight_style: str
         self.option_highlight_fg_color = (222, 222, 222)
         self.option_highlight_bg_color = (127, 127, 127)
-        self.cursor_size: int
-        self.locate_cursor_inside_frame = True
+        self.cursor_size: list
+        # self.locate_cursor_inside_frame = True
         self.padding_between_cursor_n_menu = 0
 
     def is_givenpos_on_option(self, pos: tuple[int, int], index: int):
@@ -380,7 +379,8 @@ class MenuUI(UIElement):
         interface: MenuInterface = MenuInterface(),
         frameborder_width: int = 1,
         option_highlight_style: str = "filled-box",
-        locate_cursor_inside_frame: bool = True,
+        cursor_character: str = "▶"
+        # locate_cursor_inside_frame: bool = True,
     ):
         super().__init__()
         self.interface = interface
@@ -390,8 +390,9 @@ class MenuUI(UIElement):
         self.property.calc_real_size = self._calc_real_size
         self.property.frameborder_width = frameborder_width
         self.property.option_highlight_style = option_highlight_style
-        self.property.locate_cursor_inside_frame = locate_cursor_inside_frame
-        self.property.cursor_size = self.property.font.get_height()
+        # self.property.locate_cursor_inside_frame = locate_cursor_inside_frame
+        self.cursor_char = cursor_character
+        self.property.cursor_size = list(self.property.font.size(self.cursor_char))
 
     def _calc_min_size(self) -> list[int]:
         size = list(
@@ -409,7 +410,7 @@ class MenuUI(UIElement):
                 self.property.min_size,
             )
         )
-        size[0] += self.property.cursor_size
+        size[0] += self.property.cursor_size[0]
         return size
 
     def highlight_option_on_givenpos(self, pos):
@@ -431,34 +432,29 @@ class MenuUI(UIElement):
                         self.property.pos[1]
                         + self.property.padding
                         + self.property.frameborder_width
-                        + self.property.cursor_size
-                        * self.interface.selected_index,
+                        + self.property.cursor_size * self.interface.selected_index,
                     ),
                     (self.property.min_size[0], self.property.cursor_size),
                 ),
             )
-        elif self.property.option_highlight_style == "cursor":
-            if self.property.locate_cursor_inside_frame:
-                cursor_surface = render_rightpointing_triangle(
-                    self.property.cursor_size, self.property.option_highlight_fg_color
-                )
-                cursor_surface.set_colorkey((0, 0, 0))
-                screen.blit(
-                    cursor_surface,
-                    (
-                        self.property.frameborder_width
-                        + self.property.padding
-                        + self.property.pos[0],
-                        self.property.frameborder_width
-                        + self.property.padding
-                        + self.property.pos[1]
-                        + self.property.cursor_size * self.interface.selected_index,
-                    ),
-                )
-            else:
-                pass
+        elif self.property.option_highlight_style == "cursor-char":
+            cursor_surface = self.property.font.render(
+                self.cursor_char, True, self.property.option_highlight_fg_color
+            )
+            screen.blit(
+                cursor_surface,
+                (
+                    self.property.frameborder_width
+                    + self.property.padding
+                    + self.property.pos[0],
+                    self.property.frameborder_width
+                    + self.property.padding
+                    + self.property.pos[1]
+                    + self.property.cursor_size[1]*self.interface.selected_index,
+                ),
+            )
         for index, menutext in enumerate(self.interface.option_texts):
-            if self.property.option_highlight_style == "cursor":
+            if self.property.option_highlight_style == "cursor-char":
                 cursor_space_size = self.property.cursor_size
             else:
                 cursor_space_size = 0
@@ -469,7 +465,7 @@ class MenuUI(UIElement):
                         sum,
                         zip(
                             (
-                                cursor_space_size
+                                cursor_space_size[0]
                                 + self.property.padding_between_cursor_n_menu,
                                 0,
                             ),
