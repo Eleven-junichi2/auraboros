@@ -84,6 +84,10 @@ class DebugScene(Scene):
         GameText.use_font("PixelMplus12Regular")
         self.textinput = TextInput()
         self.textinputbox1 = TextInputUI(GameText.font, self.textinput)
+        self.msgbox1 = MsgBoxUI(GameText.font)
+        self.msgbox1.property.pos[1] = (
+            global_.w_size[1] - self.msgbox1.property.real_size[1]
+        )
         # set pos display of candidates of IME
         # by Rect[1], Rect[3]
         pass
@@ -94,10 +98,13 @@ class DebugScene(Scene):
         pass
 
     def update(self, dt):
-        pass
+        self.msgbox1.property.rewrite_text(
+            f"real_size of textinput UI: {self.textinputbox1.property.real_size}"
+        )
 
     def draw(self, screen):
         self.textinputbox1.draw(screen)
+        self.msgbox1.draw(screen)
 
 
 scene_manager = SceneManager()

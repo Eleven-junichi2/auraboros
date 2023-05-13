@@ -323,4 +323,3 @@ class TextInput:
                 self.text += "\n"
             if event.key == pygame.K_BACKSPACE:
                 self.text = self.text[:-1]
-            print(self.text)

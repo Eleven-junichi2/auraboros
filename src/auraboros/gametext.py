@@ -22,26 +22,33 @@ def split_multiline_text(
 ) -> tuple[str, ...]:
     """
     Examples:
-        >>> texts = split_multiline_text("AaBbC\nFfGg\nHhIiJjKkLlMmNnOoPp", 12)
-        >>> print(texts)
+        >>> print(split_multiline_text("AaBbC\nFfGg\nHhIiJjKkLlMmNnOoPp", 12))
         # -> ('AaBbC', 'FfGg', 'HhIiJjKkLlMm', 'NnOoPp')
+        >>> print(split_multiline_text("ABC\n\n\n", 0))
+        # -> ('ABC', '', '', '')
     """
-    if (singlelinelength_in_charcount == 0) or (text_to_split == ""):
+    if text_to_split == "":
         texts = ("",)
     else:
-        text_to_split = text_to_split.splitlines()
+        if singlelinelength_in_charcount == 0:
+            step = 1
+        else:
+            step = singlelinelength_in_charcount
+        text_to_split = text_to_split.splitlines(keepends=True)
         text_lists = [
             [""] if item == [] else item
             for item in [
-                [
-                    text[i : i + singlelinelength_in_charcount]
-                    for i in range(0, len(text), singlelinelength_in_charcount)
-                ]
+                [text[i : i + step] for i in range(0, len(text), step)]
                 for text in text_to_split
             ]
         ]
         texts = tuple(
-            itertools.chain.from_iterable(text_lists),
+            [
+                line.replace("\n", "")
+                for line in list(
+                    itertools.chain.from_iterable(text_lists),
+                )
+            ]
         )
     return texts
 
@@ -104,7 +111,10 @@ class Font2(pygame.font.Font):
                         linelength_in_px_of_text -= self.halfwidth_charsize()[0]
                     checked_charcount += 1
                 linelength_in_charcount = fullwidth_charcount + halfwidth_charcount
+                print(text.replace("\n", "\\n"))
                 line_count = len(split_multiline_text(text, linelength_in_charcount))
+                print(split_multiline_text(text, linelength_in_charcount))
+                # print(split_multiline_text(text, linelength_in_charcount))
                 if getsize_in_charcount:
                     size = (linelength_in_charcount, line_count)
                 else:
