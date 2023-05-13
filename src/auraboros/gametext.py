@@ -8,7 +8,7 @@ from pygame.color import Color
 import pygame
 
 from . import global_
-from .utilities import is_char_fullwidth
+from .utilities import is_char_fullwidth, len_str_contain_fullwidth_char
 
 pygame.font.init()
 
@@ -71,8 +71,9 @@ class Font2(pygame.font.Font):
     ) -> Tuple[int, int]:
         if text == "":
             return (0, 0)
-        # TODO: to make process to fix longest_line when the longest line include full-width chars. # noqa
-        longest_line = max(text.splitlines(), key=len)  # erase escape sequence
+        longest_line = max(
+            text.splitlines(), key=len_str_contain_fullwidth_char
+        )  # erase escape sequence
         if linelength_limit_in_px is not None:
             halfwidth_charcount = 0
             fullwidth_charcount = 0
