@@ -6,7 +6,6 @@ from src.auraboros.gametext import (
 
 def test_split_multiline_text():
     texts = split_multiline_text("abcDEFghiJKLmnoPQRstuVWXyz\n\n\n01234\n", 12)
-    print(texts)
     assert texts[0] == "abcDEFghiJKL"
     assert texts[1] == "mnoPQRstuVWX"
     assert texts[2] == "yz"
