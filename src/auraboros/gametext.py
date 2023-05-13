@@ -34,6 +34,10 @@ def split_multiline_text(
             step = 1
         else:
             step = singlelinelength_in_charcount
+        if text_to_split[-1] == "\n" and "\n" in text_to_split[:-1]:
+            newline_at_end_in_multilinetext = True
+        else:
+            newline_at_end_in_multilinetext = False
         text_to_split = text_to_split.splitlines(keepends=True)
         text_lists = [
             [""] if item == [] else item
@@ -42,14 +46,16 @@ def split_multiline_text(
                 for text in text_to_split
             ]
         ]
-        texts = tuple(
-            [
-                line.replace("\n", "")
-                for line in list(
-                    itertools.chain.from_iterable(text_lists),
-                )
-            ]
-        )
+        texts = [
+            line.replace("\n", "")
+            for line in list(
+                itertools.chain.from_iterable(text_lists),
+            )
+        ]
+        if newline_at_end_in_multilinetext:
+            texts.append("")
+        texts = tuple(texts)
+
     return texts
 
 
