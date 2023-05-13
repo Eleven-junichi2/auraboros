@@ -10,7 +10,7 @@ from auraboros.gametext import GameText, Font2
 from auraboros.gamescene import Scene, SceneManager
 
 from auraboros.gameinput import TextInput
-from auraboros.ui import MsgWindow, TextInputUI
+from auraboros.ui import MsgBoxUI, TextInputUI
 from auraboros import global_
 
 engine.init()
@@ -30,13 +30,15 @@ class RawImplementedTextInputScene(Scene):
         GameText.use_font("PixelMplus12Regular")
         self.IMEtextinput = ""
         self.textinput = ""
-        self.debug_msgbox1 = MsgWindow(GameText.font)
-        self.debug_msgbox2 = MsgWindow(GameText.font)
-        self.debug_msgbox1.pos[1] = global_.w_size[1] - self.debug_msgbox1.real_size[1]
-        self.debug_msgbox2.pos[1] = (
+        self.debug_msgbox1 = MsgBoxUI(GameText.font)
+        self.debug_msgbox2 = MsgBoxUI(GameText.font)
+        self.debug_msgbox1.property.pos[1] = (
+            global_.w_size[1] - self.debug_msgbox1.property.real_size[1]
+        )
+        self.debug_msgbox2.property.pos[1] = (
             global_.w_size[1]
-            - self.debug_msgbox1.real_size[1]
-            - self.debug_msgbox2.real_size[1]
+            - self.debug_msgbox1.property.real_size[1]
+            - self.debug_msgbox2.property.real_size[1]
         )
         # you can set pos of displaying candidates of IME
         # by Rect[1], Rect[3]
@@ -51,10 +53,10 @@ class RawImplementedTextInputScene(Scene):
                 self.textinput += self.IMEtextinput
         elif event.type == pygame.TEXTINPUT:
             # textinput in half-width characters
-            self.debug_msgbox1.rewrite_text(f"event.text: {event.text}")
+            self.debug_msgbox1.property.rewrite_text(f"event.text: {event.text}")
             self.textinput += event.text
         elif event.type == pygame.KEYDOWN:
-            self.debug_msgbox2.rewrite_text(f"event.unicode: {event.unicode}")
+            self.debug_msgbox2.property.rewrite_text(f"event.unicode: {event.unicode}")
             if event.key == pygame.K_RETURN:
                 self.textinput += "\n"
             if event.key == pygame.K_BACKSPACE:
@@ -80,14 +82,6 @@ class RawImplementedTextInputScene(Scene):
 class DebugScene(Scene):
     def setup(self):
         GameText.use_font("PixelMplus12Regular")
-        self.debug_msgbox1 = MsgWindow(GameText.font)
-        self.debug_msgbox2 = MsgWindow(GameText.font)
-        self.debug_msgbox1.pos[1] = global_.w_size[1] - self.debug_msgbox1.real_size[1]
-        self.debug_msgbox2.pos[1] = (
-            global_.w_size[1]
-            - self.debug_msgbox1.real_size[1]
-            - self.debug_msgbox2.real_size[1]
-        )
         self.textinput = TextInput()
         self.textinputbox1 = TextInputUI(GameText.font, self.textinput)
         # set pos display of candidates of IME
@@ -104,8 +98,6 @@ class DebugScene(Scene):
 
     def draw(self, screen):
         self.textinputbox1.draw(screen)
-        self.debug_msgbox1.draw(screen)
-        self.debug_msgbox2.draw(screen)
 
 
 scene_manager = SceneManager()

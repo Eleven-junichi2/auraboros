@@ -2,6 +2,7 @@ from typing import Callable, Optional, Union
 
 import pygame
 
+from . import global_
 from .gametext import Font2
 from .gameinput import TextInput
 from .utilities import (
@@ -178,6 +179,8 @@ class MsgBoxUI(UIElement):
         font: Font2,
         text_or_textlist: Union[str, list[str]] = "",
         frameborder_width=1,
+        linelength_in_char: Optional[int] = None,
+        linelength_in_px: Optional[int] = None,
     ):
         super().__init__()
         self.property = MsgBoxProperty()
@@ -186,6 +189,8 @@ class MsgBoxUI(UIElement):
         self.property.calc_min_size = self._calc_min_size
         self.property.calc_real_size = self._calc_real_size
         self.property.frameborder_width = frameborder_width
+        self.property.linelength_in_char = linelength_in_char
+        self.property.linelength_in_px = linelength_in_px
 
     def _calc_min_size(self) -> list[int]:
         if self.property.is_linelength_enable():
@@ -450,7 +455,7 @@ class MenuUI(UIElement):
                     self.property.frameborder_width
                     + self.property.padding
                     + self.property.pos[1]
-                    + self.property.cursor_size[1]*self.interface.selected_index,
+                    + self.property.cursor_size[1] * self.interface.selected_index,
                 ),
             )
         for index, menutext in enumerate(self.interface.option_texts):
@@ -490,14 +495,31 @@ class TextInputUI(MsgBoxUI):
         textinput: TextInput,
         text_or_textlist: Union[str, list[str]] = "",
         frameborder_width=1,
+        linelength_in_char: Optional[int] = None,
+        linelength_in_px: Optional[int] = None,
+        use_window_width_as_default_linelength_if_it_is_None=True,
     ):
         self.property = TextInputProperty()
+        if use_window_width_as_default_linelength_if_it_is_None and not (
+            linelength_in_char and linelength_in_px
+        ):
+            linelength_in_px = global_.w_size[0]
         super().__init__(
             font=font,
             text_or_textlist=text_or_textlist,
             frameborder_width=frameborder_width,
+            linelength_in_char=linelength_in_char,
+            linelength_in_px=linelength_in_px,
         )
         self.interface = textinput
+
+    def draw(self, screen: pygame.Surface):
+        self.property.rewrite_text(self.interface.text)
+        super().draw(screen)
+        # screen.blit(
+        #     self.property.font.render(self.interface.text, True, (255, 255, 255)),
+        #     self.property.pos,
+        # )
 
 
 # class UIElementBase(metaclass=abc.ABCMeta):

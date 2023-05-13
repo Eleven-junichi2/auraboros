@@ -68,7 +68,9 @@ class Font2(pygame.font.Font):
         linelength_limit_in_px: Optional[int] = None,
         linelength_limit_in_char: Optional[int] = None,
         getsize_in_charcount: bool = False,
-    ):
+    ) -> Tuple[int, int]:
+        if text == "":
+            return (0, 0)
         longest_line = max(text.splitlines(), key=len)  # erase escape sequence
         if linelength_limit_in_px is not None:
             halfwidth_charcount = 0
