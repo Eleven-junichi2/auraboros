@@ -20,11 +20,11 @@ ColorValue = Union[Color, int, str, Tuple[int, int, int], RGBAOutput, Sequence[i
 def split_multiline_text(text_to_split: str, linelength: int) -> tuple[str, ...]:
     """
     Examples:
-        >>> print(split_multiline_text("AaBbC\nFfGg\nHhIiJjKkLlMmNnOoPp", 12))
+        >>> split_multiline_text("AaBbC\nFfGg\nHhIiJjKkLlMmNnOoPp", 12)
         # -> ('AaBbC', 'FfGg', 'HhIiJjKkLlMm', 'NnOoPp')
-        >>> print(split_multiline_text("ABC\n\n\n", 0))
+        >>> split_multiline_text("ABC\n\n\n", 0)
         # -> ('ABC', '', '', '')
-        >>> print(split_multiline_text("abcde\nfghij\n\n\nああ", 0))
+        >>> split_multiline_text("abcde\nfghij\n\n\nああ", 0)
         # -> ('abcde', '', 'fghij', '', '', '', 'ああ')
     """
     if text_to_split == "":
