@@ -17,46 +17,50 @@ RGBAOutput = Tuple[int, int, int, int]
 ColorValue = Union[Color, int, str, Tuple[int, int, int], RGBAOutput, Sequence[int]]
 
 
-def split_multiline_text(
-    text_to_split: str, singlelinelength_in_charcount: int
-) -> tuple[str, ...]:
+def split_multiline_text(text_to_split: str, linelength: int) -> tuple[str, ...]:
     """
     Examples:
         >>> print(split_multiline_text("AaBbC\nFfGg\nHhIiJjKkLlMmNnOoPp", 12))
         # -> ('AaBbC', 'FfGg', 'HhIiJjKkLlMm', 'NnOoPp')
         >>> print(split_multiline_text("ABC\n\n\n", 0))
         # -> ('ABC', '', '', '')
+        >>> print(split_multiline_text("abcde\nfghij\n\n\nああ", 0))
+        # -> ('abcde', '', 'fghij', '', '', '', 'ああ')
     """
     if text_to_split == "":
-        texts = ("",)
+        splited_text = ("",)
     else:
-        if singlelinelength_in_charcount == 0:
-            step = 1
-        else:
-            step = singlelinelength_in_charcount
-        if text_to_split[-1] == "\n" and "\n" in text_to_split[:-1]:
-            newline_at_end_in_multilinetext = True
-        else:
-            newline_at_end_in_multilinetext = False
-        text_to_split = text_to_split.splitlines(keepends=True)
-        text_lists = [
-            [""] if item == [] else item
-            for item in [
-                [text[i : i + step] for i in range(0, len(text), step)]
-                for text in text_to_split
-            ]
-        ]
-        texts = [
-            line.replace("\n", "")
-            for line in list(
-                itertools.chain.from_iterable(text_lists),
+        # TODO: CONSIDER: to make readble this code
+        lines = tuple(
+            itertools.chain.from_iterable(
+                map(
+                    lambda line: ("",) if line == [] else line,
+                    [
+                        [
+                            new_lines
+                            for new_lines in [
+                                line[char_index : char_index + linelength]
+                                for char_index in range(0, len(line), linelength)
+                            ]
+                        ]
+                        for line in [
+                            line.replace("\n", "")
+                            for line in itertools.chain.from_iterable(
+                                map(
+                                    lambda line: line.partition("\n")[:2]
+                                    if len(line) >= 2
+                                    else line,
+                                    text_to_split.splitlines(keepends=True),
+                                )
+                            )
+                        ]
+                    ],
+                )
             )
-        ]
-        if newline_at_end_in_multilinetext:
-            texts.append("")
-        texts = tuple(texts)
+        )
+        splited_text = tuple(lines)
 
-    return texts
+    return splited_text
 
 
 def line_count_of_multiline_text(text: str, singlelinelength_in_charcount: int):
