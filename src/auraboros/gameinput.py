@@ -371,15 +371,6 @@ class TextInput:
                 # textinput in half-width characters
                 self.text += event.text
                 self.advance_caret_by_length_of(event.text)
-                print(
-                    f"self.is_inputing_with_IME {self.is_inputing_with_IME}"
-                    + " | "
-                    + f"self.caret_column_num {self.caret_column_num}"
-                    + " | "
-                    + f"self.caret_line_num {self.caret_line_num}"
-                    + " | "
-                    + f"self.column_num_at_line_wrap {self.column_num_at_line_wrap}"
-                )
 
     def start_newline(self):
         self.start_newline_caret()
@@ -389,31 +380,44 @@ class TextInput:
         self.back_caret_pos()
         self.text = self.text[:-1]
         print(
-            f"self.caret_column_num {self.caret_column_num}"
+            f"self.is_inputing_with_IME {self.is_inputing_with_IME}"
+            + " | "
+            + f"self.caret_column_num {self.caret_column_num}"
             + " | "
             + f"self.caret_line_num {self.caret_line_num}"
+            + " | "
+            + f"self.column_num_at_line_wrap {self.column_num_at_line_wrap}"
         )
 
     def advance_caret_by_length_of(self, str_):
         self.caret_column_num += len_str_contain_fullwidth_char(str_)
+        print(
+            f"self.is_inputing_with_IME {self.is_inputing_with_IME}"
+            + " | "
+            + f"self.caret_column_num {self.caret_column_num}"
+            + " | "
+            + f"self.caret_line_num {self.caret_line_num}"
+            + " | "
+            + f"self.column_num_at_line_wrap {self.column_num_at_line_wrap}"
+        )
 
     def start_newline_caret(self):
         self.caret_column_num = 0
         self.caret_line_num += 1
 
     def back_caret_pos(self):
-        print("---back caret---")
+        # print("---back caret---")
         if self.caret_column_num > 0:
-            print("through self.caret_column_num > 0")
+            # print("through self.caret_column_num > 0")
             if is_char_fullwidth(self.text[-1]) and not self.caret_column_num < 2:
                 back_length = 2
             else:
                 back_length = 1
-            print("back_length: ", back_length)
+            # print("back_length: ", back_length)
             self.caret_column_num -= back_length
-            print("self.caret_column_num: ", self.caret_column_num)
+            # print("self.caret_column_num: ", self.caret_column_num)
         else:
             if self.caret_line_num > 0:
-                print("back line")
+                # print("back line")
                 self.caret_line_num -= 1
                 self.caret_column_num = len(self.text_lines[self.caret_line_num])

@@ -129,7 +129,7 @@ class Font2(pygame.font.Font):
                 size = (0, 0)
             else:
                 checked_charcount = 0
-                while linelength_in_px_of_text > linelength_limit_in_px:
+                while linelength_in_px_of_text >= linelength_limit_in_px:
                     if is_char_fullwidth(text[-(1 + checked_charcount)]):
                         fullwidth_charcount -= 1
                         linelength_in_px_of_text -= self.fullwidth_charsize()[0]
