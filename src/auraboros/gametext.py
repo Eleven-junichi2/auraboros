@@ -14,8 +14,6 @@ from .utilities import (
     is_flat,
     search_consecutive_pairs_of_list,
     joint_two_stritems_by_indexpair_list,
-    count_fullwidth_char,
-    count_halfwidth_char,
 )
 
 pygame.font.init()
