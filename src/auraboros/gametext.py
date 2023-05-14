@@ -33,6 +33,7 @@ def split_multiline_text(text_to_split: str, linelength: int) -> tuple[str, ...]
         >>> split_multiline_text("abcdef\nghijk\n\n\nああ", 5)
         # -> ('abcde', 'f', '', 'fghij', '', '', '', 'ああ')
     """
+    # TODO: Refactoring this function to make it more readable
     if text_to_split == "":
         lines = ("",)
     else:
