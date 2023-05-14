@@ -99,7 +99,7 @@ class Font2(pygame.font.Font):
             return (0, 0)
         longest_line = max(
             text.splitlines(), key=len_str_contain_fullwidth_char
-        )  # erase escape sequence
+        )  # longest line without escape sequence char
         if linelength_limit_in_px is not None:
             halfwidth_charcount = 0
             fullwidth_charcount = 0
