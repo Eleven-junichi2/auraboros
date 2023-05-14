@@ -320,6 +320,7 @@ class TextInput:
         self.is_active = False
         self.is_inputing_with_IME = False
         self.caret_column_num: int = 0
+        self.caret_line_num: int = 0
 
     @property
     def text_lines(self):
@@ -347,17 +348,19 @@ class TextInput:
                     self.is_inputing_with_IME = True
                 else:
                     self.is_inputing_with_IME = False
-                print(
-                    f"event.length: {event.length}"
-                    + " | "
-                    + f"event.start {event.start}"
-                    + " | "
-                    + f"event.text {event.text}"
-                    + " | "
-                    + f"self.is_inputing_with_IME {self.is_inputing_with_IME}"
-                    + " | "
-                    + f"self.caret_column_num {self.caret_column_num}"
-                )
+                # print(
+                #     f"event.length: {event.length}"
+                #     + " | "
+                #     + f"event.start {event.start}"
+                #     + " | "
+                #     + f"event.text {event.text}"
+                #     + " | "
+                #     + f"self.is_inputing_with_IME {self.is_inputing_with_IME}"
+                #     + " | "
+                #     + f"self.caret_column_num {self.caret_column_num}"
+                #     + " | "
+                #     + f"self.caret_line_num {self.caret_line_num}"
+                # )
                 if pygame.key.get_pressed()[pygame.K_RETURN]:
                     self.text += self._IMEtextinput
                     self.caret_column_num += len_str_contain_fullwidth_char(
@@ -366,26 +369,47 @@ class TextInput:
                 if pygame.key.get_pressed()[pygame.K_BACKSPACE]:
                     self.back_caret_pos()
             elif event.type == pygame.TEXTINPUT:
+                # textinput in half-width characters
+                self.text += event.text
+                self.caret_column_num += len_str_contain_fullwidth_char(event.text)
                 print(
                     f"self.is_inputing_with_IME {self.is_inputing_with_IME}"
                     + " | "
                     + f"self.caret_column_num {self.caret_column_num}"
+                    + " | "
+                    + f"self.caret_line_num {self.caret_line_num}"
                 )
-                # textinput in half-width characters
-                self.text += event.text
-                self.caret_column_num += len_str_contain_fullwidth_char(event.text)
 
     def start_newline(self):
+        self.start_newline_caret()
         self.text += "\n"
-        self.caret_column_num = 0
 
     def backspace(self):
         self.back_caret_pos()
         self.text = self.text[:-1]
+        print(
+            f"self.caret_column_num {self.caret_column_num}"
+            + " | "
+            + f"self.caret_line_num {self.caret_line_num}"
+        )
+
+    def start_newline_caret(self):
+        self.caret_column_num = 0
+        self.caret_line_num += 1
 
     def back_caret_pos(self):
+        print("---back caret---")
         if self.caret_column_num > 0:
-            back_length = 1
+            print("through self.caret_column_num > 0")  
             if is_char_fullwidth(self.text[-1]) and not self.caret_column_num < 2:
                 back_length = 2
+            else:
+                back_length = 1
+            print("back_length: ", back_length)
             self.caret_column_num -= back_length
+            print("self.caret_column_num: ", self.caret_column_num)
+        else:
+            if self.caret_line_num > 0:
+                print("back line")
+                self.caret_line_num -= 1
+                self.caret_column_num = len(self.text_lines[self.caret_line_num])
