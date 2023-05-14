@@ -13,7 +13,9 @@ from .utilities import (
     len_str_contain_fullwidth_char,
     is_flat,
     search_consecutive_pairs_of_list,
-    joint_two_stritems_by_indexpair_list
+    joint_two_stritems_by_indexpair_list,
+    count_fullwidth_char,
+    count_halfwidth_char,
 )
 
 pygame.font.init()
@@ -23,7 +25,9 @@ RGBAOutput = Tuple[int, int, int, int]
 ColorValue = Union[Color, int, str, Tuple[int, int, int], RGBAOutput, Sequence[int]]
 
 
-def split_multiline_text(text_to_split: str, linelength: int) -> tuple[str, ...]:
+def split_multiline_text(
+    text_to_split: str, linelength: Optional[int] = None
+) -> tuple[str, ...]:
     """
     Examples:
         >>> split_multiline_text("AaBbC\nFfGg\nHhIiJjKkLlMmNnOoPp", 12)
@@ -58,15 +62,20 @@ def split_multiline_text(text_to_split: str, linelength: int) -> tuple[str, ...]
                 )
         splited_texts = [line.replace("\n", "") for line in splited_texts]
         lines: list[str] = []
-        for line in splited_texts:
-            if len(line) > linelength:
-                new_lines = []
-                for char_index in range(0, len(line), linelength):
-                    new_lines.append(line[char_index : char_index + linelength])
-                for new_line in new_lines:
-                    lines.append(new_line)
-            else:
-                lines.append(line)
+        if isinstance(linelength, int):
+            # --split to new lines with linelength--
+            for line in splited_texts:
+                if len(line) > linelength:
+                    new_lines = []
+                    for char_index in range(0, len(line), linelength):
+                        new_lines.append(line[char_index : char_index + linelength])
+                    for new_line in new_lines:
+                        lines.append(new_line)
+                else:
+                    lines.append(line)
+            # ----
+        elif linelength is None:
+            lines = splited_texts
         lines = tuple(lines)
         # ----
 
@@ -99,8 +108,8 @@ class Font2(pygame.font.Font):
         if text == "":
             return (0, 0)
         longest_line = max(
-            text.splitlines(), key=len_str_contain_fullwidth_char
-        )  # longest line without escape sequence char
+            split_multiline_text(text), key=len_str_contain_fullwidth_char
+        )
         if linelength_limit_in_px is not None:
             halfwidth_charcount = 0
             fullwidth_charcount = 0
@@ -111,11 +120,11 @@ class Font2(pygame.font.Font):
                     halfwidth_charcount += 1
             linelength_in_px_of_text = 0
             if halfwidth_charcount > 0:
-                linelength_in_px_of_text = (
+                linelength_in_px_of_text += (
                     self.halfwidth_charsize()[0] * halfwidth_charcount
                 )
-            elif fullwidth_charcount > 0:
-                linelength_in_px_of_text = (
+            if fullwidth_charcount > 0:
+                linelength_in_px_of_text += (
                     self.fullwidth_charsize()[0] * fullwidth_charcount
                 )
             if linelength_in_px_of_text < 0:
@@ -124,9 +133,11 @@ class Font2(pygame.font.Font):
                 checked_charcount = 0
                 while linelength_in_px_of_text > linelength_limit_in_px:
                     if is_char_fullwidth(text[-(1 + checked_charcount)]):
+                        print("full!")
                         fullwidth_charcount -= 1
                         linelength_in_px_of_text -= self.fullwidth_charsize()[0]
                     else:
+                        print("half!")
                         halfwidth_charcount -= 1
                         linelength_in_px_of_text -= self.halfwidth_charsize()[0]
                     checked_charcount += 1
@@ -342,97 +353,3 @@ class TextData:
 
     def draw(self, screen: pygame.surface.Surface):
         screen.blit(self.surface, self.pos)
-
-
-# class TextSurfaceFactory:
-#     """This class is going to be deprecated"""
-
-#     def __init__(self):
-#         self.current_font_key = None
-#         self._text_dict: dict[Any, TextData] = {}
-#         self._font_dict = FontDict()
-
-#     @property
-#     def text_dict(self) -> dict[Any, TextData]:
-#         return self._text_dict
-
-#     @property
-#     def font_dict(self):
-#         return self._font_dict
-
-#     def register_text(self, key, text: str = "", pos=[0, 0],
-#                       color_rgb=[255, 255, 255]):
-#         self.text_dict[key] = TextData(text=text, pos=pos, rgb=color_rgb)
-
-#     def rewrite_text(self, key, text: str):
-#         self.text_dict[key].text = text
-
-#     def text_by_key(self, key) -> str:
-#         return self.text_dict[key].text
-
-#     def is_text_registered(self, key):
-#         if self.text_dict.get(key):
-#             return True
-#         else:
-#             return False
-
-#     def register_font(self, key, font: pygame.font.Font):
-#         if len(self.font_dict) == 0:
-#             self.current_font_key = key
-#         self.font_dict[key] = font
-
-#     def set_current_font(self, key):
-#         self.current_font_key = key
-
-#     def font_by_key(self, key) -> pygame.font.Font:
-#         return self.font_dict[key]
-
-#     def font(self) -> pygame.font.Font:
-#         """Return Font object that is currently being used"""
-#         return self.font_dict[self.current_font_key]
-
-#     def char_size(self) -> Tuple[int, int]:
-#         return self.font_dict[self.current_font_key].size(" ")
-
-#     def set_text_pos(self, key, pos):
-#         self.text_dict[key].pos = pos
-
-#     def set_text_color(self, key, color_rgb):
-#         self.text_dict[key].color_foreground = color_rgb
-
-#     def set_text_pos_to_right(self, key):
-#         self.text_dict[key].pos[0] = \
-#             global_.w_size[0] - \
-#             self.font().size(self.text_dict[key].text)[0]
-
-#     def set_text_pos_to_bottom(self, key):
-#         self.text_dict[key].pos[1] = \
-#             global_.w_size[1] - \
-#             self.font().size(self.text_dict[key].text)[1]
-
-#     def center_text_pos_x(self, key):
-#         self.text_dict[key].pos[0] = \
-#             global_.w_size[0]//2 - \
-#             self.font().size(self.text_dict[key].text)[0]//2
-
-#     def center_text_pos_y(self, key):
-#         self.text_dict[key].pos[1] = \
-#             global_.w_size[1]//2 - \
-#             self.font().size(self.text_dict[key].text)[1]//2
-
-#     def render(self, text_key, surface_to_draw: pygame.surface.Surface,
-#                pos=None):
-#         if self.is_text_registered(text_key):
-#             text_surf = self.font().render(
-#                 self.text_by_key(text_key), True,
-#                 self.text_dict[text_key].color_foreground,
-#                 self.text_dict[text_key].rgb_background)
-#             if pos is None:
-#                 pos_ = self.text_dict[text_key].pos
-#             else:
-#                 pos_ = pos
-#             self.text_dict[text_key].surface = text_surf
-#             surface_to_draw.blit(text_surf, pos_)
-
-#     def generate_gametext(self, text_key):
-#         return self.text_dict[text_key]

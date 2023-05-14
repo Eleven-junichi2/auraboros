@@ -4,7 +4,22 @@ from src.auraboros.utilities import (
     joint_two_stritems_by_indexpair_list,
     search_consecutive_pairs_of_list,
     is_typed_sequence,
+    len_str_contain_fullwidth_char,
+    count_fullwidth_char,
+    count_halfwidth_char,
 )
+
+
+def test_count_fullwidth_char():
+    assert count_fullwidth_char("abcdefgあいう") == 3
+
+
+def test_count_halfwidth_char():
+    assert count_halfwidth_char("abcdefgあいう") == 7
+
+
+def test_len_str_contain_fullwidth_char():
+    assert len_str_contain_fullwidth_char("abcdefgあいう") == 7 + 2 * 3
 
 
 def test_is_typed_sequence():

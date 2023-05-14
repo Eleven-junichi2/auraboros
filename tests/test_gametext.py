@@ -25,6 +25,10 @@ def test_split_multiline_text():
     assert texts[6] == ""
     texts = split_multiline_text("", 3)
     assert texts[0] == ""
+    texts = split_multiline_text("あああ\nいいい\nううう")
+    assert texts[0] == "あああ"
+    assert texts[1] == "いいい"
+    assert texts[2] == "ううう"
 
 
 def test_line_count_of_multiline_text():

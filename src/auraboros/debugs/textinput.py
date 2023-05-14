@@ -85,8 +85,12 @@ class DebugScene(Scene):
         self.textinput = TextInput()
         self.textinputbox1 = TextInputUI(GameText.font, self.textinput)
         self.msgbox1 = MsgBoxUI(GameText.font)
+        self.msgbox2 = MsgBoxUI(GameText.font)
         self.msgbox1.property.pos[1] = (
             global_.w_size[1] - self.msgbox1.property.real_size[1]
+        )
+        self.msgbox2.property.pos[1] = (
+            self.msgbox1.property.pos[1] - self.msgbox2.property.real_size[1]
         )
         # set pos display of candidates of IME
         # by Rect[1], Rect[3]
@@ -105,6 +109,7 @@ class DebugScene(Scene):
     def draw(self, screen):
         self.textinputbox1.draw(screen)
         self.msgbox1.draw(screen)
+        self.msgbox2.draw(screen)
 
 
 scene_manager = SceneManager()
