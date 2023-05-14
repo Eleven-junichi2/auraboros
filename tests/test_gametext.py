@@ -5,16 +5,25 @@ from src.auraboros.gametext import (
 
 
 def test_split_multiline_text():
+    texts = split_multiline_text("abcdefg", 20)
+    assert len(texts) == 1
+    texts = split_multiline_text("abcdefg\n", 20)
+    assert len(texts) == 2
+    texts = split_multiline_text("abcdefg\n\n\nhi\njk", 4)
+    assert texts[0] == "abcd"
+    assert texts[1] == "efg"
+    assert texts[2] == ""
+    assert texts[3] == ""
+    assert texts[4] == "hi"
     texts = split_multiline_text("abcDEFghiJKLmnoPQRstuVWXyz\n\n\n01234\n", 12)
     assert texts[0] == "abcDEFghiJKL"
     assert texts[1] == "mnoPQRstuVWX"
     assert texts[2] == "yz"
     assert texts[3] == ""
     assert texts[4] == ""
-    assert texts[5] == ""
-    assert texts[6] == "01234"
-    assert texts[7] == ""
-    texts = split_multiline_text("", 12)
+    assert texts[5] == "01234"
+    assert texts[6] == ""
+    texts = split_multiline_text("", 3)
     assert texts[0] == ""
 
 

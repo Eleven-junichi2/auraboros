@@ -8,7 +8,13 @@ from pygame.color import Color
 import pygame
 
 from . import global_
-from .utilities import is_char_fullwidth, len_str_contain_fullwidth_char
+from .utilities import (
+    is_char_fullwidth,
+    len_str_contain_fullwidth_char,
+    is_flat,
+    search_consecutive_pairs_of_list,
+    joint_two_stritems_by_indexpair_list
+)
 
 pygame.font.init()
 
@@ -24,43 +30,46 @@ def split_multiline_text(text_to_split: str, linelength: int) -> tuple[str, ...]
         # -> ('AaBbC', 'FfGg', 'HhIiJjKkLlMm', 'NnOoPp')
         >>> split_multiline_text("ABC\n\n\n", 0)
         # -> ('ABC', '', '', '')
-        >>> split_multiline_text("abcde\nfghij\n\n\nああ", 0)
-        # -> ('abcde', '', 'fghij', '', '', '', 'ああ')
+        >>> split_multiline_text("abcdef\nghijk\n\n\nああ", 5)
+        # -> ('abcde', 'f', '', 'fghij', '', '', '', 'ああ')
     """
     if text_to_split == "":
-        splited_text = ("",)
+        lines = ("",)
     else:
-        # TODO: CONSIDER: to make readble this code
-        lines = tuple(
-            itertools.chain.from_iterable(
-                map(
-                    lambda line: ("",) if line == [] else line,
-                    [
-                        [
-                            new_lines
-                            for new_lines in [
-                                line[char_index : char_index + linelength]
-                                for char_index in range(0, len(line), linelength)
-                            ]
-                        ]
-                        for line in [
-                            line.replace("\n", "")
-                            for line in itertools.chain.from_iterable(
-                                map(
-                                    lambda line: line.partition("\n")[:2]
-                                    if len(line) >= 2
-                                    else line,
-                                    text_to_split.splitlines(keepends=True),
-                                )
-                            )
-                        ]
-                    ],
+        # --split multiline text to list of lines--
+        splited_texts = text_to_split.splitlines(keepends=True)
+        splited_texts = [
+            line.split("\n") if line != "\n" else line for line in splited_texts
+        ]
+        for index, flatten_or_not in enumerate(splited_texts):
+            if not is_flat(flatten_or_not):
+                splited_texts[index] = [
+                    "\n" if str_ == "" else str_ for str_ in flatten_or_not
+                ]
+        splited_texts = tuple(itertools.chain.from_iterable(splited_texts))
+        if len(splited_texts) >= 2:
+            index_pairs_to_joint = search_consecutive_pairs_of_list(
+                splited_texts, "\n", "[^\n]", regular_expression=True
+            )[1]
+            if index_pairs_to_joint is not None:
+                splited_texts = joint_two_stritems_by_indexpair_list(
+                    splited_texts, index_pairs_to_joint
                 )
-            )
-        )
-        splited_text = tuple(lines)
+        splited_texts = [line.replace("\n", "") for line in splited_texts]
+        lines: list[str] = []
+        for line in splited_texts:
+            if len(line) > linelength:
+                new_lines = []
+                for char_index in range(0, len(line), linelength):
+                    new_lines.append(line[char_index : char_index + linelength])
+                for new_line in new_lines:
+                    lines.append(new_line)
+            else:
+                lines.append(line)
+        lines = tuple(lines)
+        # ----
 
-    return splited_text
+    return lines
 
 
 def line_count_of_multiline_text(text: str, singlelinelength_in_charcount: int):
@@ -121,10 +130,7 @@ class Font2(pygame.font.Font):
                         linelength_in_px_of_text -= self.halfwidth_charsize()[0]
                     checked_charcount += 1
                 linelength_in_charcount = fullwidth_charcount + halfwidth_charcount
-                print(text.replace("\n", "\\n"))
                 line_count = len(split_multiline_text(text, linelength_in_charcount))
-                print(split_multiline_text(text, linelength_in_charcount))
-                # print(split_multiline_text(text, linelength_in_charcount))
                 if getsize_in_charcount:
                     size = (linelength_in_charcount, line_count)
                 else:
