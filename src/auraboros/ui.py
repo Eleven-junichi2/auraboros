@@ -439,9 +439,9 @@ class MenuUI(UIElement):
                         self.property.pos[1]
                         + self.property.padding
                         + self.property.frameborder_width
-                        + self.property.cursor_size * self.interface.selected_index,
+                        + self.property.cursor_size[1] * self.interface.selected_index,
                     ),
-                    (self.property.min_size[0], self.property.cursor_size),
+                    (self.property.min_size[0], self.property.cursor_size[1]),
                 ),
             )
         elif self.property.option_highlight_style == "cursor-char":
@@ -464,7 +464,7 @@ class MenuUI(UIElement):
             if self.property.option_highlight_style == "cursor-char":
                 cursor_space_size = self.property.cursor_size
             else:
-                cursor_space_size = 0
+                cursor_space_size = [0, 0]
             screen.blit(
                 self.property.font.render(menutext, True, (255, 255, 255)),
                 tuple(
