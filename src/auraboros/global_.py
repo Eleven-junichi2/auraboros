@@ -1,6 +1,3 @@
-"""
-Use to define global variables common use in the modules.
-"""
 import os
 
 import pygame
@@ -23,11 +20,24 @@ def init(
     icon_filepath=None,
     pixel_scale=1,
     set_mode_flags=0,
-    decorate_pygame_draw_for_pixel_scale=False,
+    stop_handling_textinput_events_at_init=True,
 ):
-    """This function initialize pygame and game engine.
-    Where to configure settings of game system is here."""
+    """
+    This function initialize pygame and game engine.
+    Where to configure settings of game system is here.
+
+    Args:
+        start_handling_textinput_events_at_init (bool):
+            pygame.key.stop_text_input() if True, 
+            pygame.key.start_text_input() if False.
+
+    """
     from . import global_
+
+    if stop_handling_textinput_events_at_init:
+        pygame.key.stop_text_input()
+    else:
+        pygame.key.start_text_input()
 
     global_.TARGET_FPS = 60
     global_.PIXEL_SCALE = pixel_scale

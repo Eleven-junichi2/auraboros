@@ -82,8 +82,7 @@ class RawImplementedTextInputScene(Scene):
 class DebugScene(Scene):
     def setup(self):
         GameText.use_font("PixelMplus12Regular")
-        self.textinput = TextInput()
-        self.textinputbox1 = TextInputUI(GameText.font, self.textinput)
+        self.textinputbox1 = TextInputUI(GameText.font)
         self.msgbox1 = MsgBoxUI(GameText.font)
         self.msgbox2 = MsgBoxUI(GameText.font)
         self.msgbox1.property.pos[1] = (
@@ -92,12 +91,14 @@ class DebugScene(Scene):
         self.msgbox2.property.pos[1] = (
             self.msgbox1.property.pos[1] - self.msgbox2.property.real_size[1]
         )
+        self.keyboard["textinputbox1"] = self.textinputbox1.interface.keyboard
         # set pos display of candidates of IME
         # by Rect[1], Rect[3]
-        pass
+        self.keyboard.set_current_setup("textinputbox1")
+        self.textinputbox1.interface.activate()
 
     def event(self, event: pygame.event.Event):
-        self.textinput.event(event)
+        self.textinputbox1.interface.event(event)
         # self.
         pass
 
@@ -105,6 +106,7 @@ class DebugScene(Scene):
         self.msgbox1.property.rewrite_text(
             f"real_size of textinput UI: {self.textinputbox1.property.real_size}"
         )
+        self.textinputbox1.interface.let_keyboard_input()
 
     def draw(self, screen):
         self.textinputbox1.draw(screen)

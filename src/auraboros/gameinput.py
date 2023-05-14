@@ -5,6 +5,7 @@ and other input events.
 
 from collections import UserDict
 from dataclasses import dataclass
+import os
 from typing import Callable, Union
 
 import pygame
@@ -308,18 +309,41 @@ class TextInput:
     def __init__(self):
         self._IMEinput = ""
         self.text = ""
+        self.keyboard = Keyboard()
+        self.keyboard.register_keyaction(
+            pygame.K_RETURN, 0, 44, 88, keydown=self.start_newline
+        )
+        self.keyboard.register_keyaction(
+            pygame.K_BACKSPACE, 0, 44, 88, keydown=self.backspace
+        )
+        self.is_active = False
+
+    def activate(self):
+        self.is_active = True
+        pygame.key.start_text_input()
+
+    def deactivate(self):
+        self.is_active = False
+        pygame.key.stop_text_input()
+
+    def let_keyboard_input(self):
+        if self.is_active:
+            self.keyboard.do_action_on_keyinput(pygame.K_RETURN)
+            self.keyboard.do_action_on_keyinput(pygame.K_BACKSPACE)
 
     def event(self, event: pygame.event.Event):
-        if event.type == pygame.TEXTEDITING:
-            # textinput in full-width characters
-            self._IMEtextinput = event.text
-            if pygame.key.get_pressed()[pygame.K_RETURN]:
-                self.text += self._IMEtextinput
-        elif event.type == pygame.TEXTINPUT:
-            # textinput in half-width characters
-            self.text += event.text
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_RETURN:
-                self.text += "\n"
-            if event.key == pygame.K_BACKSPACE:
-                self.text = self.text[:-1]
+        if self.is_active:
+            if event.type == pygame.TEXTEDITING:
+                # textinput in full-width characters
+                self._IMEtextinput = event.text
+                if pygame.key.get_pressed()[pygame.K_RETURN]:
+                    self.text += self._IMEtextinput
+            elif event.type == pygame.TEXTINPUT:
+                # textinput in half-width characters
+                self.text += event.text
+
+    def start_newline(self):
+        self.text += "\n"
+
+    def backspace(self):
+        self.text = self.text[:-1]

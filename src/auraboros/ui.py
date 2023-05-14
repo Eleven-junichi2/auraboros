@@ -490,11 +490,15 @@ class TextInputProperty(MsgBoxProperty):
     pass
 
 
+class TextInputInterface(TextInput):
+    pass
+
+
 class TextInputUI(MsgBoxUI):
     def __init__(
         self,
         font: Font2,
-        textinput: TextInput,
+        interface: TextInputInterface = TextInputInterface(),
         text_or_textlist: Union[str, list[str]] = "",
         frameborder_width=1,
         linelength_in_char: Optional[int] = None,
@@ -513,7 +517,7 @@ class TextInputUI(MsgBoxUI):
             linelength_in_char=linelength_in_char,
             linelength_in_px=linelength_in_px,
         )
-        self.interface = textinput
+        self.interface = interface
 
     def draw(self, screen: pygame.Surface):
         self.property.rewrite_text(self.interface.text)
