@@ -158,6 +158,10 @@ def is_char_fullwidth(char: str):
 
 
 def len_str_contain_fullwidth_char(str_: str) -> int:
+    """
+    This function considers the length of full-width characters to be twice the length
+    of half-width characters.
+    """
     return sum(2 if is_char_fullwidth(char) else 1 for char in str_)
 
 
