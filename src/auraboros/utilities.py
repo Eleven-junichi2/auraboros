@@ -303,3 +303,24 @@ def render_rightpointing_triangle(height, color: ColorValue) -> pygame.surface.S
         polygon_points_to_draw,
     )
     return surface
+
+
+class CheckAttributeExistenceMeta(type):
+    def __new__(cls, name, bases, attrs):
+        # Check if the class has a __check_attrs__ attribute
+        if "__is_base_class__" in attrs:
+            if attrs["__is_base_class__"]:
+                # return without checking attribute existance
+                return super().__new__(cls, name, bases, attrs)
+        if "__check_attrs__" in attrs:
+            check_attrs = attrs["__check_attrs__"]
+            # Iterate over the attributes to check
+            for attr in check_attrs:
+                # Check if the attribute exists in the class or its bases
+                if attr not in attrs and all(
+                    attr not in base.__dict__ for base in bases
+                ):
+                    raise AttributeError(
+                        f"{name} class does not have attribute '{attr}'"
+                    )
+        return super().__new__(cls, name, bases, attrs)

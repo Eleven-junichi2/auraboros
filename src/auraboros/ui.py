@@ -72,8 +72,16 @@ class UITextWithPages(UIProperty):
         super().__init__()
         self._texts: list[str] = [""]
         self._current_page_id: int = 0
-        self.linelength_in_px: Optional[int] = None  # None means no length limit
+        self._linelength_in_px: Optional[int] = None  # None means no length limit
         self.linelength_in_char: Optional[int] = None  # None means no length limit
+
+    @property
+    def linelength_in_px(self) -> Optional[int]:
+        return self._linelength_in_px
+
+    @linelength_in_px.setter
+    def linelength_in_px(self, value: int):
+        self._linelength_in_px = value
 
     @property
     def texts(self) -> list[str]:
@@ -178,6 +186,16 @@ class MsgBoxProperty(UITextWithPages, UIRect, UIFontProperty):
     def __init__(self):
         super().__init__()
         self.caret_style = "i-beam"
+
+    @property
+    def linelength_in_px(self):
+        if self.fixed_size is not None:
+            self._linelength_in_px = self.fixed_size[0]
+        return self._linelength_in_px
+
+    @linelength_in_px.setter
+    def linelength_in_px(self, value: int):
+        self._linelength_in_px = value
 
 
 class MsgBoxUI(UIElement):
@@ -539,9 +557,4 @@ class TextInputUI(MsgBoxUI):
             caret_start_pos[1] + self.property.font.halfwidth_charsize()[1],
         )
         if self.interface.is_active:
-            pygame.draw.line(
-                screen,
-                (255, 255, 255),
-                caret_start_pos,
-                caret_end_pos
-            )
+            pygame.draw.line(screen, (255, 255, 255), caret_start_pos, caret_end_pos)

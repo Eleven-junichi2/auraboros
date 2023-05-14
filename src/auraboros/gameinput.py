@@ -321,6 +321,7 @@ class TextInput:
         self.is_inputing_with_IME = False
         self.caret_column_num: int = 0
         self.caret_line_num: int = 0
+        self.column_num_at_line_wrap: int = None
 
     @property
     def text_lines(self):
@@ -400,7 +401,7 @@ class TextInput:
     def back_caret_pos(self):
         print("---back caret---")
         if self.caret_column_num > 0:
-            print("through self.caret_column_num > 0")  
+            print("through self.caret_column_num > 0")
             if is_char_fullwidth(self.text[-1]) and not self.caret_column_num < 2:
                 back_length = 2
             else:

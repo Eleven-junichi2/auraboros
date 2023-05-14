@@ -95,6 +95,7 @@ class DebugScene(Scene):
         # by Rect[1], Rect[3]
         self.keyboard.set_current_setup("textinputbox1")
         self.textinputbox1.interface.activate()
+        self.textinputbox1.property.fixed_size = [200, 200]
 
     def event(self, event: pygame.event.Event):
         self.textinputbox1.interface.event(event)
