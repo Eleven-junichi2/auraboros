@@ -364,21 +364,21 @@ class TextInput:
                 # )
                 if pygame.key.get_pressed()[pygame.K_RETURN]:
                     self.text += self._IMEtextinput
-                    self.caret_column_num += len_str_contain_fullwidth_char(
-                        self._IMEtextinput
-                    )
+                    self.advance_caret_by_length_of(self._IMEtextinput)
                 if pygame.key.get_pressed()[pygame.K_BACKSPACE]:
                     self.back_caret_pos()
             elif event.type == pygame.TEXTINPUT:
                 # textinput in half-width characters
                 self.text += event.text
-                self.caret_column_num += len_str_contain_fullwidth_char(event.text)
+                self.advance_caret_by_length_of(event.text)
                 print(
                     f"self.is_inputing_with_IME {self.is_inputing_with_IME}"
                     + " | "
                     + f"self.caret_column_num {self.caret_column_num}"
                     + " | "
                     + f"self.caret_line_num {self.caret_line_num}"
+                    + " | "
+                    + f"self.column_num_at_line_wrap {self.column_num_at_line_wrap}"
                 )
 
     def start_newline(self):
@@ -393,6 +393,9 @@ class TextInput:
             + " | "
             + f"self.caret_line_num {self.caret_line_num}"
         )
+
+    def advance_caret_by_length_of(self, str_):
+        self.caret_column_num += len_str_contain_fullwidth_char(str_)
 
     def start_newline_caret(self):
         self.caret_column_num = 0

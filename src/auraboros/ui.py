@@ -546,15 +546,38 @@ class TextInputUI(MsgBoxUI):
 
     def draw(self, screen: pygame.Surface):
         self.property.rewrite_text(self.interface.text)
+        self.interface.column_num_at_line_wrap = (
+            self.property.font.size_of_multiline_text(
+                self.property.current_page_text,
+                linelength_limit_in_px=self.property.linelength_in_px,
+                getsize_in_charcount=True,
+            )[0]
+        )
         super().draw(screen)
-        caret_start_pos = (
+        caret_start_pos = [
             self.interface.caret_column_num
             * self.property.font.halfwidth_charsize()[0],
             self.interface.caret_line_num * self.property.font.halfwidth_charsize()[1],
-        )
-        caret_end_pos = (
+        ]
+        caret_end_pos = [
             caret_start_pos[0],
             caret_start_pos[1] + self.property.font.halfwidth_charsize()[1],
-        )
+        ]
+        # caret pos on line wrapping
+        if self.interface.column_num_at_line_wrap > 0:
+            if self.interface.caret_column_num > self.interface.column_num_at_line_wrap:
+                caret_start_pos[0] = (
+                    self.interface.caret_column_num
+                    % self.interface.column_num_at_line_wrap
+                    * self.property.font.halfwidth_charsize()[0]
+                )
+                caret_end_pos[0] = caret_start_pos[0]
+                caret_start_pos[1] = (
+                    self.interface.caret_column_num
+                    // self.interface.column_num_at_line_wrap
+                ) * self.property.font.halfwidth_charsize()[1]
+                caret_end_pos[1] = (
+                    caret_start_pos[1] + self.property.font.halfwidth_charsize()[1]
+                )
         if self.interface.is_active:
             pygame.draw.line(screen, (255, 255, 255), caret_start_pos, caret_end_pos)
