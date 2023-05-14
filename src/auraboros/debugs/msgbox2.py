@@ -39,6 +39,14 @@ class DebugScene(Scene):
         self.msgbox3.property.pos[1] = (
             self.msgbox2.property.pos[1] + self.msgbox2.property.real_size[1]
         )
+        self.msgbox4 = MsgBoxUI(
+            GameText.font,
+            "fixed sizing MsgBoxUI"
+        )
+        self.msgbox4.property.fixed_size = [200, 20]
+        self.msgbox4.property.pos[1] = (
+            self.msgbox3.property.pos[1] + self.msgbox3.property.real_size[1]
+        )
 
     def update(self, dt):
         self.msgbox2.property.rewrite_text(
@@ -64,6 +72,7 @@ class DebugScene(Scene):
         self.msgbox1.draw(screen)
         self.msgbox2.draw(screen)
         self.msgbox3.draw(screen)
+        self.msgbox4.draw(screen)
 
 
 scene_manager = SceneManager()

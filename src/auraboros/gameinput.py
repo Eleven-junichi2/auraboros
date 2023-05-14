@@ -5,12 +5,12 @@ and other input events.
 
 from collections import UserDict
 from dataclasses import dataclass
-import os
 from typing import Callable, Union
 
 import pygame
 
 from .schedule import Stopwatch
+from .gametext import split_multiline_text
 
 
 @dataclass
@@ -317,6 +317,11 @@ class TextInput:
             pygame.K_BACKSPACE, 0, 44, 88, keydown=self.backspace
         )
         self.is_active = False
+        self.current_line_num = 0
+
+    @property
+    def text_lines(self):
+        return split_multiline_text(self.text)
 
     def activate(self):
         self.is_active = True
@@ -336,6 +341,7 @@ class TextInput:
             if event.type == pygame.TEXTEDITING:
                 # textinput in full-width characters
                 self._IMEtextinput = event.text
+                print(f"event.length: {event.length} | event.start {event.start}")
                 if pygame.key.get_pressed()[pygame.K_RETURN]:
                     self.text += self._IMEtextinput
             elif event.type == pygame.TEXTINPUT:

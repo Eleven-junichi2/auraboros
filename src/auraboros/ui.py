@@ -34,11 +34,12 @@ class UISizing(UIProperty):
     def __init__(self):
         super().__init__()
         self.padding = 0
-        self.calc_min_size: Callable[..., list[int]] = None
-        self.calc_real_size: Callable[..., list[int]] = None
+        self.calc_min_size: Callable[..., list[int, int]] = None
+        self.calc_real_size: Callable[..., list[int, int]] = None
+        self.fixed_size: Optional[list[int, int]] = None
 
     @property
-    def min_size(self) -> list[int]:
+    def min_size(self) -> list[int, int]:
         if self.calc_min_size is None:
             raise NotImplementedError(
                 "Set 'calc_min_size: Callable[..., list[int]] function'"
@@ -47,13 +48,17 @@ class UISizing(UIProperty):
         return self.calc_min_size()
 
     @property
-    def real_size(self) -> list[int]:
+    def real_size(self) -> list[int, int]:
         if self.calc_real_size is None:
             raise NotImplementedError(
                 "Set 'calc_real_size: Callable[..., list[int]] function'"
                 + " before getting the value."
             )
-        return self.calc_real_size()
+        if self.fixed_size is None:
+            real_size = self.calc_real_size()
+        else:
+            real_size = self.fixed_size
+        return real_size
 
 
 class UIFontProperty(UIProperty):
@@ -237,6 +242,7 @@ class MsgBoxUI(UIElement):
                     linelength_in_px=self.property.linelength_in_px,
                 ),
                 text_pos,
+                [0, 0] + self.property.real_size
             )
         else:
             screen.blit(
@@ -244,6 +250,7 @@ class MsgBoxUI(UIElement):
                     self.property.current_page_text, True, (255, 255, 255)
                 ),
                 text_pos,
+                [0, 0] + self.property.real_size
             )
 
 
