@@ -566,18 +566,26 @@ class TextInputUI(MsgBoxUI):
         # caret pos on line wrapping
         if self.interface.column_num_at_line_wrap > 0:
             if self.interface.caret_column_num > self.interface.column_num_at_line_wrap:
-                caret_start_pos[0] = (
+                fixed_caret_x = (
                     self.interface.caret_column_num
                     % self.interface.column_num_at_line_wrap
-                    * self.property.font.halfwidth_charsize()[0]
+                )
+                caret_start_pos[0] = (
+                    fixed_caret_x * self.property.font.halfwidth_charsize()[0]
                 )
                 caret_end_pos[0] = caret_start_pos[0]
-                caret_start_pos[1] = (
+                fixed_caret_y = (
                     self.interface.caret_column_num
                     // self.interface.column_num_at_line_wrap
-                ) * self.property.font.halfwidth_charsize()[1]
+                )
+                caret_start_pos[1] = (
+                    fixed_caret_y * self.property.font.halfwidth_charsize()[1]
+                )
                 caret_end_pos[1] = (
                     caret_start_pos[1] + self.property.font.halfwidth_charsize()[1]
+                )
+                print(
+                    f"fixed_caret_x: {fixed_caret_x} | fixed_caret_y: {fixed_caret_y}"
                 )
         if self.interface.is_active:
             pygame.draw.line(screen, (255, 255, 255), caret_start_pos, caret_end_pos)
