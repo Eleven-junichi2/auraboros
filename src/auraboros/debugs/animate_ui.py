@@ -43,8 +43,6 @@ class DebugScene(Scene):
             )
             self.msgbox1.property.pos[0] = x
             self.msgbox1.property.pos[1] = y
-            # print(index)
-            # self.msgbox1_text = self.msgbox1_text[:-int(index)]
 
         self.msgbox1_anim = KeyframeAnimation(
             animate_msgbox1_text,
@@ -65,7 +63,6 @@ class DebugScene(Scene):
         self.msgbox1_anim.let_play()
 
     def update(self, dt):
-        # print(self.msgbox1_text)
         self.msgbox1_anim.update(dt)
 
     def draw(self, screen: pygame.Surface):
