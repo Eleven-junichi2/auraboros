@@ -8,9 +8,10 @@ import setup_syspath  # noqa
 from auraboros import engine
 from auraboros.gametext import GameText, Font2
 from auraboros.gamescene import Scene, SceneManager
-from auraboros.utils import AssetFilePath, draw_grid
+from auraboros.utils.path import AssetFilePath
+from auraboros.utils.surface import draw_grid
 
-engine.init(caption="Test GameText system", pixel_scale=2)
+engine.init(caption="Test GameText system", base_pixel_scale=2)
 
 AssetFilePath.set_asset_root(Path(sys.argv[0]).parent / "assets")
 
@@ -22,18 +23,18 @@ GameText.setup_font(
 
 class DebugScene(Scene):
     def setup(self):
-        GameText.use_font("ayu18gothic")
+        GameText.use_font("misakigothic")
         self.gametext_sample = GameText(
             "this is a sample of\nmultiline text using GameText object.",
             (0, 0))
 
     def draw(self, screen):
         draw_grid(screen, 16, (78, 78, 78))
-        self.gametext_sample.renderln(12, surface_to_blit=screen)
+        self.gametext_sample.renderln(20, surface_to_blit=screen)
 
 
 scene_manager = SceneManager()
-scene_manager.push(DebugScene(scene_manager))
+scene_manager.add(DebugScene(scene_manager))
 
 if __name__ == "__main__":
     engine.run(scene_manager=scene_manager, fps=60)
