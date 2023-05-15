@@ -150,5 +150,13 @@
             "console": "integratedTerminal",
             "justMyCode": true
         },
+        {
+            "name": "Python: play sandbox",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/sandbox.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
     ]
 }
