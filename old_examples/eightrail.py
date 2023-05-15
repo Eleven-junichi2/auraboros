@@ -6,15 +6,15 @@ import math
 
 # from typing import Any
 # from .keyboard import Keyboard
-from ..src.auraboros.old_entity import DeadlyObstacle, Entity, EntityList, ShooterEntity, Enemy
+from ..src.auraboros.deprecated.old_entity import DeadlyObstacle, Entity, EntityList, ShooterEntity, Enemy
 from ..src.auraboros.gameinput import Joystick2
-from ..src.auraboros.old_gamelevel import Level
+from ..src.auraboros.deprecated.old_gamelevel import Level
 from ..src.auraboros.gamescene import Scene, SceneManager
 from ..src.auraboros.gametext import TextSurfaceFactory
 from ..src.auraboros.ui import UIBoxLayout, UIElement, UIGameText
 from ..src.auraboros.utilities import Arrow, ArrowToTurnToward, AssetFilePath, TextToDebug  # noqa
 from ..src.auraboros.schedule import IntervalCounter, schedule_instance_method_interval
-from ..src.auraboros.old_sound import SoundDict, ChannelManager
+from ..src.auraboros.deprecated.old_sound import SoundDict, ChannelManager
 
 import pygame
 

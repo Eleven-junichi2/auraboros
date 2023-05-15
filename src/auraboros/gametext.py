@@ -9,7 +9,7 @@ from .utils.string import is_char_fullwidth, len_str_contain_fullwidth_char
 from .utils.sequence import (
     is_flat,
     search_consecutive_pairs_of_list,
-    joint_stritems_by_indexpair_list,
+    joint_stritems_in_range_indexpair_list,
 )
 
 pygame.font.init()
@@ -51,7 +51,7 @@ def split_multiline_text(
                 splited_texts, "\n", "[^\n]", regular_expression=True
             )[1]
             if index_pairs_to_joint is not None:
-                splited_texts = joint_stritems_by_indexpair_list(
+                splited_texts = joint_stritems_in_range_indexpair_list(
                     splited_texts, index_pairs_to_joint
                 )
         splited_texts = [line.replace("\n", "") for line in splited_texts]

@@ -15,8 +15,8 @@ from math import sqrt
 import pygame
 
 # from .gamescene import Scene
-from .utils import Arrow, ArrowToTurnToward
-from . import global_
+from ..utils import Arrow, ArrowToTurnToward
+from .. import global_
 
 
 class Entity(pygame.sprite.Sprite):

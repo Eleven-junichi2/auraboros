@@ -27,7 +27,7 @@ def is_typed_sequence(type_: type, sequence: Sequence):
     )
 
 
-def joint_stritems_by_indexpair_list(
+def joint_stritems_in_range_indexpair_list(
     str_sequence: Sequence[str],
     indexpair_list: Sequence[tuple[int, int]],
 ) -> list[str]:

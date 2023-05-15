@@ -6,7 +6,7 @@ import pygame
 import setup_syspath  # noqa
 from auraboros import engine
 from auraboros.gamescene import Scene, SceneManager
-from auraboros.old_entity import Entity
+from auraboros.deprecated.old_entity import Entity
 from auraboros.utils import Arrow, AssetFilePath, draw_grid_background
 from auraboros.animation import AnimationImage, SpriteSheet, AnimationDict
 from auraboros.gameinput import Keyboard

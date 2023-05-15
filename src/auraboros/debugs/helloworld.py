@@ -10,7 +10,7 @@ class HelloworldScene(Scene):
 
 
 scene_manager = SceneManager()
-scene_manager.push(HelloworldScene(scene_manager))
+scene_manager.add(HelloworldScene(scene_manager))
 
 if __name__ == "__main__":
     engine.run(scene_manager=scene_manager)

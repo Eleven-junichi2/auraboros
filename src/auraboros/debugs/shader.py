@@ -10,7 +10,7 @@ import pygame
 import setup_syspath  # noqa
 from auraboros import engine
 from auraboros.animation import AnimationImage, SpriteSheet, AnimationImageDict
-from auraboros.old_entity import Entity
+from auraboros.deprecated.old_entity import Entity
 from auraboros.gameinput import Keyboard
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.shader import Shader2D, VERTEX_DEFAULT

@@ -1,30 +1,10 @@
-from auraboros.utils import (
-    is_flat,
-    joint_stritems_in_range_a_to_b,
-    joint_two_stritems_by_indexpair_list,
+from auraboros.utils.sequence import (
     search_consecutive_pairs_of_list,
+    joint_stritems_in_range_indexpair_list,
+    joint_stritems_in_range_a_to_b,
+    is_flat,
     is_typed_sequence,
-    len_str_contain_fullwidth_char,
-    count_fullwidth_char,
-    count_halfwidth_char,
 )
-
-
-def test_count_fullwidth_char():
-    assert count_fullwidth_char("abcdefgあいう") == 3
-
-
-def test_count_halfwidth_char():
-    assert count_halfwidth_char("abcdefgあいう") == 7
-
-
-def test_len_str_contain_fullwidth_char():
-    assert len_str_contain_fullwidth_char("abcdefgあいう") == 7 + 2 * 3
-
-
-def test_is_typed_sequence():
-    assert is_typed_sequence(int, [1, 3, 7])
-    assert not is_typed_sequence(int, [1, "abc", 7])
 
 
 def test_search_consecutive_pairs_of_list():
@@ -46,8 +26,8 @@ def test_joint_stritems_in_range_a_to_b():
     ) == ["abcdefg", "\n", "\n", "\nhi"]
 
 
-def test_joint_two_stritems_by_indexpair_list():
-    assert joint_two_stritems_by_indexpair_list(
+def test_joint_stritems_in_range_indexpair_list():
+    assert joint_stritems_in_range_indexpair_list(
         str_sequence=("abcdefg", "\n", "\n", "\n", "abc", "\n", "DEFG", "\n"),
         indexpair_list=((3, 4), (5, 6)),
     ) == ["abcdefg", "\n", "\n", "\nabc", "\nDEFG", "\n"]
@@ -58,3 +38,8 @@ def test_is_flat():
     assert is_flat((0, 1, 2))
     assert is_flat(["abcdefg"], consider_str_as_sequence=False)
     assert not is_flat([["abcdefg", ""], "\n", "\n", ["hi"]])
+
+
+def test_is_typed_sequence():
+    assert is_typed_sequence(int, [1, 3, 7])
+    assert not is_typed_sequence(int, [1, "abc", 7])

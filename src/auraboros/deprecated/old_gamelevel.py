@@ -12,9 +12,9 @@ import copy
 import pygame
 
 from .old_entity import Enemy, EnemyFactory, Entity, EntityList, DeadlyObstacle
-from .gamescene import Scene
-from .utils import Arrow, open_json_file
-from .core import Global
+from ..gamescene import Scene
+from ..utils import Arrow, open_json_file
+from ..core import Global
 
 
 class EntityListOfGameWorld(EntityList):
