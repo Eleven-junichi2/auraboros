@@ -12,12 +12,15 @@ from .utils.coordinate import (
 )
 
 
-class UIElement:
-    def __init__(self) -> None:
-        pass
-
-
 class UIProperty:
+    pass
+
+
+class UIInterface:
+    pass
+
+
+class UIElement:
     pass
 
 
@@ -274,8 +277,9 @@ class MsgBoxUI(UIElement):
             )
 
 
-class MenuInterface:
+class MenuInterface(UIInterface):
     def __init__(self):
+        super().__init__()
         self.selected_index = 0
         self.option_keys: list[str] = []
         self.option_texts: list[str] = []

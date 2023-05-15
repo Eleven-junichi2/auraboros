@@ -7,14 +7,16 @@ import sys
 import pygame
 
 import setup_syspath  # noqa
-from auraboros import engine, global_
+from auraboros import engine
 from auraboros.gametext import GameText, Font2
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.ui import MenuUI, MsgBoxUI
-from auraboros.utils import AssetFilePath, draw_grid, pos_on_px_scale
+from auraboros.utils.path import AssetFilePath
+from auraboros.utils.surface import draw_grid
+from auraboros.utils.coordinate import in_base_px_scale, window_size
 from auraboros.gameinput import Keyboard
 
-engine.init(caption="Test MsgBox", pixel_scale=2)
+engine.init(caption="Test MsgBox", base_pixel_scale=2)
 
 AssetFilePath.set_asset_root(Path(sys.argv[0]).parent / "assets")
 
@@ -80,7 +82,7 @@ class DebugScene(Scene):
             "down",
             on_left=lambda: self.menu1.interface.do_selected_action()
             if self.menu1.property.is_givenpos_on_ui(
-                pos_on_px_scale(pygame.mouse.get_pos())
+                in_base_px_scale(pygame.mouse.get_pos())
             )
             else None,
         )
@@ -89,14 +91,16 @@ class DebugScene(Scene):
             self.msgbox2.property.pos[1] + self.msgbox2.property.real_size[1]
         )
         self.tutorial_msgbox.property.pos[1] = (
-            global_.w_size[1] - self.tutorial_msgbox.property.real_size[1]
+            window_size()[1] - self.tutorial_msgbox.property.real_size[1]
         )
 
     def update(self, dt):
         self.keyboard.current_setup.do_action_on_keyinput(pygame.K_UP)
         self.keyboard.current_setup.do_action_on_keyinput(pygame.K_DOWN)
         self.keyboard.current_setup.do_action_on_keyinput(pygame.K_z)
-        self.menu1.highlight_option_on_givenpos(pos_on_px_scale(pygame.mouse.get_pos()))
+        self.menu1.highlight_option_on_givenpos(
+            in_base_px_scale(pygame.mouse.get_pos())
+        )
         self.menu1.interface.do_action_on_highlight()
 
     def draw(self, screen: pygame.Surface):
@@ -108,7 +112,7 @@ class DebugScene(Scene):
 
 
 scene_manager = SceneManager()
-scene_manager.push(DebugScene(scene_manager))
+scene_manager.add(DebugScene(scene_manager))
 
 if __name__ == "__main__":
     engine.run(scene_manager=scene_manager, fps=60)

@@ -4,13 +4,15 @@ import sys
 import pygame
 
 import setup_syspath  # noqa
-from auraboros import engine, global_
+from auraboros import engine
 from auraboros.animation import KeyframeAnimation, Keyframe
 from auraboros.gametext import GameText, Font2
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.gameinput import Keyboard
 from auraboros.ui import MenuUI, MsgBoxUI
-from auraboros.utils import AssetFilePath, draw_grid, pos_on_px_scale
+from auraboros.utils.path import AssetFilePath
+from auraboros.utils.surface import draw_grid
+from auraboros.utils.coordinate import in_base_px_scale, window_size
 from auraboros.schedule import Stopwatch
 
 engine.init(caption="Test Animation System")
@@ -62,7 +64,7 @@ class DebugScene(Scene):
             "down",
             on_left=lambda: self.menuui.interface.do_selected_action()
             if self.menuui.property.is_givenpos_on_ui(
-                pos_on_px_scale(pygame.mouse.get_pos())
+                in_base_px_scale(pygame.mouse.get_pos())
             )
             else None,
         )
@@ -103,7 +105,7 @@ class DebugScene(Scene):
         self.keyboard.current_setup.do_action_on_keyinput(pygame.K_DOWN)
         self.keyboard.current_setup.do_action_on_keyinput(pygame.K_z)
         self.menuui.highlight_option_on_givenpos(
-            pos_on_px_scale(pygame.mouse.get_pos())
+            in_base_px_scale(pygame.mouse.get_pos())
         )
         self.msgbox2.property.rewrite_text(
             f"id of current frame:{self.animation.id_current_frame}"
@@ -157,12 +159,12 @@ class DebugScene(Scene):
             + self.msgbox6.property.real_size[1]
         )
         self.msgbox8.property.pos[1] = (
-            global_.w_size[1]
+            window_size()[1]
             - self.msgbox8.property.real_size[1]
             - self.msgbox9.property.real_size[1]
         )
         self.msgbox9.property.pos[1] = (
-            global_.w_size[1] - self.msgbox8.property.real_size[1]
+            window_size()[1] - self.msgbox8.property.real_size[1]
         )
 
     def draw(self, screen):
@@ -180,7 +182,7 @@ class DebugScene(Scene):
 
 
 scene_manager = SceneManager()
-scene_manager.push(DebugScene(scene_manager))
+scene_manager.add(DebugScene(scene_manager))
 
 if __name__ == "__main__":
     engine.run(scene_manager=scene_manager, fps=60)

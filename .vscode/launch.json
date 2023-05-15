@@ -158,5 +158,13 @@
             "console": "integratedTerminal",
             "justMyCode": true
         },
+        {
+            "name": "Python: example animate_ui",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/auraboros/debugs/animate_ui.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
     ]
 }
