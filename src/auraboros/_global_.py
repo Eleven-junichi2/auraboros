@@ -1,3 +1,7 @@
+"""
+This module is DEPRECATED
+"""
+
 import os
 
 import pygame
@@ -28,7 +32,7 @@ def init(
 
     Args:
         start_handling_textinput_events_at_init (bool):
-            pygame.key.stop_text_input() if True, 
+            pygame.key.stop_text_input() if True,
             pygame.key.start_text_input() if False.
 
     """

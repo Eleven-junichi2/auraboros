@@ -1,19 +1,15 @@
-# TODO: implement func that return px size of multiline text to GameText
-
-from dataclasses import dataclass
 from typing import Tuple, Union, Sequence, Optional
 import itertools
 
 from pygame.color import Color
 import pygame
 
-from . import global_
-from .utilities import (
-    is_char_fullwidth,
-    len_str_contain_fullwidth_char,
+from .utils.string import is_char_fullwidth, len_str_contain_fullwidth_char
+
+from .utils.sequence import (
     is_flat,
     search_consecutive_pairs_of_list,
-    joint_two_stritems_by_indexpair_list,
+    joint_stritems_by_indexpair_list,
 )
 
 pygame.font.init()
@@ -55,7 +51,7 @@ def split_multiline_text(
                 splited_texts, "\n", "[^\n]", regular_expression=True
             )[1]
             if index_pairs_to_joint is not None:
-                splited_texts = joint_two_stritems_by_indexpair_list(
+                splited_texts = joint_stritems_by_indexpair_list(
                     splited_texts, index_pairs_to_joint
                 )
         splited_texts = [line.replace("\n", "") for line in splited_texts]
@@ -323,29 +319,3 @@ class GameText:
         if surface_to_blit:
             surface_to_blit.blit(text_surface, self.pos)
         return text_surface
-
-    def set_pos_to_right(self):
-        self.pos[0] = global_.w_size[0] - self.font.size(self.text)[0]
-
-    def set_pos_to_bottom(self):
-        self.pos[1] = global_.w_size[1] - self.font.size(self.text)[1]
-
-    def set_pos_to_center_x(self):
-        self.pos[0] = global_.w_size[0] // 2 - self.font.size(self.text)[0] // 2
-
-    def set_pos_to_center_y(self):
-        self.pos[1] = global_.w_size[1] // 2 - self.font.size(self.text)[1] // 2
-
-
-@dataclass
-class TextData:
-    """This class is going to be deprecated"""
-
-    text: str
-    pos: list
-    color_foreground: list
-    rgb_background: list
-    surface: pygame.surface.Surface = None
-
-    def draw(self, screen: pygame.surface.Surface):
-        screen.blit(self.surface, self.pos)

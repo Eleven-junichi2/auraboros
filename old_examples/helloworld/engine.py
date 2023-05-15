@@ -3,12 +3,12 @@ import sys
 
 import pygame
 
+from auraboros import init # noqa
+from auraboros import Global
 from auraboros.gamescene import Scene, SceneManager
-from auraboros import global_
-from auraboros.global_ import init  # noqa
 from auraboros.schedule import IntervalCounter
 from auraboros.gametext import TextSurfaceFactory
-from auraboros.utilities import AssetFilePath
+from auraboros.utils import AssetFilePath
 
 AssetFilePath.set_asset_root(Path(sys.argv[0]).parent / "assets")
 
@@ -35,14 +35,12 @@ class TitleMenuScene(Scene):
         textfactory.render("hello_world", screen, (16, 0))
 
 
-def run(fps_num=60):
-    global fps
-    fps = fps_num
+def run():
     running = True
     scene_manager = SceneManager()
     scene_manager.push(TitleMenuScene(scene_manager))
     while running:
-        dt = clock.tick(fps)/1000  # dt means delta time
+        dt = clock.tick(Global.fps)/1000  # dt means delta time
 
         global_.screen.fill((0, 0, 0))
         for event in pygame.event.get():

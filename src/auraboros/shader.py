@@ -7,21 +7,12 @@ import os
 import moderngl
 import pygame
 
-# from . import global_
+from .designpattern import Singleton
 
 with open(Path(__file__).parent / "default.vert", "r") as f:
     VERTEX_DEFAULT = f.read()
 with open(Path(__file__).parent / "default.frag", "r") as f:
     FRAGMENT_DEFAULT = f.read()
-
-
-class Singleton(type):
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super().__call__(*args, **kwargs)
-        return cls._instances[cls]
 
 
 class Shader2D(metaclass=Singleton):
@@ -41,18 +32,35 @@ class Shader2D(metaclass=Singleton):
         self.programs: dict[Any, moderngl.Program] = {}
         self.vaos: dict[Any, moderngl.VertexArray] = {}
         self.buffer: dict[Any, moderngl.Buffer] = self.ctx.buffer(
-            data=array("f", [
-                # x, y, u ,v
-                -1.0, 1.0, 0.0, 0.0,  # top left
-                1.0, 1.0, 1.0, 0.0,  # top right
-                -1.0, -1.0, 0.0, 1.0,  # bottom left
-                1.0, -1.0, 1.0, 1.0,  # bottom right
-            ]))
+            data=array(
+                "f",
+                [
+                    # x, y, u ,v
+                    -1.0,
+                    1.0,
+                    0.0,
+                    0.0,  # top left
+                    1.0,
+                    1.0,
+                    1.0,
+                    0.0,  # top right
+                    -1.0,
+                    -1.0,
+                    0.0,
+                    1.0,  # bottom left
+                    1.0,
+                    -1.0,
+                    1.0,
+                    1.0,  # bottom right
+                ],
+            )
+        )
 
         self.compile_and_register_program(
             vertex=VERTEX_DEFAULT,
             fragment=FRAGMENT_DEFAULT,
-            program_name="display_surface")
+            program_name="display_surface",
+        )
 
     def compile_and_register_program(self, vertex, fragment, program_name):
         """
@@ -64,22 +72,23 @@ class Shader2D(metaclass=Singleton):
         """
         vert_raw = vertex
         frag_raw = fragment
-        program = self.ctx.program(
-            vertex_shader=vert_raw, fragment_shader=frag_raw)
+        program = self.ctx.program(vertex_shader=vert_raw, fragment_shader=frag_raw)
         self.programs[program_name] = program
         self.vaos[program_name] = self.ctx.vertex_array(
-            program, [(self.buffer, "2f 2f", "in_vert", "in_texcoord")])
+            program, [(self.buffer, "2f 2f", "in_vert", "in_texcoord")]
+        )
 
     def _surface_to_texture(self, surface: pygame.surface.Surface):
         texture = self.ctx.texture(surface.get_size(), 4)
         texture.filter = (moderngl.NEAREST, moderngl.NEAREST)
-        if os.name == 'nt':
+        if os.name == "nt":
             # Windows
-            texture.swizzle = 'BGRA'
+            texture.swizzle = "BGRA"
         return texture
 
     def register_surface_as_texture(
-            self, surface: pygame.surface.Surface, texture_name):
+        self, surface: pygame.surface.Surface, texture_name
+    ):
         """PygameのSurfaceオブジェクトをテクスチャとして登録する。
 
         Args:

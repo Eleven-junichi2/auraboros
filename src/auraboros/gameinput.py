@@ -11,7 +11,7 @@ import pygame
 
 from .schedule import Stopwatch
 from .gametext import split_multiline_text, len_str_contain_fullwidth_char
-from .utilities import is_char_fullwidth
+from .utils.string import is_char_fullwidth
 
 
 @dataclass

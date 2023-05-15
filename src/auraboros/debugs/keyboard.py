@@ -7,7 +7,7 @@ import pygame
 
 import setup_syspath  # noqa
 from auraboros import engine
-from auraboros.utilities import AssetFilePath
+from auraboros.utils import AssetFilePath
 from auraboros.gametext import GameText, Font2
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.gameinput import Keyboard

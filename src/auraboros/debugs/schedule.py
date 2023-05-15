@@ -13,7 +13,7 @@ from auraboros.gametext import TextSurfaceFactory
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.gameinput import Keyboard
 from auraboros.ui import GameMenuSystem, GameMenuUI, MsgWindow
-from auraboros.utilities import AssetFilePath, draw_grid_background
+from auraboros.utils import AssetFilePath, draw_grid_background
 from auraboros.schedule import Stopwatch, Schedule
 
 engine.init(caption="Test Schedule System")

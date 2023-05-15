@@ -13,7 +13,7 @@ from auraboros.gametext import GameText, Font2
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.gameinput import Keyboard
 from auraboros.ui import GameMenuSystem, GameMenuUI, MsgWindow
-from auraboros.utilities import AssetFilePath, draw_grid
+from auraboros.utils import AssetFilePath, draw_grid
 from auraboros.schedule import Stopwatch
 
 engine.init(caption="Test Stopwatch System", pixel_scale=3)

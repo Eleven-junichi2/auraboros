@@ -1,4 +1,4 @@
-from src.auraboros.utilities import (
+from auraboros.utils import (
     is_flat,
     joint_stritems_in_range_a_to_b,
     joint_two_stritems_by_indexpair_list,

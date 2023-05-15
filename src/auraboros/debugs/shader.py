@@ -10,11 +10,11 @@ import pygame
 import setup_syspath  # noqa
 from auraboros import engine
 from auraboros.animation import AnimationImage, SpriteSheet, AnimationImageDict
-from auraboros.entity import Entity
+from auraboros.old_entity import Entity
 from auraboros.gameinput import Keyboard
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.shader import Shader2D, VERTEX_DEFAULT
-from auraboros.utilities import Arrow, AssetFilePath, draw_grid
+from auraboros.utils import Arrow, AssetFilePath, draw_grid
 
 engine.init(pixel_scale=1, set_mode_flags=pygame.DOUBLEBUF | pygame.OPENGL)
 

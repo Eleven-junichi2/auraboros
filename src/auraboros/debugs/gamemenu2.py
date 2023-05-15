@@ -11,7 +11,7 @@ from auraboros import engine, global_
 from auraboros.gametext import GameText, Font2
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.ui import MenuUI, MsgBoxUI
-from auraboros.utilities import AssetFilePath, draw_grid, pos_on_px_scale
+from auraboros.utils import AssetFilePath, draw_grid, pos_on_px_scale
 from auraboros.gameinput import Keyboard
 
 engine.init(caption="Test MsgBox", pixel_scale=2)

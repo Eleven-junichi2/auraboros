@@ -11,9 +11,10 @@ from auraboros import engine
 from auraboros.gametext import GameText, Font2
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.ui import MsgBoxUI
-from auraboros.utilities import AssetFilePath, draw_grid
+from auraboros.utils.path import AssetFilePath
+from auraboros.utils.surface import draw_grid
 
-engine.init(caption="Test MsgBox", pixel_scale=2)
+engine.init(caption="Test MsgBox", base_pixel_scale=2)
 
 AssetFilePath.set_asset_root(Path(sys.argv[0]).parent / "assets")
 
@@ -39,10 +40,7 @@ class DebugScene(Scene):
         self.msgbox3.property.pos[1] = (
             self.msgbox2.property.pos[1] + self.msgbox2.property.real_size[1]
         )
-        self.msgbox4 = MsgBoxUI(
-            GameText.font,
-            "fixed sizing MsgBoxUI"
-        )
+        self.msgbox4 = MsgBoxUI(GameText.font, "fixed sizing MsgBoxUI")
         self.msgbox4.property.fixed_size = [200, 20]
         self.msgbox4.property.pos[1] = (
             self.msgbox3.property.pos[1] + self.msgbox3.property.real_size[1]
@@ -76,7 +74,7 @@ class DebugScene(Scene):
 
 
 scene_manager = SceneManager()
-scene_manager.push(DebugScene(scene_manager))
+scene_manager.add(DebugScene(scene_manager))
 
 if __name__ == "__main__":
     engine.run(scene_manager=scene_manager, fps=60)

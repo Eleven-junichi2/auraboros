@@ -10,7 +10,7 @@ from auraboros.gametext import GameText, Font2
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.gameinput import Keyboard
 from auraboros.ui import MenuUI, MsgBoxUI
-from auraboros.utilities import AssetFilePath, draw_grid, pos_on_px_scale
+from auraboros.utils import AssetFilePath, draw_grid, pos_on_px_scale
 from auraboros.schedule import Stopwatch
 
 engine.init(caption="Test Animation System")

@@ -2,13 +2,13 @@ from typing import Callable, Optional, Union
 
 import pygame
 
-from . import global_
 from .gametext import Font2
 from .gameinput import TextInput
-from .utilities import (
+from .utils.coordinate import (
     calc_pos_to_center,
     calc_x_to_center,
     calc_y_to_center,
+    window_size,
 )
 
 
@@ -535,7 +535,7 @@ class TextInputUI(MsgBoxUI):
         if use_window_width_as_default_linelength_if_it_is_None and not (
             linelength_in_char and linelength_in_px
         ):
-            linelength_in_px = global_.w_size[0]
+            linelength_in_px = window_size[0]
         super().__init__(
             font=font,
             text_or_textlist=text_or_textlist,

@@ -1,12 +1,9 @@
 from dataclasses import dataclass
 from typing import Any, Callable
 
-# from typing import Optional, Union
-
 import pygame
 
-from auraboros import global_
-
+from .core import Global
 from .animation import AnimationImage
 from .gameinput import KeyboardManager, Mouse
 
@@ -42,26 +39,21 @@ class StateMachine:
         return self.current_state.script()
 
 
-@dataclass
 class Scene:
     def __init__(self, manager: "SceneManager"):
-        from .gamelevel import Level
-
         self.manager = manager
         self.statemachine: StateMachine = StateMachine()
-        self.gameworld: Level = None
         self.keyboard: KeyboardManager = KeyboardManager()
         self.mouse: Mouse = Mouse()
-        # self._joystick: Joystick2 = None
         self.visual_effects: list[AnimationImage] = []
-        attrs_of_class = set(dir(self.__class__)) - set(dir(Scene))
-        for attr_name in attrs_of_class:
-            attrs_of_object = set(getattr(self, attr_name).__class__.__mro__) - {
-                object,
-            }
-            is_gameworld = Level in attrs_of_object
-            if is_gameworld:
-                getattr(self, attr_name).scene = self
+        # attrs_of_class = set(dir(self.__class__)) - set(dir(Scene))
+        # for attr_name in attrs_of_class:
+        #     attrs_of_object = set(getattr(self, attr_name).__class__.__mro__) - {
+        #         object,
+        #     }
+        #     is_gameworld = Level in attrs_of_object
+        #     if is_gameworld:
+        #         getattr(self, attr_name).scene = self
         self._is_setup_finished = False  # turn True by SceneManager
 
     def setup(self):
@@ -84,7 +76,7 @@ class Scene:
 class SceneManager:
     def __init__(self):
         self.scenes: list[Scene] = []
-        self._current: int = 0
+        self._current: int = 0  # -1 means exit app
         self.__is_finished_setup_of_first_scene = False
 
     @property
@@ -108,40 +100,20 @@ class SceneManager:
             self.scenes[self.current].keyboard.current_setup.event(event)
         if self.scenes[self.current].mouse is not None:
             self.scenes[self.current].mouse.event(event)
-        # if self.scenes[self.current].joystick is not None:
-        #     self.scenes[self.current].joystick.event(event)
         return True
-
-    def is_current_scene_has_gameworld(self) -> bool:
-        if self.scenes[self.current].gameworld is None:
-            return False
-        else:
-            return True
 
     def update(self, dt):
         if not self.__is_finished_setup_of_first_scene:
-            if global_.is_init_called:
+            if Global.is_initialized:
                 self.scenes[0].setup()
                 self.__is_finished_setup_of_first_scene = True
                 self.scenes[0]._is_setup_finished = True
         self.scenes[self.current].update(dt)
-        if self.is_current_scene_has_gameworld():
-            if not self.scenes[self.current].gameworld.pause:
-                [
-                    entity.update()
-                    for entity in self.scenes[self.current].gameworld.entities
-                ]
 
     def draw(self, screen: pygame.surface.Surface):
         self.scenes[self.current].draw(screen)
-        if self.is_current_scene_has_gameworld():
-            if not self.scenes[self.current].gameworld.pause:
-                [
-                    entity.draw(screen)
-                    for entity in self.scenes[self.current].gameworld.entities
-                ]
 
-    def push(self, scene: Scene):
+    def add(self, scene: Scene):
         self.scenes.append(scene)
 
     def pop(self):

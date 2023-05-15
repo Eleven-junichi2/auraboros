@@ -1,11 +1,13 @@
 from __future__ import annotations
+
 # from abc import ABCMeta, abstractmethod
 from inspect import isclass
 import math
 import random
 from typing import TYPE_CHECKING, Type
+
 if TYPE_CHECKING:
-    from .gamelevel import Level
+    from .old_gamelevel import Level
 
 from collections import UserDict
 from math import sqrt
@@ -13,7 +15,7 @@ from math import sqrt
 import pygame
 
 # from .gamescene import Scene
-from .utilities import Arrow, ArrowToTurnToward
+from .utils import Arrow, ArrowToTurnToward
 from . import global_
 
 
@@ -77,7 +79,7 @@ class Entity(pygame.sprite.Sprite):
         self.move_dest_y = None
         self.angle_to_target = 0
 
-    @ property
+    @property
     def hitbox(self):
         return self._hitbox
 
@@ -91,11 +93,11 @@ class Entity(pygame.sprite.Sprite):
     def set_hitbox_y_to_rect_center_y(self):
         self.hitbox.y = self.y + (self.rect.height - self.hitbox.height) // 2
 
-    @ property
+    @property
     def x(self):
         return self._x
 
-    @ x.setter
+    @x.setter
     def x(self, value):
         self._x = round(value, 2)
         self.rect.x = self._x
@@ -104,11 +106,11 @@ class Entity(pygame.sprite.Sprite):
         else:
             self.hitbox.x = self._x
 
-    @ property
+    @property
     def y(self):
         return self._y
 
-    @ y.setter
+    @y.setter
     def y(self, value):
         self._y = round(value, 2)
         self.rect.y = self._y
@@ -152,14 +154,12 @@ class Entity(pygame.sprite.Sprite):
         attribute is set to True if the entity is moving, or False
         otherwise.
         """
-        if ((self.arrow_of_move.is_up and
-            self.arrow_of_move.is_right) or
-            (self.arrow_of_move.is_up and
-            self.arrow_of_move.is_left) or
-            (self.arrow_of_move.is_down and
-            self.arrow_of_move.is_right) or
-            (self.arrow_of_move.is_down and
-                self.arrow_of_move.is_left)):
+        if (
+            (self.arrow_of_move.is_up and self.arrow_of_move.is_right)
+            or (self.arrow_of_move.is_up and self.arrow_of_move.is_left)
+            or (self.arrow_of_move.is_down and self.arrow_of_move.is_right)
+            or (self.arrow_of_move.is_down and self.arrow_of_move.is_left)
+        ):
             # Correct the speed of diagonal movement
             movement_speed = self.movement_speed / sqrt(2)
         else:
@@ -181,8 +181,8 @@ class Entity(pygame.sprite.Sprite):
 
     def move_by_angle(self, dt, radians):
         self.is_moving = True
-        self.y += math.sin(radians)*self.movement_speed
-        self.x += math.cos(radians)*self.movement_speed
+        self.y += math.sin(radians) * self.movement_speed
+        self.x += math.cos(radians) * self.movement_speed
 
     def set_x_to_center_of_screen(self):
         """Center the posistion on the screen"""
@@ -199,14 +199,16 @@ class Entity(pygame.sprite.Sprite):
         self.remove_from_container()
 
     @staticmethod
-    def collide(entity_a: Entity, entity_b: Entity,
-                death_a=True, death_b=True) -> bool:
+    def collide(entity_a: Entity, entity_b: Entity, death_a=True, death_b=True) -> bool:
         """Each entity executes death() when a collision occurs."""
         is_entity_a_alive = entity_a in entity_a.gameworld.entities
         is_entity_b_alive = entity_a in entity_b.gameworld.entities
-        if (entity_a.hitbox.colliderect(entity_b.hitbox)
+        if (
+            entity_a.hitbox.colliderect(entity_b.hitbox)
             and entity_b.hitbox.colliderect(entity_a.hitbox)
-                and is_entity_a_alive and is_entity_b_alive):
+            and is_entity_a_alive
+            and is_entity_b_alive
+        ):
             # if (collided(entity_a, entity_b)
             #         and is_entity_a_alive and is_entity_b_alive):
             if not entity_a.invincible_to_entity:
@@ -237,9 +239,11 @@ class Entity(pygame.sprite.Sprite):
         """Set arrow of movement to right or left."""
         if not self.move_dest_x:
             self.random_dest_x()
-        if (self.move_dest_x - self.movement_speed
-            <= self.x <=
-                self.move_dest_x + self.movement_speed):
+        if (
+            self.move_dest_x - self.movement_speed
+            <= self.x
+            <= self.move_dest_x + self.movement_speed
+        ):
             self.arrow_of_move.unset(Arrow.right)
             self.arrow_of_move.unset(Arrow.left)
             self.random_dest_x()
@@ -254,9 +258,11 @@ class Entity(pygame.sprite.Sprite):
         """Set arrow of movement to up or down."""
         if not self.move_dest_y:
             self.random_dest_y()
-        if (self.move_dest_y - self.movement_speed
-            <= self.y <=
-                self.move_dest_y + self.movement_speed):
+        if (
+            self.move_dest_y - self.movement_speed
+            <= self.y
+            <= self.move_dest_y + self.movement_speed
+        ):
             self.arrow_of_move.unset(Arrow.up)
             self.arrow_of_move.unset(Arrow.down)
             self.random_dest_x()
@@ -287,11 +293,11 @@ class Entity(pygame.sprite.Sprite):
 
     def set_arrow_to_dest_x(self, dt, stop_when_arrived=True):
         if self.move_dest_x:
-            if (self.move_dest_x - self.movement_speed
-                + self.hitbox.width
-                <= self.x <=
-                    self.move_dest_x + self.movement_speed
-                    - self.hitbox.width) and stop_when_arrived:
+            if (
+                self.move_dest_x - self.movement_speed + self.hitbox.width
+                <= self.x
+                <= self.move_dest_x + self.movement_speed - self.hitbox.width
+            ) and stop_when_arrived:
                 self.arrow_of_move.unset(Arrow.right)
                 self.arrow_of_move.unset(Arrow.left)
             elif self.x < self.move_dest_x:
@@ -303,11 +309,11 @@ class Entity(pygame.sprite.Sprite):
 
     def set_arrow_to_dest_y(self, dt):
         if self.move_dest_y:
-            if (self.move_dest_y - self.movement_speed
-                + self.hitbox.height
-                <= self.y <=
-                    self.move_dest_y + self.movement_speed
-                    - self.hitbox.height):
+            if (
+                self.move_dest_y - self.movement_speed + self.hitbox.height
+                <= self.y
+                <= self.move_dest_y + self.movement_speed - self.hitbox.height
+            ):
                 self.arrow_of_move.unset(Arrow.up)
                 self.arrow_of_move.unset(Arrow.down)
             elif self.y < self.move_dest_y:
@@ -323,8 +329,10 @@ class Entity(pygame.sprite.Sprite):
 
     def set_destination_to_entity(self, entity_type: Entity) -> bool:
         entity_list = [
-            entity for entity in self.gameworld.entities
-            if isinstance(entity, entity_type)]
+            entity
+            for entity in self.gameworld.entities
+            if isinstance(entity, entity_type)
+        ]
         if entity_list:
             self.move_dest_x = entity_list[0].hitbox.x
             self.move_dest_y = entity_list[0].hitbox.y
@@ -363,12 +371,11 @@ class Enemy(DeadlyObstacle):
         self.action = "idle"
         self.behavior_pattern = None
         self.behavior_pattern_dict = {}
+        self.behavior_pattern_dict["random_vertical"] = self.set_arrow_random_vertical
         self.behavior_pattern_dict[
-            "random_vertical"] = self.set_arrow_random_vertical
-        self.behavior_pattern_dict[
-            "random_horizontal"] = self.set_arrow_random_horizontal
-        self.behavior_pattern_dict[
-            "random"] = self.set_arrow_random
+            "random_horizontal"
+        ] = self.set_arrow_random_horizontal
+        self.behavior_pattern_dict["random"] = self.set_arrow_random
         self.gamescore = 0
 
     def update(self, dt):

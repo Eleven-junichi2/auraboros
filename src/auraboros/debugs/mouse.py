@@ -8,7 +8,7 @@ import setup_syspath  # noqa
 from auraboros import engine
 from auraboros.gametext import GameText, Font2
 from auraboros.gamescene import Scene, SceneManager
-from auraboros.utilities import AssetFilePath, draw_grid, pos_on_pixel_scale
+from auraboros.utils import AssetFilePath, draw_grid, pos_on_pixel_scale
 from auraboros.gamecamera import TopDownCamera
 from auraboros.gameinput import Keyboard
 from auraboros.ui import MsgWindow
