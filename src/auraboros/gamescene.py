@@ -46,14 +46,6 @@ class Scene:
         self.keyboard: KeyboardManager = KeyboardManager()
         self.mouse: Mouse = Mouse()
         self.visual_effects: list[AnimationImage] = []
-        # attrs_of_class = set(dir(self.__class__)) - set(dir(Scene))
-        # for attr_name in attrs_of_class:
-        #     attrs_of_object = set(getattr(self, attr_name).__class__.__mro__) - {
-        #         object,
-        #     }
-        #     is_gameworld = Level in attrs_of_object
-        #     if is_gameworld:
-        #         getattr(self, attr_name).scene = self
         self._is_setup_finished = False  # turn True by SceneManager
 
     def setup(self):
