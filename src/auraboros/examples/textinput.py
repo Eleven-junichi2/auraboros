@@ -5,12 +5,11 @@ import pygame
 
 import setup_syspath  # noqa
 from auraboros import engine
-from auraboros.utils import AssetFilePath
 from auraboros.gametext import GameText, Font2
 from auraboros.gamescene import Scene, SceneManager
-
 from auraboros.ui import MsgBoxUI, TextInputUI
-from auraboros import global_
+from auraboros.utils.path import AssetFilePath
+from auraboros.utils.coordinate import window_size_in_scaled_px
 
 engine.init()
 
@@ -32,10 +31,10 @@ class RawImplementedTextInputScene(Scene):
         self.debug_msgbox1 = MsgBoxUI(GameText.font)
         self.debug_msgbox2 = MsgBoxUI(GameText.font)
         self.debug_msgbox1.property.pos[1] = (
-            global_.w_size[1] - self.debug_msgbox1.property.real_size[1]
+            window_size_in_scaled_px()[1] - self.debug_msgbox1.property.real_size[1]
         )
         self.debug_msgbox2.property.pos[1] = (
-            global_.w_size[1]
+            window_size_in_scaled_px()[1]
             - self.debug_msgbox1.property.real_size[1]
             - self.debug_msgbox2.property.real_size[1]
         )
@@ -70,7 +69,7 @@ class RawImplementedTextInputScene(Scene):
                 self.textinput,
                 True,
                 (255, 255, 255),
-                line_width_by_px=global_.w_size[0],
+                line_width_by_px=window_size_in_scaled_px()[0],
             ),
             (0, 0),
         )
@@ -85,7 +84,7 @@ class DebugScene(Scene):
         self.msgbox1 = MsgBoxUI(GameText.font)
         self.msgbox2 = MsgBoxUI(GameText.font)
         self.msgbox1.property.pos[1] = (
-            global_.w_size[1] - self.msgbox1.property.real_size[1]
+            window_size_in_scaled_px()[1] - self.msgbox1.property.real_size[1]
         )
         self.msgbox2.property.pos[1] = (
             self.msgbox1.property.pos[1] - self.msgbox2.property.real_size[1]
@@ -106,7 +105,7 @@ class DebugScene(Scene):
         self.msgbox1.property.rewrite_text(
             f"real_size of textinput UI: {self.textinputbox1.property.real_size}"
         )
-        self.textinputbox1.interface.let_keyboard_input()
+        self.textinputbox1.interface.do_keyinput()
 
     def draw(self, screen):
         self.textinputbox1.draw(screen)
@@ -116,7 +115,7 @@ class DebugScene(Scene):
 
 scene_manager = SceneManager()
 # scene_manager.push(RawImplementedTextInputScene(scene_manager))
-scene_manager.push(DebugScene(scene_manager))
+scene_manager.add(DebugScene(scene_manager))
 
 if __name__ == "__main__":
     engine.run(scene_manager=scene_manager)

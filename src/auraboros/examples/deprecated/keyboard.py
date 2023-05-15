@@ -7,14 +7,14 @@ import pygame
 
 import setup_syspath  # noqa
 from auraboros import engine
-from auraboros.utils import AssetFilePath
+from auraboros.utils.path import AssetFilePath
+from auraboros.utils.coordinate import window_size_in_scaled_px
 from auraboros.gametext import GameText, Font2
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.gameinput import Keyboard
-from auraboros.ui import MsgWindow
-from auraboros import global_
+from auraboros.ui import MsgBoxUI, TextInputUI
 
-engine.init(pixel_scale=2)
+engine.init(base_pixel_scale=2)
 
 AssetFilePath.set_asset_root(Path(sys.argv[0]).parent / "assets")
 
@@ -27,11 +27,12 @@ AZERTY_STR = "azertyuiopqsdfghjklmwxcvbn"
 
 
 class KeyboardDebugScene(Scene):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.textinput = ""
-        self.keyboard["qwerty"] = Keyboard()
-        self.keyboard["azerty"] = Keyboard()
+    def setup(self):
+        self.textinputui = TextInputUI(GameText.font)
+        self.textinputui.interface.activate()
+        # self.textinput = ""
+        self.keyboard["qwerty"] = self.textinputui.interface.keyboard
+        self.keyboard["azerty"] = self.textinputui.interface.keyboard
         for key_name in QWERTY_STR:
             self.keyboard["qwerty"].register_keyaction(
                 pygame.key.key_code(key_name),
@@ -58,22 +59,25 @@ class KeyboardDebugScene(Scene):
         )
         self.key_i_o_map: dict[str:bool] = dict.fromkeys(ascii_lowercase, False)
         self.keyboard.set_current_setup("qwerty")
-        self.msgbox1 = MsgWindow(GameText.font)
-        self.msgbox2 = MsgWindow(GameText.font)
-        self.msgbox3 = MsgWindow(GameText.font)
-        self.msgbox4 = MsgWindow(GameText.font)
-        self.msgbox5 = MsgWindow(GameText.font)
+        self.msgbox1 = MsgBoxUI(GameText.font)
+        self.msgbox2 = MsgBoxUI(GameText.font)
+        self.msgbox3 = MsgBoxUI(GameText.font)
+        self.msgbox4 = MsgBoxUI(GameText.font)
+        self.msgbox5 = MsgBoxUI(GameText.font)
 
     def press_key(self, key):
-        self.textinput += key
+        # self.textinput += key
         self.key_i_o_map[key] = True
 
     def release_key(self, key):
         self.key_i_o_map[key] = False
 
     def switch_keyboard_layout(self, layout_name, key):
-        print(key)
+        # print(key)
         self.keyboard.set_current_setup(layout_name)
+
+    def event(self, event: pygame.event):
+        self.textinputui.interface.event(event)
 
     def update(self, dt):
         for key_name in ascii_lowercase:
@@ -82,29 +86,54 @@ class KeyboardDebugScene(Scene):
             )
         self.keyboard.current_setup.do_action_on_keyinput(pygame.K_1, True)
         self.keyboard.current_setup.do_action_on_keyinput(pygame.K_2, True)
-        self.msgbox1.pos[1] = global_.w_size[1] - self.msgbox1.real_size[1]
-        self.msgbox2.pos[1] = self.msgbox1.pos[1] - self.msgbox2.real_size[1]
-        self.msgbox3.pos[1] = self.msgbox2.pos[1] - self.msgbox3.real_size[1]
-        self.msgbox4.pos[1] = self.msgbox3.pos[1] - self.msgbox4.real_size[1]
-        self.msgbox5.pos[1] = self.msgbox4.pos[1] - self.msgbox5.real_size[1]
-        self.msgbox1.text = "q _input_timer: " + str(
-            self.keyboard.current_setup.keyactions[pygame.K_q]._input_timer.read()
+        self.msgbox1.property.pos[1] = (
+            window_size_in_scaled_px()[1] - self.msgbox1.property.real_size[1]
         )
-        self.msgbox2.text = "q _input_timer pause: " + str(
-            self.keyboard.current_setup.keyactions[
-                pygame.K_q
-            ]._input_timer.read_pausing()
+        self.msgbox2.property.pos[1] = (
+            self.msgbox1.property.pos[1] - self.msgbox2.property.real_size[1]
         )
-        self.msgbox3.text = "q is_pressed: " + str(
-            self.keyboard.current_setup.keyactions[pygame.K_q]._is_pressed
+        self.msgbox3.property.pos[1] = (
+            self.msgbox2.property.pos[1] - self.msgbox3.property.real_size[1]
         )
-        self.msgbox4.text = "q is_delayinput_finished: " + str(
-            self.keyboard.current_setup.keyactions[pygame.K_q]._is_delayinput_finished
+        self.msgbox4.property.pos[1] = (
+            self.msgbox3.property.pos[1] - self.msgbox4.property.real_size[1]
         )
-        self.msgbox5.text = "q is_firstinterval_finished: " + str(
-            self.keyboard.current_setup.keyactions[
-                pygame.K_q
-            ]._is_firstinterval_finished
+        self.msgbox5.property.pos[1] = (
+            self.msgbox4.property.pos[1] - self.msgbox5.property.real_size[1]
+        )
+        self.msgbox1.property.rewrite_text(
+            "q _input_timer: "
+            + str(
+                self.keyboard.current_setup.keyactions[pygame.K_q]._input_timer.read()
+            )
+        )
+        self.msgbox2.property.rewrite_text(
+            "q _input_timer pause: "
+            + str(
+                self.keyboard.current_setup.keyactions[
+                    pygame.K_q
+                ]._input_timer.read_pausing()
+            )
+        )
+        self.msgbox3.property.rewrite_text(
+            "q is_pressed: "
+            + str(self.keyboard.current_setup.keyactions[pygame.K_q]._is_pressed)
+        )
+        self.msgbox4.property.rewrite_text(
+            "q is_delayinput_finished: "
+            + str(
+                self.keyboard.current_setup.keyactions[
+                    pygame.K_q
+                ]._is_delayinput_finished
+            )
+        )
+        self.msgbox5.property.rewrite_text(
+            "q is_firstinterval_finished: "
+            + str(
+                self.keyboard.current_setup.keyactions[
+                    pygame.K_q
+                ]._is_firstinterval_finished
+            )
         )
 
     def draw(self, screen):
@@ -132,40 +161,16 @@ class KeyboardDebugScene(Scene):
             else:
                 text_surface = GameText.font.render(key_name, True, (255, 255, 255))
                 screen.blit(text_surface, surface_pos)
-        textinput_size = GameText.font.size(self.textinput)
-        textinput_homepos = (0, char_size[1] * 6)
-        if textinput_size[0] > global_.w_size[0]:
-            num_of_chars = global_.w_size[0] // char_size[0]
-            textinput_lines = [
-                self.textinput[i : i + num_of_chars]
-                for i in range(0, len(self.textinput), num_of_chars)
-            ]
-            if (
-                textinput_size[1] * len(textinput_lines)
-                > global_.w_size[1] - textinput_homepos[1]
-            ):
-                textinput_deque = deque(self.textinput)
-                self.textinput = textinput_deque.pop()
-        else:
-            textinput_lines = [self.textinput]
-        for line_num, line in enumerate(textinput_lines):
-            textinput_to_show = line
-            textinput_surface = GameText.font.render(
-                textinput_to_show, True, (255, 255, 255)
-            )
-            screen.blit(
-                textinput_surface,
-                (textinput_homepos[0], textinput_homepos[1] + char_size[1] * line_num),
-            )
         self.msgbox1.draw(screen)
         self.msgbox2.draw(screen)
         self.msgbox3.draw(screen)
         self.msgbox4.draw(screen)
         self.msgbox5.draw(screen)
+        self.textinputui.draw(screen)
 
 
 scene_manager = SceneManager()
-scene_manager.push(KeyboardDebugScene(scene_manager))
+scene_manager.add(KeyboardDebugScene(scene_manager))
 
 if __name__ == "__main__":
     engine.run(scene_manager=scene_manager)

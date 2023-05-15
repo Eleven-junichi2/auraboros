@@ -74,7 +74,7 @@ def extract_compressed_file(
 
 
 def example_process():
-    example_dir = __main__py_path.parent / "debugs"
+    example_dir = __main__py_path.parent / "examples"
     print(__main__py_path)
     example_scripts = [f for f in example_dir.glob(
         "*.py") if f.name not in ("init_for_dev.py", "__init__.py")]

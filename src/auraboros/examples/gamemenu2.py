@@ -13,7 +13,7 @@ from auraboros.gamescene import Scene, SceneManager
 from auraboros.ui import MenuUI, MsgBoxUI
 from auraboros.utils.path import AssetFilePath
 from auraboros.utils.surface import draw_grid
-from auraboros.utils.coordinate import in_base_px_scale, window_size
+from auraboros.utils.coordinate import in_scaled_px, window_size
 from auraboros.gameinput import Keyboard
 
 engine.init(caption="Test MsgBox", base_pixel_scale=2)
@@ -82,7 +82,7 @@ class DebugScene(Scene):
             "down",
             on_left=lambda: self.menu1.interface.do_selected_action()
             if self.menu1.property.is_givenpos_on_ui(
-                in_base_px_scale(pygame.mouse.get_pos())
+                in_scaled_px(pygame.mouse.get_pos())
             )
             else None,
         )
@@ -99,7 +99,7 @@ class DebugScene(Scene):
         self.keyboard.current_setup.do_action_on_keyinput(pygame.K_DOWN)
         self.keyboard.current_setup.do_action_on_keyinput(pygame.K_z)
         self.menu1.highlight_option_on_givenpos(
-            in_base_px_scale(pygame.mouse.get_pos())
+            in_scaled_px(pygame.mouse.get_pos())
         )
         self.menu1.interface.do_action_on_highlight()
 

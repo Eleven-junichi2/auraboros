@@ -540,7 +540,7 @@ class TextInputUI(MsgBoxUI):
         if use_window_width_as_default_linelength_if_it_is_None and not (
             linelength_in_char and linelength_in_px
         ):
-            linelength_in_px = window_size[0]
+            linelength_in_px = window_size()[0]
         super().__init__(
             font=font,
             text_or_textlist=text_or_textlist,
@@ -562,7 +562,7 @@ class TextInputUI(MsgBoxUI):
     def draw(self, screen: pygame.Surface):
         self.property.rewrite_text(self.interface.text)
         self._calc_column_num_at_linewrap()
-        print(self.interface.column_num_at_line_wrap)
+        # print(self.interface.column_num_at_line_wrap)
         super().draw(screen)
         caret_start_pos = [
             self.interface.caret_column_num
@@ -598,12 +598,12 @@ class TextInputUI(MsgBoxUI):
                 caret_end_pos[1] = (
                     caret_start_pos[1] + self.property.font.halfwidth_charsize()[1]
                 )
-                print(
-                    f"fixed_caret_x: {fixed_caret_x} | fixed_caret_y: {fixed_caret_y}"
-                    + " | "
-                    + f"column_num_at_linewrap {self.interface.column_num_at_line_wrap}"
-                    + " | "
-                    + f"caret_column_num {self.interface.caret_column_num}"
-                )
+                # print(
+                #     f"fixed_caret_x: {fixed_caret_x} | fixed_caret_y: {fixed_caret_y}"
+                #     + " | "
+                #     + f"column_numatlinewrap {self.interface.column_num_at_line_wrap}"
+                #     + " | "
+                #     + f"caret_column_num {self.interface.caret_column_num}"
+                # )
         if self.interface.is_active:
             pygame.draw.line(screen, (255, 255, 255), caret_start_pos, caret_end_pos)

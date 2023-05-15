@@ -322,6 +322,7 @@ class TextInput:
         self.caret_column_num: int = 0
         self.caret_line_num: int = 0
         self.column_num_at_line_wrap: int = None
+        self.is_do_keyinput_called = False
 
     @property
     def text_lines(self):
@@ -335,13 +336,16 @@ class TextInput:
         self.is_active = False
         pygame.key.stop_text_input()
 
-    def let_keyboard_input(self):
+    def do_keyinput(self):
         if self.is_active:
             self.keyboard.do_action_on_keyinput(pygame.K_RETURN)
             self.keyboard.do_action_on_keyinput(pygame.K_BACKSPACE)
+            self.is_do_keyinput_called = True
 
     def event(self, event: pygame.event.Event):
         if self.is_active:
+            if not self.is_do_keyinput_called:
+                raise Exception("do_keyinput() must be called")
             if event.type == pygame.TEXTEDITING:
                 # textinput in full-width characters
                 self._IMEtextinput = event.text
@@ -365,6 +369,7 @@ class TextInput:
                 if pygame.key.get_pressed()[pygame.K_RETURN]:
                     self.text += self._IMEtextinput
                     self.advance_caret_by_length_of(self._IMEtextinput)
+                    self.start_newline()
                 if pygame.key.get_pressed()[pygame.K_BACKSPACE]:
                     self.back_caret_pos()
             elif event.type == pygame.TEXTINPUT:
