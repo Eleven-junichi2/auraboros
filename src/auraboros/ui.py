@@ -13,7 +13,8 @@ from .utils.coordinate import (
 
 
 class UIElement:
-    pass
+    def __init__(self) -> None:
+        pass
 
 
 class UIProperty:
