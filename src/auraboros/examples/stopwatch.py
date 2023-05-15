@@ -8,7 +8,6 @@ import pygame
 
 import setup_syspath  # noqa
 from auraboros import engine
-from auraboros.animation import AnimationImage, SpriteSheet
 from auraboros.gametext import GameText, Font2
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.gameinput import Keyboard
@@ -22,24 +21,6 @@ engine.init(caption="Test Stopwatch System", base_pixel_scale=3)
 AssetFilePath.set_asset_root(Path(sys.argv[0]).parent / "assets")
 
 GameText.setup_font(Font2(AssetFilePath.font("misaki_gothic.ttf"), 16), "misakigothic")
-
-
-class TestAnimImg(AnimationImage):
-    def __init__(self):
-        super().__init__()
-        self.sprite_sheet = SpriteSheet(AssetFilePath.img("testsprite.png"))
-        self.anim_frames: list[pygame.surface.Surface] = [
-            self.sprite_sheet.image_by_area(0, 0, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32 * 2, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32 * 3, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32 * 4, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32 * 3, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32 * 2, 32, 32),
-            self.sprite_sheet.image_by_area(0, 32, 32, 32),
-        ]
-        self.anim_interval = 1000
-        self.loop_count = 1
 
 
 class DebugScene(Scene):

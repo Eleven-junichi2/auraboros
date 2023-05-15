@@ -12,7 +12,7 @@ from auraboros.gameinput import Keyboard
 from auraboros.ui import MenuUI, MsgBoxUI
 from auraboros.utils.path import AssetFilePath
 from auraboros.utils.surface import draw_grid
-from auraboros.utils.coordinate import in_base_px_scale, window_size
+from auraboros.utils.coordinate import in_scaled_px, window_size
 from auraboros.schedule import Stopwatch
 
 engine.init(caption="Test Animation System")
@@ -64,7 +64,7 @@ class DebugScene(Scene):
             "down",
             on_left=lambda: self.menuui.interface.do_selected_action()
             if self.menuui.property.is_givenpos_on_ui(
-                in_base_px_scale(pygame.mouse.get_pos())
+                in_scaled_px(pygame.mouse.get_pos())
             )
             else None,
         )
@@ -105,7 +105,7 @@ class DebugScene(Scene):
         self.keyboard.current_setup.do_action_on_keyinput(pygame.K_DOWN)
         self.keyboard.current_setup.do_action_on_keyinput(pygame.K_z)
         self.menuui.highlight_option_on_givenpos(
-            in_base_px_scale(pygame.mouse.get_pos())
+            in_scaled_px(pygame.mouse.get_pos())
         )
         self.msgbox2.property.rewrite_text(
             f"id of current frame:{self.animation.id_current_frame}"

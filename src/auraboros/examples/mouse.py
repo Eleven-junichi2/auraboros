@@ -8,13 +8,14 @@ import setup_syspath  # noqa
 from auraboros import engine
 from auraboros.gametext import GameText, Font2
 from auraboros.gamescene import Scene, SceneManager
-from auraboros.utils import AssetFilePath, draw_grid, pos_on_pixel_scale
 from auraboros.gamecamera import TopDownCamera
 from auraboros.gameinput import Keyboard
-from auraboros.ui import MsgWindow
-from auraboros import global_
+from auraboros.ui import MsgBoxUI
+from auraboros.utils.path import AssetFilePath
+from auraboros.utils.surface import draw_grid
+from auraboros.utils.coordinate import in_scaled_px, window_size
 
-engine.init(caption="Test Mouse System", pixel_scale=2)
+engine.init(caption="Test Mouse System", base_pixel_scale=2)
 
 AssetFilePath.set_asset_root(Path(sys.argv[0]).parent / "assets")
 
@@ -22,9 +23,8 @@ GameText.setup_font(Font2(AssetFilePath.font("misaki_gothic.ttf"), 16), "misakig
 
 
 class DebugScene(Scene):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.canvas_surf = pygame.surface.Surface(global_.w_size)
+    def setup(self):
+        self.canvas_surf = pygame.surface.Surface(window_size())
         draw_grid(self.canvas_surf, 16, (78, 78, 78))
         self.canvas_surf.set_colorkey((0, 0, 0))
         self.camera = TopDownCamera()
@@ -47,17 +47,19 @@ class DebugScene(Scene):
         self.mouse.register_mouseaction("down", on_right=self.erase_canvas)
         self.mouse.register_mouseaction("motion", on_right=self.erase_canvas)
         self.mouse.register_mouseaction("drag", on_middle=self.drag_canvas)
-        self.msgbox = MsgWindow(GameText.font)
-        self.msgbox.padding = 2
-        self.msgbox.text = "Click to paint | Click wheel and drag to move canvas"
-        self.text_to_show_param1 = GameText("", (0, self.msgbox.real_size[1]))
+        self.msgbox = MsgBoxUI(GameText.font)
+        self.msgbox.property.padding = 2
+        self.msgbox.property.rewrite_text(
+            "Click to paint | Click wheel and drag to move canvas"
+        )
+        self.text_to_show_param1 = GameText("", (0, self.msgbox.property.real_size[1]))
         self.text_to_show_param2 = GameText(
-            "", (0, self.msgbox.real_size[1] + GameText.font.get_height())
+            "", (0, self.msgbox.property.real_size[1] + GameText.font.get_height())
         )
 
     def paint_canvas(self):
         camera_offset = self.camera.offset
-        mouse_pos = pos_on_pixel_scale(pygame.mouse.get_pos())
+        mouse_pos = in_scaled_px(pygame.mouse.get_pos())
         pos = map(sum, zip(mouse_pos, camera_offset))
         pygame.draw.rect(
             self.canvas_surf,
@@ -72,7 +74,7 @@ class DebugScene(Scene):
 
     def erase_canvas(self):
         camera_offset = self.camera.offset
-        mouse_pos = map(lambda num: num // global_.PIXEL_SCALE, pygame.mouse.get_pos())
+        mouse_pos = in_scaled_px(pygame.mouse.get_pos())
         pos = map(sum, zip(mouse_pos, camera_offset))
         pygame.draw.rect(self.canvas_surf, (0, 0, 0), (*pos, 2, 2), 2)
 
@@ -86,14 +88,14 @@ class DebugScene(Scene):
 
     def draw(self, screen):
         # screen.blit(self.canvas_surf, (0, 0))
-        self.camera.projection_on_screen(screen, self.canvas_surf, global_.w_size)
+        self.camera.projection_on_screen(screen, self.canvas_surf, window_size())
         self.msgbox.draw(screen)
         self.text_to_show_param1.render(screen)
         self.text_to_show_param2.render(screen)
 
 
 scene_manager = SceneManager()
-scene_manager.push(DebugScene(scene_manager))
+scene_manager.add(DebugScene(scene_manager))
 
 if __name__ == "__main__":
     engine.run(scene_manager=scene_manager, fps=60)

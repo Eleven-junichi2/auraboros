@@ -1,12 +1,9 @@
-import pygame
-
 import setup_syspath  # noqa
 from auraboros import engine
 from auraboros.gamescene import Scene, SceneManager
 
 
-engine.init(caption="Test scene transition", pixel_scale=1,
-            set_mode_flags=pygame.DOUBLEBUF | pygame.OPENGL)
+engine.init(caption="Test scene transition")
 
 
 class TestSceneA(Scene):
@@ -21,11 +18,6 @@ class TestSceneA(Scene):
         if not self.is_transition_done:
             self.is_transition_done = True
             self.manager.transition_to(2)
-
-    # def update(self, dt):
-    #     """update(), draw(), event() is not called before setup()."""
-    #     # raise AttributeError if update() is called before setup():
-    #     dammy = self.dammy  # noqa
 
 
 class TestSceneB(Scene):
@@ -52,9 +44,9 @@ class TestSceneC(Scene):
 
 
 scene_manager = SceneManager()
-scene_manager.push(TestSceneA(scene_manager))
-scene_manager.push(TestSceneB(scene_manager))
-scene_manager.push(TestSceneC(scene_manager))
+scene_manager.add(TestSceneA(scene_manager))
+scene_manager.add(TestSceneB(scene_manager))
+scene_manager.add(TestSceneC(scene_manager))
 
 if __name__ == "__main__":
     engine.run(scene_manager)
