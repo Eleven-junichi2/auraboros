@@ -26,7 +26,7 @@
             "name": "Python: example animation",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/auraboros/debugs/animation.py",
+            "program": "${workspaceFolder}/src/auraboros/examples/animation.py",
             "console": "integratedTerminal",
             "justMyCode": true
         },
@@ -34,7 +34,7 @@
             "name": "Python: example shader",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/auraboros/debugs/shader.py",
+            "program": "${workspaceFolder}/src/auraboros/examples/shader.py",
             "console": "integratedTerminal",
             "justMyCode": true
         },
@@ -42,7 +42,7 @@
             "name": "Python: example particle",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/auraboros/debugs/particle.py",
+            "program": "${workspaceFolder}/src/auraboros/examples/particle.py",
             "console": "integratedTerminal",
             "justMyCode": true
         },
@@ -50,7 +50,7 @@
             "name": "Python: example gamemenu",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/auraboros/debugs/gamemenu.py",
+            "program": "${workspaceFolder}/src/auraboros/examples/gamemenu.py",
             "console": "integratedTerminal",
             "justMyCode": true
         },
@@ -58,7 +58,7 @@
             "name": "Python: example keyboard",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/auraboros/debugs/keyboard.py",
+            "program": "${workspaceFolder}/src/auraboros/examples/keyboard.py",
             "console": "integratedTerminal",
             "justMyCode": true
         },
@@ -66,7 +66,7 @@
             "name": "Python: example stopwatch",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/auraboros/debugs/stopwatch.py",
+            "program": "${workspaceFolder}/src/auraboros/examples/stopwatch.py",
             "console": "integratedTerminal",
             "justMyCode": true
         },
@@ -74,7 +74,7 @@
             "name": "Python: example schedule",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/auraboros/debugs/schedule.py",
+            "program": "${workspaceFolder}/src/auraboros/examples/schedule.py",
             "console": "integratedTerminal",
             "justMyCode": true
         },
@@ -82,7 +82,7 @@
             "name": "Python: example scene transition",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/auraboros/debugs/scenetrans.py",
+            "program": "${workspaceFolder}/src/auraboros/examples/scenetrans.py",
             "console": "integratedTerminal",
             "justMyCode": true
         },
@@ -90,7 +90,7 @@
             "name": "Python: example mouse",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/auraboros/debugs/mouse.py",
+            "program": "${workspaceFolder}/src/auraboros/examples/mouse.py",
             "console": "integratedTerminal",
             "justMyCode": true
         },
@@ -98,7 +98,7 @@
             "name": "Python: example msgwindow",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/auraboros/debugs/msgbox.py",
+            "program": "${workspaceFolder}/src/auraboros/examples/msgbox.py",
             "console": "integratedTerminal",
             "justMyCode": true
         },
@@ -106,7 +106,7 @@
             "name": "Python: example animationimage",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/auraboros/debugs/animationimage.py",
+            "program": "${workspaceFolder}/src/auraboros/examples/animationimage.py",
             "console": "integratedTerminal",
             "justMyCode": true
         },
@@ -114,7 +114,7 @@
             "name": "Python: example gametext",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/auraboros/debugs/gametext.py",
+            "program": "${workspaceFolder}/src/auraboros/examples/gametext.py",
             "console": "integratedTerminal",
             "justMyCode": true
         },
@@ -122,7 +122,7 @@
             "name": "Python: example textinput",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/auraboros/debugs/textinput.py",
+            "program": "${workspaceFolder}/src/auraboros/examples/textinput.py",
             "console": "integratedTerminal",
             "justMyCode": true
         },
@@ -130,7 +130,7 @@
             "name": "Python: example keyframe animation",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/auraboros/debugs/keyframeanim.py",
+            "program": "${workspaceFolder}/src/auraboros/examples/keyframeanim.py",
             "console": "integratedTerminal",
             "justMyCode": true
         },
@@ -138,7 +138,7 @@
             "name": "Python: example msgbox2",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/auraboros/debugs/msgbox2.py",
+            "program": "${workspaceFolder}/src/auraboros/examples/msgbox2.py",
             "console": "integratedTerminal",
             "justMyCode": true
         },
@@ -146,7 +146,7 @@
             "name": "Python: example gamemenu2",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/auraboros/debugs/gamemenu2.py",
+            "program": "${workspaceFolder}/src/auraboros/examples/gamemenu2.py",
             "console": "integratedTerminal",
             "justMyCode": true
         },
@@ -162,7 +162,7 @@
             "name": "Python: example animate_ui",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/auraboros/debugs/animate_ui.py",
+            "program": "${workspaceFolder}/src/auraboros/examples/animate_ui.py",
             "console": "integratedTerminal",
             "justMyCode": true
         },

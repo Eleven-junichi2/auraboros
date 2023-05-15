@@ -23,60 +23,6 @@ GameText.setup_font(
 )
 
 
-class RawImplementedTextInputScene(Scene):
-    def setup(self):
-        GameText.use_font("PixelMplus12Regular")
-        self.IMEtextinput = ""
-        self.textinput = ""
-        self.debug_msgbox1 = MsgBoxUI(GameText.font)
-        self.debug_msgbox2 = MsgBoxUI(GameText.font)
-        self.debug_msgbox1.property.pos[1] = (
-            window_size_in_scaled_px()[1] - self.debug_msgbox1.property.real_size[1]
-        )
-        self.debug_msgbox2.property.pos[1] = (
-            window_size_in_scaled_px()[1]
-            - self.debug_msgbox1.property.real_size[1]
-            - self.debug_msgbox2.property.real_size[1]
-        )
-        # you can set pos of displaying candidates of IME
-        # by Rect[1], Rect[3]
-        # self.IME_candidate_rect = pygame.rect.Rect(0, 10, 0, 30)
-        # pygame.key.set_text_input_rect(self.IME_candidate_rect)
-
-    def event(self, event: pygame.event.Event):
-        if event.type == pygame.TEXTEDITING:
-            # textinput in full-width characters
-            self.IMEtextinput = event.text
-            if pygame.key.get_pressed()[pygame.K_RETURN]:
-                self.textinput += self.IMEtextinput
-        elif event.type == pygame.TEXTINPUT:
-            # textinput in half-width characters
-            self.debug_msgbox1.property.rewrite_text(f"event.text: {event.text}")
-            self.textinput += event.text
-        elif event.type == pygame.KEYDOWN:
-            self.debug_msgbox2.property.rewrite_text(f"event.unicode: {event.unicode}")
-            if event.key == pygame.K_RETURN:
-                self.textinput += "\n"
-            if event.key == pygame.K_BACKSPACE:
-                self.textinput = self.textinput[:-1]
-
-    def update(self, dt):
-        pass
-
-    def draw(self, screen):
-        screen.blit(
-            GameText.font.renderln(
-                self.textinput,
-                True,
-                (255, 255, 255),
-                line_width_by_px=window_size_in_scaled_px()[0],
-            ),
-            (0, 0),
-        )
-        self.debug_msgbox1.draw(screen)
-        self.debug_msgbox2.draw(screen)
-
-
 class DebugScene(Scene):
     def setup(self):
         GameText.use_font("PixelMplus12Regular")
@@ -90,16 +36,12 @@ class DebugScene(Scene):
             self.msgbox1.property.pos[1] - self.msgbox2.property.real_size[1]
         )
         self.keyboard["textinputbox1"] = self.textinputbox1.interface.keyboard
-        # set pos display of candidates of IME
-        # by Rect[1], Rect[3]
         self.keyboard.set_current_setup("textinputbox1")
         self.textinputbox1.interface.activate()
         self.textinputbox1.property.fixed_size = [200, 200]
 
     def event(self, event: pygame.event.Event):
         self.textinputbox1.interface.event(event)
-        # self.
-        pass
 
     def update(self, dt):
         self.msgbox1.property.rewrite_text(
@@ -114,7 +56,6 @@ class DebugScene(Scene):
 
 
 scene_manager = SceneManager()
-# scene_manager.push(RawImplementedTextInputScene(scene_manager))
 scene_manager.add(DebugScene(scene_manager))
 
 if __name__ == "__main__":

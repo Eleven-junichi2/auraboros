@@ -12,11 +12,12 @@ from auraboros.animation import AnimationImage, SpriteSheet
 from auraboros.gametext import GameText, Font2
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.gameinput import Keyboard
-from auraboros.ui import GameMenuSystem, GameMenuUI, MsgWindow
-from auraboros.utils import AssetFilePath, draw_grid
 from auraboros.schedule import Stopwatch
+from auraboros.utils.surface import draw_grid
+from auraboros.utils.path import AssetFilePath
+from auraboros.ui import MsgBoxUI, MenuUI
 
-engine.init(caption="Test Stopwatch System", pixel_scale=3)
+engine.init(caption="Test Stopwatch System", base_pixel_scale=3)
 
 AssetFilePath.set_asset_root(Path(sys.argv[0]).parent / "assets")
 
@@ -46,40 +47,38 @@ class DebugScene(Scene):
         super().__init__(*args, **kwargs)
         self.stopwatch = Stopwatch()
         self.stopwatch.enable_pausing_time_count()
+        self.menuui = MenuUI(GameText.font, option_highlight_style="filled-box")
+        self.menuui.interface.add_menuitem("play", self.start_stopwatch, text="Play")
+        self.menuui.interface.add_menuitem("stop", self.stop_stopwatch, text="STOP")
+        self.menuui.interface.add_menuitem("reset", self.reset_stopwatch, text="RESET")
+        self.menuui.property.padding = 4
+        self.msgbox = MsgBoxUI(GameText.font, "Press 'Z'")
+        self.msgbox.property.padding = 4
+        self.msgbox2 = MsgBoxUI(GameText.font)
+        self.msgbox2.property.padding = 4
+        self.msgbox3 = MsgBoxUI(GameText.font)
+        self.msgbox3.property.padding = 4
+        self.msgbox4 = MsgBoxUI(GameText.font)
+        self.msgbox4.property.padding = 4
+        self.msgbox5 = MsgBoxUI(GameText.font)
+        self.msgbox5.property.padding = 4
+        self.msgbox6 = MsgBoxUI(GameText.font)
+        self.msgbox6.property.padding = 4
+        self.msgbox7 = MsgBoxUI(GameText.font)
+        self.msgbox7.property.padding = 4
+        self.msgbox8 = MsgBoxUI(GameText.font)
+        self.msgbox8.property.padding = 4
         self.keyboard["menu"] = Keyboard()
         self.keyboard.set_current_setup("menu")
-        self.menusystem = GameMenuSystem()
         self.keyboard["menu"].register_keyaction(
-            pygame.K_UP, 0, 122, 122, self.menusystem.menu_cursor_up
+            pygame.K_UP, 0, 122, 122, self.menuui.interface.cursor_up
         )
         self.keyboard["menu"].register_keyaction(
-            pygame.K_DOWN, 0, 122, 122, self.menusystem.menu_cursor_down
+            pygame.K_DOWN, 0, 122, 122, self.menuui.interface.cursor_down
         )
         self.keyboard["menu"].register_keyaction(
-            pygame.K_z, 0, 0, 0, self.menusystem.do_selected_action
+            pygame.K_z, 0, 0, 0, self.menuui.interface.do_selected_action
         )
-        self.menusystem.add_menu_item("play", self.start_stopwatch, text="Play")
-        self.menusystem.add_menu_item("stop", self.stop_stopwatch, text="STOP")
-        self.menusystem.add_menu_item("reset", self.reset_stopwatch, text="RESET")
-        self.menuui = GameMenuUI(self.menusystem, GameText.font, "filled_box")
-        self.menuui.padding = 4
-        self.msgbox = MsgWindow(GameText.font)
-        self.msgbox.padding = 4
-        self.msgbox.text = "Press 'Z'"
-        self.msgbox2 = MsgWindow(GameText.font)
-        self.msgbox2.padding = 4
-        self.msgbox3 = MsgWindow(GameText.font)
-        self.msgbox3.padding = 4
-        self.msgbox4 = MsgWindow(GameText.font)
-        self.msgbox4.padding = 4
-        self.msgbox5 = MsgWindow(GameText.font)
-        self.msgbox5.padding = 4
-        self.msgbox6 = MsgWindow(GameText.font)
-        self.msgbox6.padding = 4
-        self.msgbox7 = MsgWindow(GameText.font)
-        self.msgbox7.padding = 4
-        self.msgbox8 = MsgWindow(GameText.font)
-        self.msgbox8.padding = 4
 
     def start_stopwatch(self):
         self.stopwatch.start()
@@ -94,46 +93,51 @@ class DebugScene(Scene):
         self.keyboard.current_setup.do_action_on_keyinput(pygame.K_UP)
         self.keyboard.current_setup.do_action_on_keyinput(pygame.K_DOWN)
         self.keyboard.current_setup.do_action_on_keyinput(pygame.K_z)
-        self.menuui.set_pos_to_center()
-        self.menusystem.update()
-        self.msgbox2.text = f"1 elapsed time:{self.stopwatch.read()/1000}"
-        self.msgbox3.text = f"1 pausing time:{self.stopwatch.read_pausing()/1000}"
-        self.msgbox2.pos[1] = self.msgbox.real_size[1]
-        self.msgbox3.pos[1] = self.msgbox.real_size[1] + self.msgbox2.real_size[1]
-        self.msgbox4.pos[1] = (
-            self.msgbox.real_size[1]
-            + self.msgbox2.real_size[1]
-            + self.msgbox3.real_size[1]
+        self.menuui.property.set_pos_to_center()
+        self.msgbox2.property.rewrite_text(
+            f"1 elapsed time:{self.stopwatch.read()/1000}"
         )
-        self.msgbox5.pos[1] = (
-            self.msgbox.real_size[1]
-            + self.msgbox2.real_size[1]
-            + self.msgbox3.real_size[1]
-            + self.msgbox4.real_size[1]
+        self.msgbox3.property.rewrite_text(
+            f"1 pausing time:{self.stopwatch.read_pausing()/1000}"
         )
-        self.msgbox6.pos[1] = (
-            self.msgbox.real_size[1]
-            + self.msgbox2.real_size[1]
-            + self.msgbox3.real_size[1]
-            + self.msgbox4.real_size[1]
-            + self.msgbox5.real_size[1]
+        self.msgbox2.property.pos[1] = self.msgbox.property.real_size[1]
+        self.msgbox3.property.pos[1] = (
+            self.msgbox.property.real_size[1] + self.msgbox2.property.real_size[1]
         )
-        self.msgbox7.pos[1] = (
-            self.msgbox.real_size[1]
-            + self.msgbox2.real_size[1]
-            + self.msgbox3.real_size[1]
-            + self.msgbox4.real_size[1]
-            + self.msgbox5.real_size[1]
-            + self.msgbox6.real_size[1]
+        self.msgbox4.property.pos[1] = (
+            self.msgbox.property.real_size[1]
+            + self.msgbox2.property.real_size[1]
+            + self.msgbox3.property.real_size[1]
         )
-        self.msgbox8.pos[1] = (
-            self.msgbox.real_size[1]
-            + self.msgbox2.real_size[1]
-            + self.msgbox3.real_size[1]
-            + self.msgbox4.real_size[1]
-            + self.msgbox5.real_size[1]
-            + self.msgbox6.real_size[1]
-            + self.msgbox7.real_size[1]
+        self.msgbox5.property.pos[1] = (
+            self.msgbox.property.real_size[1]
+            + self.msgbox2.property.real_size[1]
+            + self.msgbox3.property.real_size[1]
+            + self.msgbox4.property.real_size[1]
+        )
+        self.msgbox6.property.pos[1] = (
+            self.msgbox.property.real_size[1]
+            + self.msgbox2.property.real_size[1]
+            + self.msgbox3.property.real_size[1]
+            + self.msgbox4.property.real_size[1]
+            + self.msgbox5.property.real_size[1]
+        )
+        self.msgbox7.property.pos[1] = (
+            self.msgbox.property.real_size[1]
+            + self.msgbox2.property.real_size[1]
+            + self.msgbox3.property.real_size[1]
+            + self.msgbox4.property.real_size[1]
+            + self.msgbox5.property.real_size[1]
+            + self.msgbox6.property.real_size[1]
+        )
+        self.msgbox8.property.pos[1] = (
+            self.msgbox.property.real_size[1]
+            + self.msgbox2.property.real_size[1]
+            + self.msgbox3.property.real_size[1]
+            + self.msgbox4.property.real_size[1]
+            + self.msgbox5.property.real_size[1]
+            + self.msgbox6.property.real_size[1]
+            + self.msgbox7.property.real_size[1]
         )
 
     def draw(self, screen):
@@ -145,7 +149,7 @@ class DebugScene(Scene):
 
 
 scene_manager = SceneManager()
-scene_manager.push(DebugScene(scene_manager))
+scene_manager.add(DebugScene(scene_manager))
 
 if __name__ == "__main__":
     engine.run(scene_manager=scene_manager, fps=60)
