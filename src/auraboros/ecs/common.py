@@ -3,6 +3,11 @@ from .system import System
 
 Velocity = Component("velocity", [0, 0])
 Position = Component("position", [0, 0])
+Size = Component("size", [1, 1])
+HealthPoint = Component("health_point", 1)
+ExperientPoint = Component("experient_point", 1)
+Hp = HealthPoint
+Exp = ExperientPoint
 
 
 class MovementSystem(System):
