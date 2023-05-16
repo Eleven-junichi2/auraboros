@@ -1,4 +1,4 @@
-from auraboros.utils.string import (
+from src.auraboros.utils.string import (
     count_fullwidth_char,
     count_halfwidth_char,
     len_str_contain_fullwidth_char,

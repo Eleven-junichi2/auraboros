@@ -1,4 +1,4 @@
-from auraboros.utils.sequence import (
+from src.auraboros.utils.sequence import (
     search_consecutive_pairs_of_list,
     joint_stritems_in_range_indexpair_list,
     joint_stritems_in_range_a_to_b,
