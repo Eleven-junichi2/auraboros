@@ -1,11 +1,9 @@
-from typing import Any, Iterable, TypeVar
-from pprint import pformat
 import logging
 
-
+from .component import Component
 from .system import System
 
-# --logger configuration--
+# --setup logger--
 logger = logging.getLogger(__name__)
 
 log_format_str = "%(asctime)s [%(levelname)s]: %(message)s"
@@ -18,57 +16,41 @@ console_handler.setFormatter(console_handler_formatter)
 logger.addHandler(console_handler)
 # ----
 
-C = TypeVar("C")  # C means Component instance
-C2 = TypeVar("C2")
-
-EntityID = int  # type alias
+# --type aliases--
+EntityID = int
+ComponentName = str
+# ----
 
 
 class World:
     def __init__(self):
-        self._next_entity_id = 0
-        self.entities: dict[EntityID, dict] = {}
-        self.components: dict[type, set] = {}
+        self.next_entity_id: EntityID = 0
+        self._entities: dict[EntityID, dict[ComponentName, Component]] = {}
         self.systems: list[System] = []
 
-    def create_entity(self, *component_instances) -> EntityID:
-        new_entity_id = self._next_entity_id
-        self.__add_new_entity(new_entity_id)
+    def get_entities(self):
+        return self._entities.keys()
 
-        for component in component_instances:
-            component_type = type(component)
-            if component_type not in self.components:
-                self.components[component_type] = set()
-            self.components[component_type].add(new_entity_id)
+    @property
+    def edit_entity(self):
+        """
+        How to use:
+        `self.edit_entities[entity_to_edit][component_name].value = something`
+        """
+        return self._entities
 
-            self.entities[new_entity_id][component_type] = component
+    def create_entity(self, *components_names: Component) -> EntityID:
+        new_entity = self.next_entity_id
+        self._entities[new_entity] = {}
+        for component_factory in components_names:
+            component = component_factory.clone()
+            self._entities[new_entity][component.name] = component
+        self.next_entity_id += 1
+        logger.debug(f"create a entity (updated entities: {self._entities})")
+        return new_entity
 
-        logger.debug(
-            f"update entities of {id(self)} {self.__class__.__name__} instance:\n"
-            + pformat(self.entities)
-        )
-
-        return new_entity_id
-
-    def get_component(self, component_type: type[C]) -> Iterable[tuple[EntityID, C]]:
-        for entity in self.components.get(component_type, ()):
-            yield entity, self.entities[entity][component_type]
-
-    def get_components(
-        self, *component_types: type[C]
-    ) -> Iterable[tuple[EntityID, tuple[C, ...]]]:
-        for entity in set.intersection(
-            *[self.components[component_type] for component_type in component_types]
-        ):
-            yield entity, tuple(
-                [
-                    self.entities[entity][component_type]
-                    for component_type in component_types
-                ]
-            )
-
-    def component_for_entity(self, entity: int, component_type: type[C]) -> C:
-        return self.entities[entity][component_type]
+    def delete_entity(self, entity: EntityID) -> None:
+        del self._entities[entity]
 
     def add_system(self, system_instance: System) -> None:
         """Add a system instance to the World.
@@ -77,16 +59,19 @@ class World:
         """
         system_instance.world = self
         self.systems.append(system_instance)
+        logger.debug(f"add a system (updated systems: {self.systems})")
 
-        logger.debug(
-            f"update systems of {id(self)} {self.__class__.__name__} instance:\n"
-            + pformat(self.systems)
-        )
+    def remove_system(self, system_type: type[System]) -> None:
+        for index, system_instance in enumerate(self.systems):
+            if isinstance(system_instance, system_type):
+                logger.debug(f"remove {system_instance} system")
+                del self.systems[index]
+        logger.debug(f"systems after remove func: {self.systems})")
 
-    def do_systems(self, *args, **kwargs) -> list[Any]:
+    def do_systems(self, *args, **kwargs) -> list:
         """Do all systems of the world and return a list of return values"""
+        logger.debug(f"do all systems: {self.systems})")
         return [system.do(*args, **kwargs) for system in self.systems]
 
-    def __add_new_entity(self, new_entity_id):
-        if new_entity_id not in self.entities:
-            self.entities[new_entity_id] = {}
+    def component_for_entity(self, entity: EntityID, component_name: str):
+        return self._entities[entity][component_name].value

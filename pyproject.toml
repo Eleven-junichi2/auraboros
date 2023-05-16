@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "auraboros"
 version = "0.25.0-alpha"
 dependencies = ["pygame", "moderngl"]
-requires-python = ">=3.10.8"
+requires-python = ">=3.11.1"
 
 [project.optional-dependencies]
 dev = ["click",]
