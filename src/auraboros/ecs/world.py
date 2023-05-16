@@ -1,7 +1,7 @@
 from inspect import isclass
 import logging
 
-from .component import Component
+from .component import Component, CV
 from .system import System
 
 # --setup logger--
@@ -37,16 +37,27 @@ class World:
         self._entities: dict[EntityID, _ComponentDict[ComponentName, Component]] = {}
         self.systems: list[System] = []
 
-    def get_entities(self):
-        return self._entities.keys()
-
-    @property
-    def edit_entity(self):
+    def get_entities(
+        self, *of_has_components: Component, raise_error_if_not_found=True
+    ):
         """
-        How to use:
-        `self.edit_entities[entity_to_edit][component].value = something`
+        Args:
+            of_has_components: list of filter components to retrieve entities.
         """
-        return self._entities
+        component_filter = [component.name for component in of_has_components]
+        logger.debug(
+            f"({self.get_entities.__name__}) given component filter: {component_filter}"
+        )
+        entities = []
+        for entity in self._entities.keys():
+            for component_name in self._entities[entity].keys():
+                if component_name in component_filter:
+                    entities.append(entity)
+        if raise_error_if_not_found and entities == []:
+            raise ValueError(
+                f"No entities found with the specified components: {of_has_components}"
+            )
+        return entities
 
     def create_entity(self, *components: Component) -> EntityID:
         new_entity = self.next_entity_id
@@ -89,5 +100,7 @@ class World:
         logger.debug(f"do all systems: {self.systems})")
         return [system.do(*args, **kwargs) for system in self.systems]
 
-    def component_for_entity(self, entity: EntityID, component: Component):
-        return self._entities[entity][component.name].value
+    def component_for_entity(
+        self, entity: EntityID, component: Component[CV]
+    ) -> Component[CV]:
+        return self._entities[entity][component.name]

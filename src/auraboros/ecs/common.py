@@ -1,7 +1,7 @@
+from pathlib import Path
+
 from .component import Component
 from .system import System
-
-import pygame
 
 Velocity = Component("velocity", [0, 0])
 Position = Component("position", [0, 0])
@@ -10,7 +10,7 @@ HealthPoint = Component("health_point", 1)
 ExperientPoint = Component("experient_point", 1)
 Hp = HealthPoint
 Exp = ExperientPoint
-Surface = Component("pygame_surface", )
+FilePath = Component("file_path", Path())
 
 
 class MovementSystem(System):
@@ -23,6 +23,3 @@ class MovementSystem(System):
                     self.world.component_for_entity(entity, "velocity"),
                 ),
             )
-
-a = {"abc": {"ABC": "aiueo"}}
-a["abc"]["ABC"]
