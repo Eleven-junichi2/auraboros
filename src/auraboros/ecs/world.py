@@ -1,3 +1,4 @@
+from inspect import isclass
 import logging
 
 from .component import Component
@@ -22,10 +23,18 @@ ComponentName = str
 # ----
 
 
+class _ComponentDict(dict[ComponentName, Component]):
+    def __getitem__(self, __key):
+        if isinstance(__key, Component):
+            return super().__getitem__(__key.name)
+        else:
+            return super().__getitem__(__key)
+
+
 class World:
     def __init__(self):
         self.next_entity_id: EntityID = 0
-        self._entities: dict[EntityID, dict[ComponentName, Component]] = {}
+        self._entities: dict[EntityID, _ComponentDict[ComponentName, Component]] = {}
         self.systems: list[System] = []
 
     def get_entities(self):
@@ -35,15 +44,20 @@ class World:
     def edit_entity(self):
         """
         How to use:
-        `self.edit_entities[entity_to_edit][component_name].value = something`
+        `self.edit_entities[entity_to_edit][component].value = something`
         """
         return self._entities
 
-    def create_entity(self, *components_names: Component) -> EntityID:
+    def create_entity(self, *components: Component) -> EntityID:
         new_entity = self.next_entity_id
-        self._entities[new_entity] = {}
-        for component_factory in components_names:
-            component = component_factory.clone()
+        self._entities[new_entity] = _ComponentDict()
+        for component in components:
+            if component.is_factory:
+                raise ValueError(
+                    "Given components contain factory.\nExample of this method: "
+                    + f"{self.create_entity.__name__}(component_instance.new()"
+                    + " # same as component_instance.be() ) "
+                )
             self._entities[new_entity][component.name] = component
         self.next_entity_id += 1
         logger.debug(f"create a entity (updated entities: {self._entities})")
@@ -57,6 +71,8 @@ class World:
 
         All systems should subclass of `System`.
         """
+        if isclass(system_instance):
+            raise ValueError("system_instance must be instance")
         system_instance.world = self
         self.systems.append(system_instance)
         logger.debug(f"add a system (updated systems: {self.systems})")
@@ -73,5 +89,5 @@ class World:
         logger.debug(f"do all systems: {self.systems})")
         return [system.do(*args, **kwargs) for system in self.systems]
 
-    def component_for_entity(self, entity: EntityID, component_name: str):
-        return self._entities[entity][component_name].value
+    def component_for_entity(self, entity: EntityID, component: Component):
+        return self._entities[entity][component.name].value
