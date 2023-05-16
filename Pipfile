@@ -6,8 +6,6 @@ name = "pypi"
 [packages]
 pygame = "==2.4.0"
 moderngl = "*"
-click = "*"
-mkdocs-material = "*"
 
 [dev-packages]
 pytest-ordering = "*"
@@ -24,6 +22,8 @@ pytest-mock = "*"
 pytest-cov = "*"
 pytest-logbook = "*"
 mkdocs = "*"
+mkdocs-material = "*"
+click = "*"
 
 [requires]
 python_version = "3.11"
