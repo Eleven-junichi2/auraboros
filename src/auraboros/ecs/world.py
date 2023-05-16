@@ -7,7 +7,7 @@ from .system import System
 # --setup logger--
 logger = logging.getLogger(__name__)
 
-log_format_str = "%(asctime)s [%(levelname)s]: %(message)s"
+log_format_str = "%(levelname)s\t-\t%(message)s"
 log_format_datefmt = "%Y-%m-%d %H:%M:%S"
 
 # console
