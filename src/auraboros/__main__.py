@@ -75,12 +75,19 @@ def extract_compressed_file(path_compressed_file, dir_extract_to, show_progress=
 
 def example_process():
     example_dir = __main__py_path.parent / "examples"
+    ecs_example_dir = __main__py_path.parent / "ecs" / "examples"
     print(__main__py_path)
     example_scripts = [
         f
         for f in example_dir.glob("*.py")
-        if f.name not in ("init_for_dev.py", "__init__.py")
+        if f.name not in ("setup_syspath.py", "__init__.py")
     ]
+    ecs_example_scripts = [
+        f
+        for f in ecs_example_dir.glob("*.py")
+        if f.name not in ("setup_syspath.py", "__init__.py")
+    ]
+    example_scripts += ecs_example_scripts
     click.echo(f"Here are {len(example_scripts)} examples:")
     for i, file_name in enumerate(example_scripts):
         click.echo(f"{i} {file_name.name} ({file_name})")
