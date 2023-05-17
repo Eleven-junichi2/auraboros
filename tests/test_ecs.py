@@ -1,51 +1,36 @@
-import pytest
+# import pytest
 
-from src.auraboros.ecs.world import World
-from src.auraboros.ecs.system import System
-from src.auraboros.ecs.component import Component
+from src.auraboros.ecs.world import World, Component, System
 
 
 def test_integration():
-    Height = Component("height_cm", 160.0)
-    Weight = Component("weight_kg", 50.0)
-    IsMale = Component("is_male", True)
-    SoccerPlayer = Component("soccer_player", True)
     world = World()
-    Kita = world.create_entity(Height.be(158), Weight.be(44), IsMale.be(False))
-    Gotou = world.create_entity(Height.be(156), Weight.be(50), IsMale.be(False))
-    Naoki = world.create_entity(Height.be(None), Weight.be(None), IsMale.be(True))
-    assert world.component_for_entity(Kita, Height).value == 158
-    assert world.component_for_entity(Kita, Weight).value != 156
-    assert world.component_for_entity(Gotou, Weight).value is not None
-    assert world.component_for_entity(Naoki, IsMale).value
+    Height = Component(float)
+    assert Height.id == 0
+    assert Height.default_value is None
+    Weight = Component(float)
+    assert Weight.id == 1
+    ikuyo = world.create_entity(Height(158), Weight(44))
+    assert ikuyo == 0
+    hitori = world.create_entity(Height(156), Weight(50))
+    assert hitori == 1
+    assert (ikuyo and hitori) in world.get_entities(Height)
+    assert (ikuyo and hitori) in world.get_entities(Weight)
 
-    class GoJogging(System):
-        def do(self, *args, **kwargs):
-            for entity in self.world.get_entities(Weight):
-                self.world.component_for_entity(entity, Weight).value -= 2
+    class SleepSystem(System):
+        def do(self):
+            for entity in world.get_entities(Height):
+                world.components[Height.id][entity] += 0.3
 
-    class Sleep(System):
-        def do(self, *args, **kwargs):
-            for entity in self.world.get_entities(Height):
-                self.world.component_for_entity(entity, Height).value += 0.5
-
-    class ToBeFaliedSystem(System):
-        def do(self, *args, **kwargs):
-            for entity in self.world.get_entities(SoccerPlayer):
-                self.world.component_for_entity(entity, SoccerPlayer).value
-
-    with pytest.raises(ValueError):
-        world.add_system(GoJogging)
-    world.add_system(GoJogging())
-    world.add_system(Sleep())
+    world.add_system(SleepSystem())
     world.do_systems()
 
-    assert world.component_for_entity(Kita, Weight).value == 42
-    assert world.component_for_entity(Gotou, Height).value == 156.5
+    assert world.components[Height.id][ikuyo] == 158.3
+    assert world.components[Height.id][hitori] == 156.3
 
-    world.add_system(ToBeFaliedSystem())
-    with pytest.raises(ValueError):
-        world.do_systems()
+    world.remove_system(SleepSystem)
+    assert not world._systems
 
-    world.remove_system(ToBeFaliedSystem)
-    assert not all([isinstance(system, ToBeFaliedSystem) for system in world.systems])
+    world.delete_entity(ikuyo)
+    assert ikuyo not in world.get_entities(Height)
+    assert ikuyo not in world._entities.keys()
