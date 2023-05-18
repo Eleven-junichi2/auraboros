@@ -22,6 +22,7 @@ logger.addHandler(console_handler)
 # -type aliases-
 EntityID = int
 
+
 class System(metaclass=ABCMeta):
     world: "World"
 
