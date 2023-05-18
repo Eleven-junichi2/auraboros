@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass as component  # noqa
 from inspect import isclass
-from typing import Iterable, Optional, Self, TypeVar, Generic, ClassVar
+from typing import Iterable, TypeVar
 import logging
 
 CV = TypeVar("CV")
@@ -21,52 +21,6 @@ logger.addHandler(console_handler)
 
 # -type aliases-
 EntityID = int
-ComponentID = int
-ArchetypeID = int
-CarrierID = int
-# ArchetypeMap = dict[ArchetypeID: Component]
-Type = list[ComponentID]
-# ---
-
-
-@dataclass
-class Component(Generic[CV]):
-    next_id: ClassVar[ComponentID] = 0
-    _type: type[CV]
-    _default_value: Optional[CV] = None
-
-    def __post_init__(self):
-        self.id = Component.next_id
-        Component.next_id += 1
-
-    def __call__(self, default_value: CV) -> Self:
-        self.default_value = default_value
-        return self
-
-    @property
-    def type(self) -> type[CV]:
-        return self._type
-
-    @property
-    def default_value(self) -> CV:
-        return self._default_value
-
-    @default_value.setter
-    def default_value(self, value):
-        self.cast_value_if_invalid_type(value)
-
-    def cast_value_if_invalid_type(self, value):
-        if not isinstance(value, self.type) and value is not None:
-            try:
-                logger.debug(
-                    f"try cast given {value} to {self.type} type"
-                    + " as default value of component"
-                )
-                value = self.type(value)
-            except TypeError:
-                raise TypeError(f"Type of value must be {self.type}")
-        self._default_value = value
-
 
 class System(metaclass=ABCMeta):
     world: "World"
@@ -85,69 +39,56 @@ class World:
 
     def __init__(self):
         self.next_entity_id: EntityID = 0
-        self._entities: dict[EntityID, set[ComponentID]] = {}
-        self.components: dict[ComponentID, dict[EntityID, CV]] = {}
-        self._types_for_components: dict[ComponentID, type[CV]] = {}
+        self._entities: dict[EntityID, set[type[CV]]] = {}
+        self._components: dict[type[CV], dict[EntityID, CV]] = {}
         self._systems: list[System] = []
 
-    def create_entity(self, *components: Component[CV]) -> EntityID:
-        """
-        #----
-             id   weig          heig        gend        teac
-        enti 0000   01 int 0150 0150 int 02 true bol 01 true bol 02
-        enti 0001   02 int 0160 0160 int 03 fals bol 03 None
-        enti 0002 None          0180 int 04 true bol 04
-
-        self.component_types:
-        weig: (cmpnnt_id: 01)
-             value_id value
-                    1   150
-                    2   160
-        heig: (cmpnnt_id: 02)
-             value_id  value
-                    1   50
-                    2   60
-        #----
-        """
+    def create_entity(self, *components) -> EntityID:
         new_entity = self.next_entity_id
         self._entities[new_entity] = set()
-        for component in components:
+        for component_ in components:
             logger.debug(
-                "load component:\n\t"
-                + f"type: {component.type} default_value: {component.default_value}"
+                "load component:\n\t" + f"{component_}(type: {component_.__class__})"
             )
-            if component.id not in self.components.keys():
-                self.components[component.id] = {}
-            self.components[component.id][new_entity] = component.default_value
-            self._types_for_components[component.id] = component.type
-            self._entities[new_entity].add(component.id)
+            if type(component_) not in self._components.keys():
+                self._components[type(component_)] = {}
+            self._components[type(component_)][new_entity] = component_
+            self._entities[new_entity].add(type(component_))
         logger.debug(f"result of entity(id:{new_entity}) creation:")
         logger.debug(f"updated entities:\n\t\t{self._entities}")
-        logger.debug(f"updated components:\n\t\t{self.components}")
+        logger.debug(f"updated components:\n\t\t{self._components}")
         self.next_entity_id += 1
         return new_entity
 
     def delete_entity(self, entity: EntityID) -> None:
         del self._entities[entity]
         [
-            self.components[component].__delitem__(entity)
-            for component in self.components.keys()
-            if entity in self.components[component].keys()
+            self._components[component].__delitem__(entity)
+            for component_ in self._components.keys()
+            if entity in self._components[component_].keys()
         ]
         del entity
 
-    def get_entities(self, *components: Component) -> Iterable[EntityID]:
+    def get_entities(self, *components: type) -> Iterable[EntityID]:
         return (
             entity
             for entity in self._entities.keys()
             if self._entities[entity].intersection(
-                set([component.id for component in components])
+                set([component_ for component_ in components])
             )
         )
 
+    def component_for_entity(self, entity: EntityID, component: type[CV]) -> CV:
+        """Get the component for a given entity.
+        `edit()` is alias for this method.
+        """
+        return self._components[component][entity]
+
+    edit = component_for_entity  # alias for component_for_entity
+
     def add_system(self, system: System):
         if isclass(system):
-            raise ValueError("system_instance must be instance")
+            raise ValueError("system must be instance")
         system.world = self
         self._systems.append(system)
 
