@@ -21,6 +21,7 @@ logger.addHandler(console_handler)
 
 # -type aliases-
 EntityID = int
+TypeOfComponent = type
 
 
 class System(metaclass=ABCMeta):
@@ -64,7 +65,7 @@ class World:
     def delete_entity(self, entity: EntityID) -> None:
         del self._entities[entity]
         [
-            self._components[component].__delitem__(entity)
+            self._components[component_].__delitem__(entity)
             for component_ in self._components.keys()
             if entity in self._components[component_].keys()
         ]
@@ -79,13 +80,26 @@ class World:
             )
         )
 
-    def component_for_entity(self, entity: EntityID, component: type[CV]) -> CV:
+    def has_component(self, entity: EntityID, component_: type) -> bool:
+        return component_ in self._entities[entity]
+
+    def component_for_entity(self, entity: EntityID, component_: type[CV]) -> CV:
         """Get the component for a given entity.
         `edit()` is alias for this method.
         """
-        return self._components[component][entity]
+        return self._components[component_][entity]
 
     edit = component_for_entity  # alias for component_for_entity
+
+    def remove_component_of(
+        self,
+        entity: EntityID,
+        component_: type,
+    ):
+        self._entities[entity].discard(component_)
+        del self._components[component_][entity]
+        if self._components[component_] == {}:
+            del self._components[component_]
 
     def add_system(self, system: System):
         if isclass(system):
@@ -106,3 +120,42 @@ class World:
     def do_systems(self):
         logger.debug(f"do all systems of {self}")
         [system.do() for system in self._systems]
+
+    def is_exist(
+        self, entity_or_component_or_system: EntityID | TypeOfComponent | type[System]
+    ) -> bool:
+        if isinstance(entity_or_component_or_system, EntityID):
+            logger.debug(
+                f"check existance of {entity_or_component_or_system}"
+                + " in world's entities"
+            )
+            return entity_or_component_or_system in self._entities.keys()
+        elif issubclass(entity_or_component_or_system, System):
+            logger.debug(
+                f"check existance of {entity_or_component_or_system}"
+                + " in world's systems"
+            )
+            return entity_or_component_or_system in self._systems
+        elif isclass(entity_or_component_or_system):
+            logger.debug(
+                f"check existance of {entity_or_component_or_system}"
+                + " in world's components"
+            )
+            return entity_or_component_or_system in self._components.keys()
+        else:
+            raise ValueError("The given argument is not Entity or System or Component.")
+
+    # @overload
+    # @is_exist.register
+    # def is_entity_exist(self, entity: EntityID) -> bool:
+    #     return entity in self._entities.keys()
+
+    # @overload
+    # @is_exist.register
+    # def is_component_exist(self, component_: type) -> bool:
+    #     return component_ in self._components.keys()
+
+    # @overload
+    # @is_exist.register
+    # def is_system_exist(self, system: type) -> bool:
+    #     return system in self._systems

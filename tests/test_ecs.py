@@ -45,3 +45,14 @@ def test_integration():
     assert world.component_for_entity(Hitori, Weight).kg == 49.9
     assert world.component_for_entity(Ikuyo, Position).x == 1194
     assert world.component_for_entity(Nijika, Position).x == 400
+
+    world.delete_entity(Nijika)
+
+    assert not world.is_exist(Nijika)
+
+    world.remove_system(Movement)
+
+    assert not world.is_exist(Movement)
+
+    world.remove_component_of(Ikuyo, Velocity)
+    assert not world.has_component(Ikuyo, Velocity)
