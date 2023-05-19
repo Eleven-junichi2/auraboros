@@ -82,5 +82,13 @@
             "console": "integratedTerminal",
             "justMyCode": true
         },
+        {
+            "name": "Python: example gametext",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/auraboros/examples/gametext.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
     ]
 }

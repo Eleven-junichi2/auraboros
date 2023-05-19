@@ -1,8 +1,5 @@
-# from collections import deque
 from pathlib import Path
 import sys
-
-# from string import ascii_lowercase
 
 import pygame
 
@@ -10,7 +7,6 @@ import setup_syspath  # noqa
 from auraboros import engine
 from auraboros.gametext import GameText, Font2
 from auraboros.gamescene import Scene, SceneManager
-from auraboros.ui import MsgBoxUI
 from auraboros.utils.path import AssetFilePath
 from auraboros.utils.surface import draw_grid
 
@@ -33,25 +29,28 @@ EXAMPLE_TEXT_FOR_MSGBOX = (
 EXAMPLE_TEXT_FOR_MSGBOX = "\n".join(EXAMPLE_TEXT_FOR_MSGBOX)
 
 
-class DebugScene(Scene):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+class ExampleScene(Scene):
+    def setup(self):
         GameText.use_font("PixelMplus12Regular")
-        self.msgbox1 = MsgBoxUI(
-            GameText.font,
-            EXAMPLE_TEXT_FOR_MSGBOX,
+        self.example_text = GameText(
+            text=EXAMPLE_TEXT_FOR_MSGBOX,
+            pos=[0, 0],
+            color_foreground=pygame.Color("#6495ed"),
+            color_background=pygame.Color("#ba3162"),
         )
 
     def update(self, dt):
         pass
 
-    def draw(self, screen: pygame.Surface):
+    def draw(self, screen: pygame.surface.Surface):
         draw_grid(screen, 8, (78, 78, 78))
-        self.msgbox1.draw(screen)
+        self.example_text.renderln(
+            surface_to_blit=screen, linelength=5, is_linelength_in_px=False
+        )
 
 
 scene_manager = SceneManager()
-scene_manager.add(DebugScene(scene_manager))
+scene_manager.add(ExampleScene(scene_manager))
 
 if __name__ == "__main__":
     engine.run(scene_manager=scene_manager)

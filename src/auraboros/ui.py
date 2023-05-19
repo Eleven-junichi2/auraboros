@@ -76,16 +76,7 @@ class UITextWithPages(UIProperty):
         super().__init__()
         self._texts: list[str] = [""]
         self._current_page_id: int = 0
-        self._linelength_in_px: Optional[int] = None  # None means no length limit
-        self.linelength_in_char: Optional[int] = None  # None means no length limit
-
-    @property
-    def linelength_in_px(self) -> Optional[int]:
-        return self._linelength_in_px
-
-    @linelength_in_px.setter
-    def linelength_in_px(self, value: int):
-        self._linelength_in_px = value
+        self.linelength: Optional[int] = None
 
     @property
     def texts(self) -> list[str]:
@@ -96,8 +87,10 @@ class UITextWithPages(UIProperty):
         return len(self.texts)
 
     @property
-    def current_page_text(self) -> str:
+    def text(self) -> str:
         return self.texts[self.current_page_id]
+
+    current_page_text = text  # alias
 
     @property
     def current_page_id(self) -> int:
@@ -142,13 +135,6 @@ class UITextWithPages(UIProperty):
     def tear_up_page(self, page_id: int) -> str:
         return self._texts.pop(page_id)
 
-    def is_linelength_enable(self):
-        for linelength in (self.linelength_in_px, self.linelength_in_char):
-            if linelength is not None:
-                return True
-        else:
-            return False
-
 
 class UIRect(UICoordinate, UISizing):
     def __init__(self):
@@ -191,16 +177,7 @@ class MsgBoxProperty(UITextWithPages, UIRect, UIFontProperty):
     def __init__(self):
         super().__init__()
         self.caret_style = "i-beam"
-
-    @property
-    def linelength_in_px(self):
-        if self.fixed_size is not None:
-            self._linelength_in_px = self.fixed_size[0]
-        return self._linelength_in_px
-
-    @linelength_in_px.setter
-    def linelength_in_px(self, value: int):
-        self._linelength_in_px = value
+        self.is_linelength_in_px = True
 
 
 class MsgBoxUI(UIElement):
@@ -208,9 +185,9 @@ class MsgBoxUI(UIElement):
         self,
         font: Font2,
         text_or_textlist: Union[str, list[str]] = "",
-        frameborder_width=1,
-        linelength_in_char: Optional[int] = None,
-        linelength_in_px: Optional[int] = None,
+        frameborder_width: int = 1,
+        linelength: Optional[int] = None,
+        is_linelength_in_px: bool = True,
     ):
         super().__init__()
         self.property = MsgBoxProperty()
@@ -219,20 +196,11 @@ class MsgBoxUI(UIElement):
         self.property.calc_min_size = self._calc_min_size
         self.property.calc_real_size = self._calc_real_size
         self.property.frameborder_width = frameborder_width
-        self.property.linelength_in_char = linelength_in_char
-        self.property.linelength_in_px = linelength_in_px
+        self.property.linelength = linelength
+        self.property.is_linelength_in_px = is_linelength_in_px
 
     def _calc_min_size(self) -> list[int]:
-        if self.property.is_linelength_enable():
-            size = list(
-                self.property.font.size_of_multiline_text(
-                    self.property.current_page_text,
-                    linelength_limit_in_px=self.property.linelength_in_px,
-                    linelength_limit_in_char=self.property.linelength_in_char,
-                )
-            )
-        else:
-            size = list(self.property.font.size(self.property.current_page_text))
+        size = list(self.property.font.size(self.property.current_page_text))
         return size
 
     def _calc_real_size(self) -> list[int]:
@@ -255,26 +223,13 @@ class MsgBoxUI(UIElement):
                 self.property.pos,
             )
         )
-        if self.property.is_linelength_enable():
-            screen.blit(
-                self.property.font.renderln(
-                    self.property.current_page_text,
-                    True,
-                    (255, 255, 255),
-                    linelength_in_charcount=self.property.linelength_in_char,
-                    linelength_in_px=self.property.linelength_in_px,
-                ),
-                text_pos,
-                [0, 0] + self.property.real_size,
-            )
-        else:
-            screen.blit(
-                self.property.font.render(
-                    self.property.current_page_text, True, (255, 255, 255)
-                ),
-                text_pos,
-                [0, 0] + self.property.real_size,
-            )
+        screen.blit(
+            self.property.font.render(
+                self.property.current_page_text, True, (255, 255, 255)
+            ),
+            text_pos,
+            [0, 0] + self.property.real_size,
+        )
 
 
 class MenuInterface(UIInterface):

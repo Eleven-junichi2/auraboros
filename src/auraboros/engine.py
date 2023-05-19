@@ -8,7 +8,7 @@ from .schedule import Schedule, Stopwatch
 from .shader import Shader2D
 
 
-def run(scene_manager: SceneManager, fps=60):
+def run(scene_manager: SceneManager):
     clock = pygame.time.Clock()
 
     if Global.use_opengl_display:
@@ -18,7 +18,7 @@ def run(scene_manager: SceneManager, fps=60):
 
     while running:
         # -control FPS and return delta time-
-        dt = clock.tick(fps)
+        dt = clock.tick(Global.fps)
         # ---
         # -update timers of all stopwatch instances-
         Stopwatch.update_all_stopwatch(dt)

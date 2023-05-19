@@ -75,7 +75,6 @@ def init(
         icon_surface = pygame.image.load(icon_filepath)
         pygame.display.set_icon(icon_surface)
     # ----
-
     Global.is_initialized = True
 
 
