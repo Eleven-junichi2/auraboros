@@ -4,13 +4,13 @@ import itertools
 from pygame.color import Color
 import pygame
 
+from .utils.coordinate import window_size_in_scaled_px
 from .utils.string import (
     is_char_fullwidth,
     len_str_contain_fullwidth_char,
     count_fullwidth_char,
     count_halfwidth_char,
 )
-
 from .utils.sequence import (
     is_flat,
     search_consecutive_pairs_of_list,
@@ -102,6 +102,7 @@ class Font2(pygame.font.Font):
         text: str,
         linelength_limit: Optional[int] = None,
         is_linelength_limit_in_px: bool = True,
+        is_window_size_default_for_length: bool = True,
     ) -> tuple[tuple[str, ...], tuple[int, int], tuple[int, int]]:
         """
         Returns:
@@ -109,6 +110,10 @@ class Font2(pygame.font.Font):
             lines_and_sizes_of_multilinetext()[1] is size of surface,
             lines_and_sizes_of_multilinetext()[2] is size in char,
         """
+        if linelength_limit is None:
+            if is_window_size_default_for_length:
+                linelength_limit = window_size_in_scaled_px()[0]
+                is_linelength_limit_in_px = True
         lines = split_multiline_text(text)  # split to lines without sizing of length
         longest_line = max(lines, key=len_str_contain_fullwidth_char)
         fullwidth_charcount = count_fullwidth_char(longest_line)
@@ -143,21 +148,23 @@ class Font2(pygame.font.Font):
 
     def renderln(
         self,
-        text: Union[str, bytes, None],
+        text: str,
         antialias: bool,
         color: ColorValue,
         background_color: Optional[ColorValue] = None,
         linelength: Optional[int] = None,
         is_linelength_in_px: bool = True,
+        is_window_size_default_for_length: bool = True,
     ) -> pygame.surface.Surface:
+        if not isinstance(text, str):
+            raise ValueError("argument `text` must be str")
         lines, size_in_px, _ = self.lines_and_sizes_of_multilinetext(
             text,
             linelength_limit=linelength,
             is_linelength_limit_in_px=is_linelength_in_px,
+            is_window_size_default_for_length=is_window_size_default_for_length,
         )
-        text_surf = pygame.surface.Surface(
-            size=size_in_px
-        )
+        text_surf = pygame.surface.Surface(size=size_in_px)
         for line_num, line in enumerate(lines):
             text_surf.blit(
                 self.render(line, antialias, color, background_color),
@@ -187,17 +194,19 @@ class GameText:
 
     def __init__(
         self,
-        text: Union[str, bytes, None],
-        pos: pygame.math.Vector2,
+        text: str | bytes | None,
         is_antialias_enable: bool = True,
         color_foreground: ColorValue = pygame.Color(255, 255, 255, 255),
         color_background: Optional[ColorValue] = None,
+        linelength: Optional[int] = None,
+        is_linelength_in_px: bool = True,
     ):
         self.text = text
         self.is_antialias_enable = is_antialias_enable
-        self.pos = pos
         self.color_foreground = color_foreground
         self.color_background = color_background
+        self.linelength = linelength
+        self.is_linelength_in_px = is_linelength_in_px
 
     @classmethod
     def setup_font(cls, font: Font2, name_for_registering_in_dict: str):
@@ -230,7 +239,9 @@ class GameText:
         self.text = text
 
     def render(
-        self, surface_to_blit: Optional[pygame.Surface] = None, *args, **kwargs
+        self,
+        surface_to_blit: Optional[pygame.Surface] = None,
+        pos_for_surface_to_blit_option: Optional[tuple[int, int]] = None,
     ) -> pygame.surface.Surface:
         """GameText.font.render(with its attributes as args)"""
         text_surface = self.font.render(
@@ -238,20 +249,25 @@ class GameText:
             self.is_antialias_enable,
             self.color_foreground,
             self.color_background,
-            *args,
-            **kwargs,
         )
         if surface_to_blit:
-            surface_to_blit.blit(text_surface, self.pos)
+            if pos_for_surface_to_blit_option:
+                surface_to_blit.blit(text_surface, pos_for_surface_to_blit_option)
+            else:
+                raise ValueError(
+                    "Require `pos_for_surface_to_blit_option`"
+                    + " when `surface_to_blit` is True"
+                )
+
         return text_surface
 
     def renderln(
         self,
+        surface_to_blit: Optional[pygame.Surface] = None,
+        pos_for_surface_to_blit_option: Optional[tuple[int, int]] = None,
         linelength: Optional[int] = None,
         is_linelength_in_px: bool = True,
-        surface_to_blit: Optional[pygame.surface.Surface] = None,
-        *args,
-        **kwargs,
+        is_window_size_default_for_length: bool = True,
     ) -> pygame.surface.Surface:
         """GameText.font.renderln(with its attributes as args)"""
         text_surface = self.font.renderln(
@@ -261,9 +277,14 @@ class GameText:
             background_color=self.color_background,
             linelength=linelength,
             is_linelength_in_px=is_linelength_in_px,
-            *args,
-            **kwargs,
+            is_window_size_default_for_length=is_window_size_default_for_length
         )
         if surface_to_blit:
-            surface_to_blit.blit(text_surface, self.pos)
+            if pos_for_surface_to_blit_option:
+                surface_to_blit.blit(text_surface, pos_for_surface_to_blit_option)
+            else:
+                raise ValueError(
+                    "Require `pos_for_surface_to_blit_option`"
+                    + " when `surface_to_blit` is True"
+                )
         return text_surface

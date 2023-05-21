@@ -90,5 +90,13 @@
             "console": "integratedTerminal",
             "justMyCode": true
         },
+        {
+            "name": "Python: example Label UI",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/auraboros/examples/label_ui.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
     ]
 }

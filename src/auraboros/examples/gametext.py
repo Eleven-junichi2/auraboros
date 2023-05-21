@@ -34,7 +34,6 @@ class ExampleScene(Scene):
         GameText.use_font("PixelMplus12Regular")
         self.example_text = GameText(
             text=EXAMPLE_TEXT_FOR_MSGBOX,
-            pos=[0, 0],
             color_foreground=pygame.Color("#6495ed"),
             color_background=pygame.Color("#ba3162"),
         )
@@ -45,7 +44,7 @@ class ExampleScene(Scene):
     def draw(self, screen: pygame.surface.Surface):
         draw_grid(screen, 8, (78, 78, 78))
         self.example_text.renderln(
-            surface_to_blit=screen, linelength=5, is_linelength_in_px=False
+            surface_to_blit=screen, pos_for_surface_to_blit_option=(0, 0)
         )
 
 
