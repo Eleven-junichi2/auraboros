@@ -83,6 +83,16 @@ class Size(UIProperty):
 class Rect(Coordinate, Size):
     def __init__(self):
         super().__init__()
+        self.frame_width: Optional[int] = None
+        self.frame_color = pygame.Color(255, 255, 255)
+        self.frame_left_surface: Optional[pygame.surface.Surface] = None
+        self.frame_top_surface: Optional[pygame.surface.Surface] = None
+        self.frame_right_surface: Optional[pygame.surface.Surface] = None
+        self.frame_bottom_surface: Optional[pygame.surface.Surface] = None
+        self.frame_topleft_corner_surface: Optional[pygame.surface.Surface] = None
+        self.frame_topright_corner_surface: Optional[pygame.surface.Surface] = None
+        self.frame_bottomleft_corner_surface: Optional[pygame.surface.Surface] = None
+        self.frame_bottomright_corner_surface: Optional[pygame.surface.Surface] = None
 
     def is_given_x_on_ui(self, x):
         return self.pos[0] <= x <= self.pos[0] + self.real_size[0]
@@ -106,8 +116,24 @@ class Rect(Coordinate, Size):
     def set_pos_to_center(self):
         self._pos = list(calc_pos_to_center(self.real_size))
 
+    def draw_frame(self, surface_to_blit: pygame.Surface):
+        if self.frame_width:
+            pygame.draw.rect(
+                surface_to_blit,
+                self.frame_color,
+                (*self.pos, *self.real_size),
+                self.frame_width,
+            )
+
+
+class UIElementInterface(Coordinate, Size):
+    pass
+
 
 class UIElement:
+    def __init__(self):
+        self.s = UIElementInterface()
+
     def draw(self, surface: pygame.surface.Surface):
         raise NotImplementedError
 
@@ -198,7 +224,7 @@ class GameTextWithPages(UIProperty):
         return self.pages.pop(page_id)
 
 
-class LabelInterface(Coordinate, Size, GameTextWithPages):
+class LabelInterface(Rect, GameTextWithPages):
     pass
 
 
@@ -211,16 +237,18 @@ class LabelUI(UIElement):
 
     def _calc_min_size(self) -> list[int, int]:
         # size = list(self.s.gametext.font.size(self.s.current_page_text))
+        linelength = None
+        if self.s.fixed_size:
+            linelength = self.s.fixed_size[0]
         size = self.s.current_page.font.lines_and_sizes_of_multilinetext(
-            self.s.current_page_text,
-            self.s.fixed_size[0]
+            self.s.current_page_text, linelength_limit=linelength
         )[1]
         return size
 
     def _calc_real_size(self) -> list[int, int]:
         return list(
             map(
-                lambda w_or_h: w_or_h + self.s.padding * 2,
+                lambda w_or_h: w_or_h + self.s.padding * 2 + self.s.frame_width * 2,
                 self.s.min_size,
             )
         )
@@ -228,22 +256,70 @@ class LabelUI(UIElement):
     def draw(self, screen: pygame.Surface):
         text_pos = list(
             map(
-                lambda pos: pos + self.s.padding,
+                lambda pos: pos + self.s.padding + self.s.frame_width,
                 self.s.pos,
             )
         )
         screen.blit(
-            self.s.current_page.renderln(linelength=self.s.real_size[0]), text_pos,
-            (0, 0, *self.s.real_size)
+            self.s.current_page.renderln(linelength=self.s.real_size[0]),
+            text_pos,
+            (0, 0, *self.s.real_size),
         )
 
 
-class MsgBoxProperty(LabelInterface):
-    pass
+class MsgboxProperty(LabelInterface):
+    def __init__(self):
+        super().__init__()
+        self.frame_width = 1
 
 
 class MsgboxUI(LabelUI):
-    pass
+    def __init__(self, gametexts: GameText | list[GameText]):
+        self.s = MsgboxProperty()
+        self.s.calc_min_size = self._calc_min_size
+        self.s.calc_real_size = self._calc_real_size
+        self.s.pages = gametexts
+
+    def draw(self, screen: pygame.Surface):
+        super().draw(screen)
+        self.s.draw_frame(screen)
+
+
+class UILayoutInterface(Coordinate):
+    def __init__(self):
+        super().__init__()
+        self.children: list[UIElement] = []
+
+
+class UILayout(UIElement):
+    def __init__(self):
+        self.s = UILayoutInterface()
+
+    def draw(self, screen: pygame.surface.Surface):
+        for child in self.s.children:
+            child.s.pos[0] += self.s.pos[0]
+            child.s.pos[1] += self.s.pos[1]
+            child.draw(screen)
+
+
+class UIFlowLayoutInterface(UILayoutInterface):
+    def __init__(self):
+        super().__init__()
+        self.direction = "vertical"  # or "horizontal"
+
+
+class UIFlowLayout(UILayout):
+    def __init__(self):
+        self.s = UIFlowLayoutInterface()
+
+    def draw(self, screen: pygame.surface.Surface):
+        # TODO: implement this method
+        if self.s.direction == "vertical":
+            for child in self.s.children:
+                child.draw(screen)
+        elif self.s.direction == "horizontal":
+            for child in self.s.children:
+                child.draw(screen)
 
 
 # class MenuInterface(UIInterface):
