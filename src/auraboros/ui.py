@@ -248,7 +248,7 @@ class LabelUI(UIElement):
     def _calc_real_size(self) -> list[int, int]:
         return list(
             map(
-                lambda w_or_h: w_or_h + self.s.padding * 2 + self.s.frame_width * 2,
+                lambda w_or_h: w_or_h + self.s.padding * 2,
                 self.s.min_size,
             )
         )
@@ -256,7 +256,7 @@ class LabelUI(UIElement):
     def draw(self, screen: pygame.Surface):
         text_pos = list(
             map(
-                lambda pos: pos + self.s.padding + self.s.frame_width,
+                lambda pos: pos + self.s.padding,
                 self.s.pos,
             )
         )
@@ -280,8 +280,26 @@ class MsgboxUI(LabelUI):
         self.s.calc_real_size = self._calc_real_size
         self.s.pages = gametexts
 
+    def _calc_real_size(self) -> list[int, int]:
+        return list(
+            map(
+                lambda w_or_h: w_or_h + self.s.padding * 2 + self.s.frame_width * 2,
+                self.s.min_size,
+            )
+        )
+
     def draw(self, screen: pygame.Surface):
-        super().draw(screen)
+        text_pos = list(
+            map(
+                lambda pos: pos + self.s.padding + self.s.frame_width,
+                self.s.pos,
+            )
+        )
+        screen.blit(
+            self.s.current_page.renderln(linelength=self.s.real_size[0]),
+            text_pos,
+            (0, 0, *self.s.real_size),
+        )
         self.s.draw_frame(screen)
 
 
