@@ -28,12 +28,6 @@ class UI:
         raise NotImplementedError("draw is not implemented")
 
 
-class UILayout:
-    """WIP"""
-
-    pass
-
-
 class GameTextUI(UI):
     def __init__(
         self,
@@ -119,3 +113,35 @@ class MsgboxUI(GameTextUI):
             rect=[*self.pos, *self.real_size],
             width=self.frame_width,
         )
+
+
+class UILayout(UI):
+    def __init__(
+        self,
+        parent_layout: "UILayout" = None,
+        pos: list[int] = [0, 0],
+        pos_hint: str = "relative",
+    ):
+        self.children: list[UI] = []
+
+    def add_child(self, ui: UI, relocate_children_after_add=True):
+        self.children.append(ui)
+        if relocate_children_after_add:
+            self.relocate_children()
+
+    def relocate_children(self):
+        raise NotImplementedError("`relocate_children()` is not implemented")
+
+
+class UIFlowLayout(UI):
+    def __init__(
+        self,
+        spacing: int = 0,
+        parent_layout: "UILayout" = None,
+        pos: list[int] = [0, 0],
+        pos_hint: str = "relative",
+    ):
+        super().__init__(parent_layout=parent_layout, pos=pos, pos_hint=pos_hint)
+
+    def relocate_child(self):
+        pass
