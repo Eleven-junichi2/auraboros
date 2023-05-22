@@ -1,6 +1,6 @@
 import pytest
 
-from src.auraboros.ui import UIElement
+from auraboros.old_ui import UIElement
 
 def test_integration(self):
     element1 = UIElement()

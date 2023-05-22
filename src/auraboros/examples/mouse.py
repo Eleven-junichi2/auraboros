@@ -10,7 +10,7 @@ from auraboros.gametext import GameText, Font2
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.gamecamera import TopDownCamera
 from auraboros.gameinput import Keyboard
-from auraboros.ui import MsgBoxUI
+from auraboros.old_ui import MsgBoxUI
 from auraboros.utils.path import AssetFilePath
 from auraboros.utils.surface import draw_grid
 from auraboros.utils.coordinate import in_scaled_px, window_size

@@ -14,7 +14,7 @@ from auraboros.gameinput import Keyboard
 from auraboros.schedule import Stopwatch
 from auraboros.utils.surface import draw_grid
 from auraboros.utils.path import AssetFilePath
-from auraboros.ui import MsgBoxUI, MenuUI
+from auraboros.old_ui import MsgBoxUI, MenuUI
 
 engine.init(caption="Test Stopwatch System", base_pixel_scale=3)
 
