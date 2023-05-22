@@ -1,7 +1,27 @@
+from pathlib import Path
+
+from src.auraboros.utils.path import AssetFilePath
+
 from src.auraboros.gametext import (
     split_multiline_text,
     line_count_of_multiline_text,
+    Font2,
 )
+
+TESTS_ROOT_PATH = Path(__file__).parent.parent
+AssetFilePath.set_root_dir(TESTS_ROOT_PATH / "assets")
+
+
+class TestFont2:
+    def test_charsize(self):
+        font = Font2(AssetFilePath.get_asset("fonts/misaki_gothic.ttf"), 16)
+        assert font.halfwidth_charsize()[0] * 2 == font.fullwidth_charsize()[0]
+
+    def test_lines_and_sizes_of_multilinetext(self):
+        font = Font2(AssetFilePath.get_asset("fonts/misaki_gothic.ttf"), 16)
+        font.lines_and_sizes_of_multilinetext(
+            "misaki_gothic is epiii\niiiic", is_window_size_default_for_length=False
+        )
 
 
 def test_split_multiline_text():
@@ -39,10 +59,10 @@ def test_line_count_of_multiline_text():
     height = line_count_of_multiline_text(
         "AaBbCcDdEe\n\n\nFfGg\nHhIiJjKkLlMmNnOoPp", 12
     )
-    # AaBbCcDdEe
-    #
-    #
-    # FfGg
-    # HhIiJjKkLlMm
-    # NnOoPp
+    # >>> AaBbCcDdEe
+    # >>>
+    # >>>
+    # >>> fGg
+    # >>> HhIiJjKkLlMm
+    # >>> NnOoPp
     assert height == 6

@@ -77,10 +77,6 @@ def split_multiline_text(
     return lines
 
 
-def line_count_of_multiline_text(text: str, singlelinelength_in_charcount: int):
-    return len(split_multiline_text(text, singlelinelength_in_charcount))
-
-
 class Font2(pygame.font.Font):
     """
     This class inherits from Pygame's Font object and adds some
@@ -140,6 +136,8 @@ class Font2(pygame.font.Font):
             else:
                 linelength_in_char = linelength_limit
             lines = split_multiline_text(text, linelength_in_char)
+        else:
+            linelength_in_char = fullwidth_charcount + halfwidth_charcount
         size_in_px = (linelength_without_sizing, len(lines) * self.get_linesize())
         size_in_char = (linelength_in_char, len(lines))
         return lines, size_in_px, size_in_char
