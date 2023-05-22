@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Callable, Optional, TypedDict
 
 import pygame
 
@@ -285,10 +285,20 @@ class MsgboxUI(LabelUI):
         self.s.draw_frame(screen)
 
 
+class UILayoutChildDict(TypedDict):
+    element: UIElement
+    fixed_pos: list[Optional[int]]
+
+
 class UILayoutInterface(Coordinate):
     def __init__(self):
         super().__init__()
-        self.children: list[UIElement] = []
+        self.children: list[UILayoutChildDict] = []
+
+    def add_child(self, ui_element: UIElement):
+        self.children.append(
+            UILayoutChildDict(element=ui_element, fixed_pos=[None, None])
+        )
 
 
 class UILayout(UIElement):
@@ -297,9 +307,12 @@ class UILayout(UIElement):
 
     def draw(self, screen: pygame.surface.Surface):
         for child in self.s.children:
-            child.s.pos[0] += self.s.pos[0]
-            child.s.pos[1] += self.s.pos[1]
-            child.draw(screen)
+            if child["fixed_pos"] is None:
+                child["fixed_pos"][0] = child["element"].s.pos[0] + self.s.pos[0]
+                child["fixed_pos"][1] = child["element"].s.pos[1] + self.s.pos[1]
+            child_surface = pygame.surface.Surface(child["element"].s.real_size)
+            child["element"].draw(child_surface)
+            screen.blit(child_surface, child["fixed_pos"])
 
 
 class UIFlowLayoutInterface(UILayoutInterface):
@@ -316,10 +329,10 @@ class UIFlowLayout(UILayout):
         # TODO: implement this method
         if self.s.direction == "vertical":
             for child in self.s.children:
-                child.draw(screen)
+                pass
         elif self.s.direction == "horizontal":
             for child in self.s.children:
-                child.draw(screen)
+                pass
 
 
 # class MenuInterface(UIInterface):

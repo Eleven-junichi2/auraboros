@@ -98,5 +98,13 @@
             "console": "integratedTerminal",
             "justMyCode": true
         },
+        {
+            "name": "Python: example UI Layout",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/auraboros/examples/uilayout.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
     ]
 }
