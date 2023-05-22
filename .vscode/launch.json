@@ -99,10 +99,10 @@
             "justMyCode": true
         },
         {
-            "name": "Python: example UI Layout",
+            "name": "Python: example UI 1",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/auraboros/examples/uilayout.py",
+            "program": "${workspaceFolder}/src/auraboros/examples/ui_example1.py",
             "console": "integratedTerminal",
             "justMyCode": true
         },

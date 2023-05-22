@@ -6,7 +6,9 @@ import pygame
 import setup_syspath  # noqa
 from auraboros import engine
 from auraboros.gametext import GameText, Font2
-from auraboros.old_ui import LabelUI
+
+# from auraboros.old_ui import LabelUI
+from auraboros.ui import GameTextUI, MsgboxUI
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.utils.path import AssetFilePath
 from auraboros.utils.surface import draw_grid
@@ -20,33 +22,40 @@ GameText.setup_font(
     "PixelMplus10Regular",
 )
 
-EXAMPLE_TEXT = (
-    "メロスは激怒した。必ず、かの邪智暴虐の王を除かなければならぬと決意した。",
-    "メロスには政治がわからぬ。メロスは、村の牧人である。",
-    # "笛を吹き、羊と遊んで暮して来た。けれども邪悪に対しては、人一倍に敏感であった。",
-    # "きょう未明メロスは村を出発し、野を越え山越え、十里はなれた此のシラクスの市にやって来た。",
-    # "メロスには父も、母も無い。女房も無い。十六の、内気な妹と二人暮しだ。",
-)
-EXAMPLE_TEXT = "\n".join(EXAMPLE_TEXT)
+EXAMPLE_TEXT = "メロスは激怒した。"
 
 
 class ExampleScene(Scene):
     def setup(self):
         GameText.use_font("PixelMplus10Regular")
-        self.example_text = GameText(
+        self.gametext1 = GameText(
             text=EXAMPLE_TEXT,
             color_foreground=pygame.Color("#6495ed"),
             color_background=pygame.Color("#ba3162"),
         )
-        self.example_msgbox = LabelUI(self.example_text)
-        self.example_msgbox.s.fixed_size = [178, None]
+        self.gametext2 = GameText(
+            text=EXAMPLE_TEXT,
+            color_foreground=pygame.Color("#64ed95"),
+            color_background=pygame.Color("#31ba62"),
+        )
+        self.gametext3 = GameText(
+            text=EXAMPLE_TEXT,
+            color_foreground=pygame.Color("#6495ed"),
+            color_background=pygame.Color("#3162ba"),
+        )
+        self.gametextui1 = GameTextUI(self.gametext1)
+        self.gametextui2 = MsgboxUI(self.gametext2, padding=10)
+        self.gametextui2.pos[1] = (
+            self.gametextui1.pos[1] + self.gametextui1.real_size[1]
+        )
 
     def update(self, dt):
         pass
 
     def draw(self, screen: pygame.surface.Surface):
         draw_grid(screen, 8, (78, 78, 78))
-        self.example_msgbox.draw(screen)
+        self.gametextui1.draw(surface_to_blit=screen)
+        self.gametextui2.draw(surface_to_blit=screen)
 
 
 scene_manager = SceneManager()
