@@ -143,5 +143,5 @@ class UIFlowLayout(UI):
     ):
         super().__init__(parent_layout=parent_layout, pos=pos, pos_hint=pos_hint)
 
-    def relocate_child(self):
+    def relocate_children(self):
         pass
