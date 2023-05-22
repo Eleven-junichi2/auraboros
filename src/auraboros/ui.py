@@ -136,6 +136,7 @@ class UILayout(UI):
 class UIFlowLayout(UI):
     def __init__(
         self,
+        orientation: str = "vertical",
         spacing: int = 0,
         parent_layout: "UILayout" = None,
         pos: list[int] = [0, 0],
