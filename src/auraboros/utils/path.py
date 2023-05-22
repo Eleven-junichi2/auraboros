@@ -4,43 +4,36 @@ import sys
 
 
 class AssetFilePath:
-    root_dirname = "assets"
-    root_dir_parent = Path(sys.argv[0]).parent
-    __root = root_dir_parent / root_dirname
-    root = Path(__root)
-    img_dirname = "imgs"
-    font_dirname = "fonts"
-    sound_dirname = "sounds"
+    root_dir_path: Path
 
     @classmethod
-    def pyinstaller_path(cls, filepath):
-        try:
-            # PyInstaller creates a temp folder
-            # and stores the programs in _MEIPASS
-            path = Path(sys._MEIPASS) / cls.root_dirname / filepath
-            # path will be such as: "sys._MEIPASS/assets/imgs/example.png"
-        except AttributeError:
-            path = cls.root / filepath
+    def set_root_dir(cls, root_dir_path: str | Path):
+        """
+        Args:
+            root_dir_path (str | Path): A path to the directory to store asset files.
+        Raises:
+            ValueError: Raise it if root_dir_path is not a Path or str object.
+        """
+        if isinstance(root_dir_path, (str, Path)):
+            cls.root_dir_path = Path(root_dir_path)
+        else:
+            raise ValueError("argument `root_dir_path` must be str or Path")
+
+    @classmethod
+    def get_asset(
+        cls, filepath_relative_to_rootdir: Path | str, return_Path_object_else_str=True
+    ) -> Path | str:
+        """
+        Examples:
+            >>> get_asset("example_asset.png")
+            >>> Path({root_dir_path}/example_asset.png)
+            >>> get_asset("sounds_dir/example_sound.wav")
+            >>> Path({root_dir_path}/sounds_dir/example_sound.wav)
+        """
+        path = cls.root_dir_path / Path(filepath_relative_to_rootdir)
+        if not return_Path_object_else_str:
+            path = str(path)
         return path
-
-    @classmethod
-    def img(cls, filename):
-        return cls.pyinstaller_path(Path(cls.img_dirname) / filename)
-
-    @classmethod
-    def font(cls, filename):
-        return cls.pyinstaller_path(Path(cls.font_dirname) / filename)
-
-    @classmethod
-    def sound(cls, filename):
-        return cls.pyinstaller_path(Path(cls.sound_dirname) / filename)
-
-    @classmethod
-    def set_asset_root(cls, root_dir_path: str):
-        cls.__root = root_dir_path
-        cls.root = Path(cls.__root)
-        cls.root_dir_parent = Path(root_dir_path).parent
-        cls.root_dirname = Path(root_dir_path).name
 
 
 def open_json_file(filepath):
