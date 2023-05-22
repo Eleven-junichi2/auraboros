@@ -8,7 +8,7 @@ from auraboros import engine
 from auraboros.gametext import GameText, Font2
 
 # from auraboros.old_ui import LabelUI
-from auraboros.ui import GameTextUI, UIFlowLayout, MsgboxUI
+from auraboros.ui import GameTextUI, MsgboxUI
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.utils.path import AssetFilePath
 from auraboros.utils.surface import draw_grid
@@ -44,19 +44,20 @@ class ExampleScene(Scene):
             color_background=pygame.Color("#3162ba"),
         )
         self.gametextui1 = GameTextUI(self.gametext1)
-        self.gametextui2 = GameTextUI(self.gametext2, padding=4)
-        self.msgboxui1 = MsgboxUI(self.gametext3)
-        self.flowlayout1 = UIFlowLayout()
-        self.flowlayout1.add_child(self.gametextui1)
-        self.flowlayout1.add_child(self.gametextui2)
-        self.flowlayout1.add_child(self.msgboxui1)
+        self.gametextui2 = MsgboxUI(self.gametext2, padding=10)
+        self.gametextui2.pos[1] = (
+            self.gametextui1.pos[1] + self.gametextui1.real_size[1]
+        )
+        # self.msgboxui1 = MsgboxUI(self.gametext3)
+        # self.flowlayout1.add_child(self.msgboxui1)
 
     def update(self, dt):
         pass
 
     def draw(self, screen: pygame.surface.Surface):
         draw_grid(screen, 8, (78, 78, 78))
-        self.flowlayout1.draw(surface_to_blit=screen)
+        self.gametextui1.draw(surface_to_blit=screen)
+        self.gametextui2.draw(surface_to_blit=screen)
 
 
 scene_manager = SceneManager()

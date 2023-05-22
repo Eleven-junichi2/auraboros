@@ -1,4 +1,4 @@
-from src.auraboros.ui import UI, UIFlowLayout
+from src.auraboros.ui import UI
 
 
 class ExampleUI(UI):
@@ -8,14 +8,3 @@ class ExampleUI(UI):
 
     def _calc_real_size(self):
         return [32, 32]
-
-
-class TestUIFlowLayout:
-    def test_relocate_children(self):
-        layout1 = UIFlowLayout(orientation="vertical", pos=[0, 0])
-        layout1.add_child(ExampleUI())
-        layout1.add_child(ExampleUI())
-        layout1.add_child(ExampleUI())
-        assert layout1.children[0].pos == [0, 0]
-        assert layout1.children[1].pos == [0, 32]
-        assert layout1.children[2].pos == [0, 64]

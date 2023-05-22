@@ -28,85 +28,22 @@ class UI:
         raise NotImplementedError("draw is not implemented")
 
 
-class UILayout(UI):
-    def __init__(
-        self,
-        parent_layout: "UILayout" = None,
-        pos: list[int] = [0, 0],
-        pos_hint: str = "relative",
-    ):
-        super().__init__(parent_layout=parent_layout, pos=pos, pos_hint=pos_hint)
-        self.children: list[UI] = []
+class UILayout:
+    """WIP"""
 
-    def add_child(self, ui: UI):
-        self.children.append(ui)
-        self.relocate_children()
-
-    def relocate_children():
-        raise NotImplementedError("`relocate_children()` is not implemented")
-
-    def draw(self, surface_to_blit: pygame.Surface):
-        for ui in self.children:
-            ui.draw(surface_to_blit)
-
-
-class UIFlowLayout(UILayout):
-    def __init__(
-        self,
-        orientation: str = "vertical",
-        parent_layout: "UILayout" = None,
-        pos: list[int] = [0, 0],
-        pos_hint: str = "relative",
-    ):
-        super().__init__(parent_layout=parent_layout, pos=pos, pos_hint=pos_hint)
-        self.orientation: str = orientation  # or horizontal
-        self.spacing_between_children: int = 0
-
-    def relocate_children(self):
-        child_sizes = [child.real_size for child in self.children]
-        child_heights = [size[1] for size in child_sizes]
-        child_widths = [size[0] for size in child_sizes]
-        new_child_positions = []
-        for i, child in enumerate(self.children):
-            if child.pos_hint == "absolute":
-                new_child_positions.append(child.pos)
-                continue
-            if i == 0:
-                new_child_positions.append(self.pos)
-                child.pos = self.pos
-            elif i > 0:
-                if self.orientation == "vertical":
-                    new_child_positions.append(
-                        [self.pos[0], sum(child_heights[1 : i + 1])]
-                    )
-                elif self.orientation == "horizontal":
-                    new_child_positions.append(
-                        [sum(child_widths[1 : i + 1]), self.pos[1]]
-                    )
-        for i, child in enumerate(self.children):
-            child.pos = new_child_positions[i]
-
-    def add_child(self, ui: UI):
-        self.children.append(ui)
-        self.relocate_children()
-
-    def draw(self, surface_to_blit: pygame.Surface):
-        for ui in self.children:
-            ui.draw(surface_to_blit)
+    pass
 
 
 class GameTextUI(UI):
     def __init__(
         self,
         gametext: GameText,
-        padding: int = 0,
         parent_layout: "UILayout" = None,
         pos: list[int] = [0, 0],
         pos_hint: str = "relative",
     ):
         super().__init__(parent_layout=parent_layout, pos=pos, pos_hint=pos_hint)
         self.gametext = gametext
-        self.padding = padding
         self.calc_real_size = self._calc_real_size
 
     def _calc_real_size(self) -> list[int]:
@@ -117,15 +54,11 @@ class GameTextUI(UI):
                 is_linelength_limit_in_px=self.gametext.is_linelength_in_px,
             )[1]
         )
-        size = list(map(lambda w_or_h: w_or_h + self.padding * 2, size))
         return size
 
     def draw(self, surface_to_blit: pygame.Surface):
         self.gametext.renderln(
-            surface_to_blit=surface_to_blit,
-            pos_for_surface_to_blit_option=tuple(
-                map(sum, zip(self.pos, (self.padding, self.padding)))
-            ),
+            surface_to_blit=surface_to_blit, pos_for_surface_to_blit_option=self.pos
         )
 
 
@@ -133,6 +66,7 @@ class MsgboxUI(GameTextUI):
     def __init__(
         self,
         gametext: GameText,
+        padding: int = 0,
         parent_layout: "UILayout" = None,
         pos: list[int] = [0, 0],
         pos_hint: str = "relative",
@@ -142,11 +76,43 @@ class MsgboxUI(GameTextUI):
         super().__init__(
             gametext=gametext, parent_layout=parent_layout, pos=pos, pos_hint=pos_hint
         )
+        self.padding = padding
         self.frame_width = frame_width
         self.frame_color = frame_color
+        self.calc_real_size = self._calc_real_size
+
+    def _calc_real_size(self) -> list[int]:
+        size = list(
+            map(
+                sum,
+                zip(
+                    self.gametext.font.lines_and_sizes_of_multilinetext(
+                        text=self.gametext.text,
+                        linelength_limit=self.gametext.linelength,
+                        is_linelength_limit_in_px=self.gametext.is_linelength_in_px,
+                    )[1],
+                    [self.padding * 2] * 2,
+                ),
+            )
+        )
+        return size
 
     def draw(self, surface_to_blit: pygame.Surface):
-        super().draw(surface_to_blit)
+        self.gametext.renderln(
+            surface_to_blit=surface_to_blit,
+            pos_for_surface_to_blit_option=tuple(
+                map(
+                    sum,
+                    zip(
+                        self.pos,
+                        [
+                            self.padding,
+                        ]
+                        * 2,
+                    ),
+                )
+            ),
+        )
         pygame.draw.rect(
             surface=surface_to_blit,
             color=self.frame_color,
