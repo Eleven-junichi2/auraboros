@@ -6,7 +6,9 @@ import pygame
 import setup_syspath  # noqa
 from auraboros import engine
 from auraboros.gametext import GameText, Font2
-from auraboros.old_ui import LabelUI
+
+# from auraboros.old_ui import LabelUI
+from auraboros.ui import GameTextUI, UIFlowLayout, MsgboxUI
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.utils.path import AssetFilePath
 from auraboros.utils.surface import draw_grid
@@ -26,19 +28,35 @@ EXAMPLE_TEXT = "メロスは激怒した。"
 class ExampleScene(Scene):
     def setup(self):
         GameText.use_font("PixelMplus10Regular")
-        self.example_text = GameText(
+        self.gametext1 = GameText(
             text=EXAMPLE_TEXT,
             color_foreground=pygame.Color("#6495ed"),
             color_background=pygame.Color("#ba3162"),
         )
-        self.example_msgbox = LabelUI(self.example_text)
+        self.gametext2 = GameText(
+            text=EXAMPLE_TEXT,
+            color_foreground=pygame.Color("#64ed95"),
+            color_background=pygame.Color("#31ba62"),
+        )
+        self.gametext3 = GameText(
+            text=EXAMPLE_TEXT,
+            color_foreground=pygame.Color("#6495ed"),
+            color_background=pygame.Color("#3162ba"),
+        )
+        self.gametextui1 = GameTextUI(self.gametext1)
+        self.gametextui2 = GameTextUI(self.gametext2, padding=4)
+        self.msgboxui1 = MsgboxUI(self.gametext3)
+        self.flowlayout1 = UIFlowLayout()
+        self.flowlayout1.add_child(self.gametextui1)
+        self.flowlayout1.add_child(self.gametextui2)
+        self.flowlayout1.add_child(self.msgboxui1)
 
     def update(self, dt):
         pass
 
     def draw(self, screen: pygame.surface.Surface):
         draw_grid(screen, 8, (78, 78, 78))
-        self.example_msgbox.draw(screen)
+        self.flowlayout1.draw(surface_to_blit=screen)
 
 
 scene_manager = SceneManager()

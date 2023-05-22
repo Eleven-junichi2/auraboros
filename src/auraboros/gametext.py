@@ -1,7 +1,6 @@
-from typing import Union, Sequence, Optional
+from typing import Optional
 import itertools
 
-from pygame.color import Color
 import pygame
 
 from .utils.coordinate import window_size_in_scaled_px
@@ -16,12 +15,9 @@ from .utils.sequence import (
     search_consecutive_pairs_of_list,
     joint_stritems_in_range_indexpair_list,
 )
+from .utils.misc import ColorValue
 
 pygame.font.init()
-
-
-RGBAOutput = tuple[int, int, int, int]
-ColorValue = Union[Color, int, str, tuple[int, int, int], RGBAOutput, Sequence[int]]
 
 
 def split_multiline_text(
@@ -139,6 +135,8 @@ class Font2(pygame.font.Font):
                         + halfwidth_charcount
                         - move_to_newline_charcount
                     )
+                else:
+                    linelength_in_char = fullwidth_charcount + halfwidth_charcount
             else:
                 linelength_in_char = linelength_limit
             lines = split_multiline_text(text, linelength_in_char)
@@ -277,7 +275,7 @@ class GameText:
             background_color=self.color_background,
             linelength=linelength,
             is_linelength_in_px=is_linelength_in_px,
-            is_window_size_default_for_length=is_window_size_default_for_length
+            is_window_size_default_for_length=is_window_size_default_for_length,
         )
         if surface_to_blit:
             if pos_for_surface_to_blit_option:

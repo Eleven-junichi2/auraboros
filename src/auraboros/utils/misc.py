@@ -1,4 +1,12 @@
 from dataclasses import dataclass, field, asdict
+from typing import Sequence, Union
+
+import pygame
+
+RGBAOutput = tuple[int, int, int, int]
+ColorValue = Union[
+    pygame.Color, int, str, tuple[int, int, int], RGBAOutput, Sequence[int]
+]
 
 
 @dataclass
