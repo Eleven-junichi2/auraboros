@@ -1,5 +1,5 @@
 # TODO: Make menu system
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Callable, Optional
 
 import pygame
@@ -185,9 +185,9 @@ class UIFlowLayout(UILayout):
 
 @dataclass
 class MenuDatabase:
-    options: dict[str, str] = {}
-    funcs_on_select: dict[str, Optional[Callable]] = {}
-    funcs_on_highlight: dict[str, Callable] = {}
+    options: dict[str, str] = field(default_factory=dict)
+    funcs_on_select: dict[str, Optional[Callable]] = field(default_factory=dict)
+    funcs_on_highlight: dict[str, Callable] = field(default_factory=dict)
 
 
 class MenuInterface:
