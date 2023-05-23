@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Callable, Optional
 
 import pygame
@@ -122,6 +123,7 @@ class UILayout(UI):
         pos: list[int] = [0, 0],
         pos_hint: str = "relative",
     ):
+        super().__init__(parent_layout=parent_layout, pos=pos, pos_hint=pos_hint)
         self.children: list[UI] = []
 
     def add_child(self, ui: UI, relocate_children_after_add=True):
@@ -133,7 +135,7 @@ class UILayout(UI):
         raise NotImplementedError("`relocate_children()` is not implemented")
 
 
-class UIFlowLayout(UI):
+class UIFlowLayout(UILayout):
     def __init__(
         self,
         orientation: str = "vertical",
@@ -143,6 +145,34 @@ class UIFlowLayout(UI):
         pos_hint: str = "relative",
     ):
         super().__init__(parent_layout=parent_layout, pos=pos, pos_hint=pos_hint)
+        self.orientation = orientation
+        self.spacing = spacing
 
     def relocate_children(self):
-        pass
+        # print("relocating...")
+        child_sizes = tuple(map(lambda child: child.real_size, self.children))
+        # print("heights: ", [size[1] for size in child_sizes])
+        for i, child in enumerate(self.children):
+            if self.pos_hint == "relative":
+                if i == 0:
+                    child.pos = self.pos
+                elif i > 0:
+                    if self.orientation == "vertical":
+                        child.pos[0] = self.pos[0]
+                        child.pos[1] = (
+                            sum([size[1] for size in child_sizes][0:i])
+                            + self.spacing * i
+                        )
+                    elif self.orientation == "horizontal":
+                        child.pos[0] = (
+                            sum([size[0] for size in child_sizes][0:i])
+                            + self.spacing * i
+                        )
+                        child.pos[1] = self.pos[1]
+            elif self.pos_hint == "absolute":
+                pass
+            print(child.pos)
+
+    def draw(self, surface_to_blit: pygame.Surface):
+        for child in self.children:
+            child.draw(surface_to_blit)

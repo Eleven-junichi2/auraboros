@@ -8,17 +8,17 @@ from auraboros import engine
 from auraboros.gametext import GameText, Font2
 
 # from auraboros.old_ui import LabelUI
-from auraboros.ui import GameTextUI, MsgboxUI
+from auraboros.ui import GameTextUI, MsgboxUI, UIFlowLayout
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.utils.path import AssetFilePath
 from auraboros.utils.surface import draw_grid
 
 engine.init(caption="Test Label", base_pixel_scale=2)
 
-AssetFilePath.set_asset_root(Path(sys.argv[0]).parent / "assets")
+AssetFilePath.set_root_dir(Path(sys.argv[0]).parent / "assets")
 
 GameText.setup_font(
-    Font2(AssetFilePath.font("PixelMPlus/PixelMplus10-Regular.ttf"), 20),
+    Font2(AssetFilePath.get_asset("fonts/PixelMPlus/PixelMplus10-Regular.ttf"), 20),
     "PixelMplus10Regular",
 )
 
@@ -48,14 +48,20 @@ class ExampleScene(Scene):
         self.gametextui2.pos[1] = (
             self.gametextui1.pos[1] + self.gametextui1.real_size[1]
         )
+        self.gametextui3 = GameTextUI(self.gametext3)
+        self.uilayout1 = UIFlowLayout(spacing=10)
+        self.uilayout1.add_child(self.gametextui1)
+        self.uilayout1.add_child(self.gametextui2)
+        self.uilayout1.add_child(self.gametextui3)
 
     def update(self, dt):
         pass
 
     def draw(self, screen: pygame.surface.Surface):
         draw_grid(screen, 8, (78, 78, 78))
-        self.gametextui1.draw(surface_to_blit=screen)
-        self.gametextui2.draw(surface_to_blit=screen)
+        # self.gametextui1.draw(surface_to_blit=screen)
+        # self.gametextui2.draw(surface_to_blit=screen)
+        self.uilayout1.draw(screen)
 
 
 scene_manager = SceneManager()
