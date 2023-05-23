@@ -1,4 +1,4 @@
-from copy import deepcopy
+from dataclasses import dataclass
 from typing import Callable, Optional
 
 import pygame
@@ -180,3 +180,111 @@ class UIFlowLayout(UILayout):
     def draw(self, surface_to_blit: pygame.Surface):
         for child in self.children:
             child.draw(surface_to_blit)
+
+
+@dataclass
+class MenuDatabase:
+    options: dict[str, str] = {}
+    funcs_on_select: dict[str, Optional[Callable]] = {}
+    funcs_on_highlight: dict[str, Callable] = {}
+
+
+class MenuInterface:
+    def __init__(
+        self,
+        database: MenuDatabase = MenuDatabase(),
+        func_on_cursor_up: Optional[Callable] = None,
+        func_on_cursor_down: Optional[Callable] = None,
+        loop_cursor: bool = True,
+    ):
+        self.database: MenuDatabase = database
+        self.selected_index: int = 0
+        self.loop_cursor: bool = loop_cursor
+        self.func_on_cursor_up: Optional[Callable] = func_on_cursor_up
+        self.func_on_cursor_down: Optional[Callable] = func_on_cursor_down
+
+    @property
+    def options_count(self) -> int:
+        return len(self.database.options)
+
+    def add_option(
+        self,
+        key_str_to_identify_option: str,
+        text_to_display: Optional[str] = None,
+        func_on_select: Optional[Callable] = None,
+        func_on_highlight: Optional[Callable] = None,
+    ):
+        if text_to_display is None:
+            text_to_display = key_str_to_identify_option
+        self.database.options[key_str_to_identify_option] = text_to_display
+        if func_on_select:
+            self.database.funcs_on_select[key_str_to_identify_option] = func_on_select
+        if func_on_highlight:
+            self.database.funcs_on_highlight[
+                key_str_to_identify_option
+            ] = func_on_highlight
+
+    def set_func_on_cursor_up(self, func: Callable):
+        self.func_on_cursor_up = func
+
+    def set_func_on_cursor_down(self, func: Callable):
+        self.func_on_cursor_down = func
+
+    def up_cursor(self):
+        if 0 < self.selected_index:
+            self.selected_index -= 1
+        elif self.loop_cursor:
+            self.selected_index = self.options_count - 1
+        if self.func_on_cursor_up:
+            self.func_on_cursor_up()
+
+    def down_cursor(self):
+        if self.selected_index < len(self.database.options) - 1:
+            self.selected_index += 1
+        elif self.loop_cursor:
+            self.selected_index = 0
+        if self.func_on_cursor_down:
+            self.func_on_cursor_down()
+
+    # def do_selected_action(self):
+    #     if len(self.options) == 0:
+    #         raise AttributeError("At least one menu item is required to take action.")
+    #     return self.option_actions_on_select[self.options[self.selected_index]]()
+
+    # def do_action_on_highlight(self):
+    #     """
+    #     Args:
+    #         do_once_each_highlighting (bool, optional): WIP
+    #     """
+    #     if len(self.option_keys) == 0:
+    #         raise AttributeError("At least one menu item is required to take action.")
+    #     return self.option_actions_on_highlight[self.option_keys[self.selected_index]]()
+
+    # def select_action_by_index(self, index):
+    #     if 0 <= index < len(self.option_keys):
+    #         self.selected_index = index
+    #     else:
+    #         raise ValueError("Given index is out of range in the menu.")
+
+    # def longest_optiontext(self) -> str:
+    #     return max(self.option_texts, key=len)
+
+
+class OptionsLayout(UIFlowLayout):
+    def __init__(
+        self,
+        orientation: str = "vertical",
+        spacing: int = 0,
+        menusystem_interface: MenuInterface = MenuInterface(),
+        parent_layout: "UILayout" = None,
+        pos: list[int] = [0, 0],
+        pos_hint: str = "relative",
+    ):
+        super().__init__(
+            orientation=orientation,
+            spacing=spacing,
+            parent_layout=parent_layout,
+            pos=pos,
+            pos_hint=pos_hint,
+        )
+        self.interface = menusystem_interface
