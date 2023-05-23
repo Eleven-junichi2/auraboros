@@ -1,3 +1,4 @@
+# TODO: Make menu system
 from dataclasses import dataclass
 from typing import Callable, Optional
 
@@ -270,7 +271,7 @@ class MenuInterface:
     #     return max(self.option_texts, key=len)
 
 
-class OptionsLayout(UIFlowLayout):
+class OptionsUI(UIFlowLayout):
     def __init__(
         self,
         orientation: str = "vertical",

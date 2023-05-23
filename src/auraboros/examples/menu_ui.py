@@ -8,7 +8,7 @@ from auraboros import engine
 from auraboros.gametext import GameText, Font2
 
 # from auraboros.old_ui import LabelUI
-from auraboros.ui import GameTextUI, MsgboxUI, UIFlowLayout
+from auraboros.ui import GameTextUI, MsgboxUI, OptionsUI
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.utils.path import AssetFilePath
 from auraboros.utils.surface import draw_grid
@@ -49,7 +49,7 @@ class ExampleScene(Scene):
             self.gametextui1.pos[1] + self.gametextui1.real_size[1]
         )
         self.gametextui3 = GameTextUI(self.gametext3)
-        self.uilayout1 = UIFlowLayout(spacing=10)
+        self.uilayout1 = OptionsUI(spacing=10)
         self.uilayout1.add_child(self.gametextui1)
         self.uilayout1.add_child(self.gametextui2)
         self.uilayout1.add_child(self.gametextui3)
