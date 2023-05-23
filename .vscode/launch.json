@@ -106,5 +106,13 @@
             "console": "integratedTerminal",
             "justMyCode": true
         },
+        {
+            "name": "Python: Menu UI example",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/auraboros/examples/menu_ui.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
     ]
 }

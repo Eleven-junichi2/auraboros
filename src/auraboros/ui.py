@@ -32,12 +32,16 @@ class UI:
 class GameTextUI(UI):
     def __init__(
         self,
-        gametext: GameText,
+        gametext: GameText | str,
         parent_layout: "UILayout" = None,
         pos: list[int] = [0, 0],
         pos_hint: str = "relative",
     ):
         super().__init__(parent_layout=parent_layout, pos=pos, pos_hint=pos_hint)
+        if isinstance(gametext, str):
+            gametext = GameText(gametext)
+        elif not isinstance(gametext, GameText):
+            raise ValueError("argument `gametext` must be GameText or str")
         self.gametext = gametext
         self.calc_real_size = self._calc_real_size
 
@@ -60,7 +64,7 @@ class GameTextUI(UI):
 class MsgboxUI(GameTextUI):
     def __init__(
         self,
-        gametext: GameText,
+        gametext: GameText | str,
         padding: int = 0,
         parent_layout: "UILayout" = None,
         pos: list[int] = [0, 0],

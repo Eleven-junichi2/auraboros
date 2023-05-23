@@ -38,12 +38,17 @@ class ExampleScene(Scene):
             color_foreground=pygame.Color("#64ed95"),
             color_background=pygame.Color("#31ba62"),
         )
+        self.gametext3 = GameText(
+            text=EXAMPLE_TEXT,
+            color_foreground=pygame.Color("#6495ed"),
+            color_background=pygame.Color("#3162ba"),
+        )
         self.gametextui1 = GameTextUI(self.gametext1)
         self.gametextui2 = MsgboxUI(self.gametext2, padding=10)
         self.gametextui2.pos[1] = (
             self.gametextui1.pos[1] + self.gametextui1.real_size[1]
         )
-        self.gametextui3 = GameTextUI("メロスは、\n村の牧人である。")
+        self.gametextui3 = GameTextUI(self.gametext3)
         self.uilayout1 = UIFlowLayout(spacing=10)
         self.uilayout1.add_child(self.gametextui1)
         self.uilayout1.add_child(self.gametextui2)
