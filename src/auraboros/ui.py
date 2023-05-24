@@ -183,21 +183,33 @@ class UIFlowLayout(UILayout):
             child.draw(surface_to_blit)
 
 
+StrAsOptionKey = str
+StrToDisplayOption = str
+
+
 @dataclass
 class MenuDatabase:
-    options: dict[str, str] = field(default_factory=dict)
-    funcs_on_select: dict[str, Optional[Callable]] = field(default_factory=dict)
-    funcs_on_highlight: dict[str, Callable] = field(default_factory=dict)
+    options: dict[StrAsOptionKey, StrToDisplayOption] = field(default_factory=dict)
+    funcs_on_select: dict[StrAsOptionKey, Optional[Callable]] = field(
+        default_factory=dict
+    )
+    funcs_on_highlight: dict[StrAsOptionKey, Callable] = field(default_factory=dict)
+
+    @property
+    def option_count(self) -> int:
+        return len(self.options)
 
 
 class MenuInterface:
     def __init__(
         self,
-        database: MenuDatabase = MenuDatabase(),
+        database: Optional[MenuDatabase] = None,
         func_on_cursor_up: Optional[Callable] = None,
         func_on_cursor_down: Optional[Callable] = None,
         loop_cursor: bool = True,
     ):
+        if database is None:
+            database = MenuDatabase()
         self.database: MenuDatabase = database
         self.selected_index: int = 0
         self.loop_cursor: bool = loop_cursor
@@ -240,35 +252,48 @@ class MenuInterface:
             self.func_on_cursor_up()
 
     def down_cursor(self):
-        if self.selected_index < len(self.database.options) - 1:
+        print("self.database.option_count", self.database.option_count)
+        if self.selected_index < self.database.option_count - 1:
             self.selected_index += 1
         elif self.loop_cursor:
             self.selected_index = 0
         if self.func_on_cursor_down:
             self.func_on_cursor_down()
+        print("selected: ", self.selected_index)
 
-    # def do_selected_action(self):
-    #     if len(self.options) == 0:
-    #         raise AttributeError("At least one menu item is required to take action.")
-    #     return self.option_actions_on_select[self.options[self.selected_index]]()
+    def get_option_key_for_index(self, index: int) -> StrAsOptionKey:
+        return tuple(self.database.options.keys())[index]
 
-    # def do_action_on_highlight(self):
-    #     """
-    #     Args:
-    #         do_once_each_highlighting (bool, optional): WIP
-    #     """
-    #     if len(self.option_keys) == 0:
-    #         raise AttributeError("At least one menu item is required to take action.")
-    #     return self.option_actions_on_highlight[self.option_keys[self.selected_index]]()
+    def do_func_on_select(self):
+        if len(self.database.options) == 0:
+            raise AttributeError("At least one menu item is required to take action.")
+        func = self.database.funcs_on_select[
+            self.get_option_key_for_index(self.selected_index)
+        ]
+        if func:
+            return func()
 
-    # def select_action_by_index(self, index):
-    #     if 0 <= index < len(self.option_keys):
-    #         self.selected_index = index
-    #     else:
-    #         raise ValueError("Given index is out of range in the menu.")
+    def do_func_on_highlight(self):
+        if len(self.database.options) == 0:
+            raise AttributeError("At least one menu item is required to take action.")
+        func = self.database.funcs_on_highlight[
+            self.get_option_key_for_index(self.selected_index)
+        ]
+        if func:
+            return func()
 
-    # def longest_optiontext(self) -> str:
-    #     return max(self.option_texts, key=len)
+    def longest_option_text(self) -> str:
+        return max(self.database.options.values(), key=len)
+
+    def get_option_text(self, key_or_current_selected: Optional[str] = None) -> str:
+        """
+        Args:
+        """
+        if key_or_current_selected:
+            key = key_or_current_selected
+        else:
+            key = self.get_option_key_for_index(self.selected_index)
+        return self.database.options[key]
 
 
 class OptionsUI(UIFlowLayout):
