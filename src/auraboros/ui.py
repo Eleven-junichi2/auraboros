@@ -14,11 +14,13 @@ class UI:
         parent_layout: Optional["UILayout"] = None,
         pos: list[int] = [0, 0],
         pos_hint: str = "relative",
+        tag: Optional[str] = None,
     ):
         self.parent_layout: Optional["UILayout"] = parent_layout
         self.pos: list[int] = pos
         self.pos_hint: str = pos_hint
         self.calc_real_size: Callable[..., list[int]] = None
+        self.tag = tag
 
     @property
     def real_size(self):
@@ -37,8 +39,11 @@ class GameTextUI(UI):
         parent_layout: Optional["UILayout"] = None,
         pos: list[int] = [0, 0],
         pos_hint: str = "relative",
+        tag: Optional[str] = None,
     ):
-        super().__init__(parent_layout=parent_layout, pos=pos, pos_hint=pos_hint)
+        super().__init__(
+            parent_layout=parent_layout, pos=pos, pos_hint=pos_hint, tag=tag
+        )
         if isinstance(gametext, str):
             gametext = GameText(gametext)
         elif not isinstance(gametext, GameText):
@@ -70,11 +75,16 @@ class MsgboxUI(GameTextUI):
         parent_layout: Optional["UILayout"] = None,
         pos: list[int] = [0, 0],
         pos_hint: str = "relative",
+        tag: Optional[str] = None,
         frame_width: int = 1,
         frame_color: ColorValue = pygame.Color(255, 255, 255),
     ):
         super().__init__(
-            gametext=gametext, parent_layout=parent_layout, pos=pos, pos_hint=pos_hint
+            gametext=gametext,
+            parent_layout=parent_layout,
+            pos=pos,
+            pos_hint=pos_hint,
+            tag=tag,
         )
         self.padding = padding
         self.frame_width = frame_width
@@ -127,8 +137,11 @@ class UILayout(UI):
         parent_layout: "UILayout" = None,
         pos: list[int] = [0, 0],
         pos_hint: str = "relative",
+        tag: Optional[str] = None,
     ):
-        super().__init__(parent_layout=parent_layout, pos=pos, pos_hint=pos_hint)
+        super().__init__(
+            parent_layout=parent_layout, pos=pos, pos_hint=pos_hint, tag=tag
+        )
         self.children: list[UI] = []
 
     def add_child(self, ui: UI, relocate_children_after_add=True):
@@ -148,8 +161,11 @@ class UIFlowLayout(UILayout):
         parent_layout: "UILayout" = None,
         pos: list[int] = [0, 0],
         pos_hint: str = "relative",
+        tag: Optional[str] = None,
     ):
-        super().__init__(parent_layout=parent_layout, pos=pos, pos_hint=pos_hint)
+        super().__init__(
+            parent_layout=parent_layout, pos=pos, pos_hint=pos_hint, tag=tag
+        )
         self.orientation = orientation
         self.spacing = spacing
 
@@ -222,19 +238,21 @@ class MenuInterface:
 
     def add_option(
         self,
-        key_str_to_identify_option: str,
+        key_str_for_option_to_identify: str,
         text_to_display: Optional[str] = None,
         func_on_select: Optional[Callable] = None,
         func_on_highlight: Optional[Callable] = None,
     ):
         if text_to_display is None:
-            text_to_display = key_str_to_identify_option
-        self.database.options[key_str_to_identify_option] = text_to_display
+            text_to_display = key_str_for_option_to_identify
+        self.database.options[key_str_for_option_to_identify] = text_to_display
         if func_on_select:
-            self.database.funcs_on_select[key_str_to_identify_option] = func_on_select
+            self.database.funcs_on_select[
+                key_str_for_option_to_identify
+            ] = func_on_select
         if func_on_highlight:
             self.database.funcs_on_highlight[
-                key_str_to_identify_option
+                key_str_for_option_to_identify
             ] = func_on_highlight
 
     def set_func_on_cursor_up(self, func: Callable):
@@ -305,6 +323,7 @@ class OptionsUI(UIFlowLayout):
         parent_layout: "UILayout" = None,
         pos: list[int] = [0, 0],
         pos_hint: str = "relative",
+        tag: Optional[str] = None,
     ):
         super().__init__(
             orientation=orientation,
@@ -312,7 +331,17 @@ class OptionsUI(UIFlowLayout):
             parent_layout=parent_layout,
             pos=pos,
             pos_hint=pos_hint,
+            tag=tag,
         )
         if menusystem_interface is None:
             menusystem_interface = MenuInterface()
         self.interface = menusystem_interface
+
+    def add_child(self):
+        raise NotImplementedError(
+            "Use `update_children_on_menu_interface()` instead of this method."
+        )
+
+    def update_children_on_menu_interface(self):
+        for option_key, option_text in self.interface.database.options.items():
+            super().add_child(GameTextUI(option_text, tag=option_key))
