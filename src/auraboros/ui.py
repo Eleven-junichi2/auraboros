@@ -11,7 +11,7 @@ from .utils.misc import ColorValue
 class UI:
     def __init__(
         self,
-        parent_layout: "UILayout" = None,
+        parent_layout: Optional["UILayout"] = None,
         pos: list[int] = [0, 0],
         pos_hint: str = "relative",
     ):
@@ -34,7 +34,7 @@ class GameTextUI(UI):
     def __init__(
         self,
         gametext: GameText | str,
-        parent_layout: "UILayout" = None,
+        parent_layout: Optional["UILayout"] = None,
         pos: list[int] = [0, 0],
         pos_hint: str = "relative",
     ):
@@ -67,7 +67,7 @@ class MsgboxUI(GameTextUI):
         self,
         gametext: GameText | str,
         padding: int = 0,
-        parent_layout: "UILayout" = None,
+        parent_layout: Optional["UILayout"] = None,
         pos: list[int] = [0, 0],
         pos_hint: str = "relative",
         frame_width: int = 1,
@@ -301,7 +301,7 @@ class OptionsUI(UIFlowLayout):
         self,
         orientation: str = "vertical",
         spacing: int = 0,
-        menusystem_interface: MenuInterface = MenuInterface(),
+        menusystem_interface: Optional[MenuInterface] = None,
         parent_layout: "UILayout" = None,
         pos: list[int] = [0, 0],
         pos_hint: str = "relative",
@@ -313,4 +313,6 @@ class OptionsUI(UIFlowLayout):
             pos=pos,
             pos_hint=pos_hint,
         )
+        if menusystem_interface is None:
+            menusystem_interface = MenuInterface()
         self.interface = menusystem_interface
