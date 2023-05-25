@@ -324,6 +324,7 @@ class OptionsUI(UIFlowLayout):
         pos: list[int] = [0, 0],
         pos_hint: str = "relative",
         tag: Optional[str] = None,
+        do_notify_whether_update_called=True,
     ):
         super().__init__(
             orientation=orientation,
@@ -338,10 +339,18 @@ class OptionsUI(UIFlowLayout):
         self.interface = menusystem_interface
 
     def add_child(self):
-        raise NotImplementedError(
-            "Use `update_children_on_menu_interface()` instead of this method."
-        )
+        """
+        Use `update()` instead of this method
+        after `add_menuitem()` of its `interface` attr.
+        """
+        raise NotImplementedError(self.__doc__)
 
-    def update_children_on_menu_interface(self):
+    def update(self, dt):
+        # TODO: implement caching for performance.
+        self.children = []
         for option_key, option_text in self.interface.database.options.items():
-            super().add_child(GameTextUI(option_text, tag=option_key))
+            child = GameTextUI(option_text)
+            super().add_child(child)
+
+    def draw(self, surface_to_blit: pygame.surface.Surface):
+        super().draw(surface_to_blit)
