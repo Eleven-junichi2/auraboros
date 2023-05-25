@@ -29,6 +29,7 @@ class ExampleScene(Scene):
         self.menuui.interface.add_option("test1", "TEST I")
         self.menuui.interface.add_option("test2", "TEST II")
         self.menuui.interface.add_option("test3", "TEST III")
+        self.menuui.interface.add_option("test4", "TEST IV")
 
     def update(self, dt):
         self.menuui.update(dt)

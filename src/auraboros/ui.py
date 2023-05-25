@@ -1,6 +1,6 @@
 # TODO: Make menu system
 from dataclasses import dataclass, field
-from typing import Callable, Optional
+from typing import Callable, Optional, overload
 
 import pygame
 
@@ -12,11 +12,13 @@ class UI:
     def __init__(
         self,
         parent_layout: Optional["UILayout"] = None,
-        pos: list[int] = [0, 0],
+        pos: Optional[list[int]] = None,
         pos_hint: str = "relative",
         tag: Optional[str] = None,
     ):
         self.parent_layout: Optional["UILayout"] = parent_layout
+        if pos is None:
+            pos = [0, 0]
         self.pos: list[int] = pos
         self.pos_hint: str = pos_hint
         self.calc_real_size: Callable[..., list[int]] = None
@@ -37,7 +39,7 @@ class GameTextUI(UI):
         self,
         gametext: GameText | str,
         parent_layout: Optional["UILayout"] = None,
-        pos: list[int] = [0, 0],
+        pos: Optional[list[int]] = None,
         pos_hint: str = "relative",
         tag: Optional[str] = None,
     ):
@@ -72,12 +74,12 @@ class MsgboxUI(GameTextUI):
         self,
         gametext: GameText | str,
         padding: int = 0,
-        parent_layout: Optional["UILayout"] = None,
-        pos: list[int] = [0, 0],
-        pos_hint: str = "relative",
-        tag: Optional[str] = None,
         frame_width: int = 1,
         frame_color: ColorValue = pygame.Color(255, 255, 255),
+        parent_layout: Optional["UILayout"] = None,
+        pos: Optional[list[int]] = None,
+        pos_hint: str = "relative",
+        tag: Optional[str] = None,
     ):
         super().__init__(
             gametext=gametext,
@@ -135,7 +137,7 @@ class UILayout(UI):
     def __init__(
         self,
         parent_layout: "UILayout" = None,
-        pos: list[int] = [0, 0],
+        pos: Optional[list[int]] = None,
         pos_hint: str = "relative",
         tag: Optional[str] = None,
     ):
@@ -149,6 +151,21 @@ class UILayout(UI):
         if relocate_children_after_add:
             self.relocate_children()
 
+    @overload
+    def remove_child(self, ui_instance_or_index: int) -> None:
+        ...
+
+    def remove_child(self, ui_instance_or_index: UI) -> None:
+        if isinstance(ui_instance_or_index, int):
+            del self.children[ui_instance_or_index]
+        elif isinstance(ui_instance_or_index, UI):
+            self.children.remove(ui_instance_or_index)
+        else:
+            ValueError(
+                "argument `ui_instance_or_index` must be UI instance or "
+                + "index of `children`"
+            )
+
     def relocate_children(self):
         raise NotImplementedError("`relocate_children()` is not implemented")
 
@@ -158,8 +175,11 @@ class UIFlowLayout(UILayout):
         self,
         orientation: str = "vertical",
         spacing: int = 0,
+        padding: int = 0,
+        frame_width: int = 0,
+        frame_color: ColorValue = pygame.Color(255, 255, 255),
         parent_layout: "UILayout" = None,
-        pos: list[int] = [0, 0],
+        pos: Optional[list[int]] = None,
         pos_hint: str = "relative",
         tag: Optional[str] = None,
     ):
@@ -168,35 +188,65 @@ class UIFlowLayout(UILayout):
         )
         self.orientation = orientation
         self.spacing = spacing
+        self.padding = padding
+        self.frame_width = frame_width
+        self.frame_color = frame_color
+        self.__size_after_relocated_children = [0, 0]
+        self.calc_real_size = lambda: self.__size_after_relocated_children
 
     def relocate_children(self):
-        # print("relocating...")
         child_sizes = tuple(map(lambda child: child.real_size, self.children))
-        # print("heights: ", [size[1] for size in child_sizes])
         for i, child in enumerate(self.children):
             if self.pos_hint == "relative":
                 if i == 0:
                     child.pos = self.pos
                 elif i > 0:
                     if self.orientation == "vertical":
-                        child.pos[0] = self.pos[0]
+                        child.pos[0] = self.pos[0] + self.padding
                         child.pos[1] = (
-                            sum([size[1] for size in child_sizes][0:i])
+                            self.padding
+                            + sum([size[1] for size in child_sizes][0:i])
                             + self.spacing * i
                         )
                     elif self.orientation == "horizontal":
                         child.pos[0] = (
-                            sum([size[0] for size in child_sizes][0:i])
+                            self.padding
+                            + sum([size[0] for size in child_sizes][0:i])
                             + self.spacing * i
                         )
-                        child.pos[1] = self.pos[1]
+                        child.pos[1] = self.pos[1] + self.padding
             elif self.pos_hint == "absolute":
                 pass
-            print(child.pos)
+        child_sizes = tuple(map(lambda child: child.real_size, self.children))
+        if self.orientation == "vertical":
+            width_to_calc_real_size = max([size[0] for size in child_sizes])
+            height_to_calc_real_size = (
+                self.padding
+                + sum([size[1] + self.spacing for size in child_sizes])
+                - self.spacing
+            )
+        elif self.orientation == "horizontal":
+            width_to_calc_real_size = (
+                self.padding
+                + sum([size[0] + self.spacing for size in child_sizes])
+                - self.spacing
+            )
+            height_to_calc_real_size = max([size[1] for size in child_sizes])
+        self.__size_after_relocated_children = [
+            width_to_calc_real_size,
+            height_to_calc_real_size,
+        ]
 
     def draw(self, surface_to_blit: pygame.Surface):
         for child in self.children:
             child.draw(surface_to_blit)
+        pygame.draw.rect(
+            surface=surface_to_blit,
+            color=self.frame_color,
+            rect=[*self.pos, *self.real_size],
+            width=self.frame_width,
+        )
+        print([*self.pos, *self.real_size])
 
 
 StrAsOptionKey = str
@@ -317,18 +367,23 @@ class MenuInterface:
 class OptionsUI(UIFlowLayout):
     def __init__(
         self,
+        menusystem_interface: Optional[MenuInterface] = None,
         orientation: str = "vertical",
         spacing: int = 0,
-        menusystem_interface: Optional[MenuInterface] = None,
+        padding: int = 0,
+        frame_width: int = 1,
+        frame_color: ColorValue = pygame.Color(255, 255, 255),
         parent_layout: "UILayout" = None,
-        pos: list[int] = [0, 0],
+        pos: Optional[list[int]] = None,
         pos_hint: str = "relative",
         tag: Optional[str] = None,
-        do_notify_whether_update_called=True,
     ):
         super().__init__(
             orientation=orientation,
             spacing=spacing,
+            padding=padding,
+            frame_width=frame_width,
+            frame_color=frame_color,
             parent_layout=parent_layout,
             pos=pos,
             pos_hint=pos_hint,
@@ -347,7 +402,7 @@ class OptionsUI(UIFlowLayout):
 
     def update(self, dt):
         # TODO: implement caching for performance.
-        self.children = []
+        self.children.clear()
         for option_key, option_text in self.interface.database.options.items():
             child = GameTextUI(option_text)
             super().add_child(child)
