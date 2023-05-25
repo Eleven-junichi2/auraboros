@@ -25,7 +25,7 @@ GameText.setup_font(
 class ExampleScene(Scene):
     def setup(self):
         GameText.use_font("PixelMplus10Regular")
-        self.menuui = OptionsUI(spacing=10)
+        self.menuui = OptionsUI(spacing=10, padding=10)
         self.menuui.interface.add_option("test1", "TEST I")
         self.menuui.interface.add_option("test2", "TEST II")
         self.menuui.interface.add_option("test3", "TEST III")

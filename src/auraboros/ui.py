@@ -1,10 +1,10 @@
-# TODO: Make menu system
+# TODO: refactor sizing and positioning code
 from dataclasses import dataclass, field
 from typing import Callable, Optional, overload
 
 import pygame
 
-from .gametext import GameText
+from .gametext import Font2, GameText
 from .utils.misc import ColorValue
 
 
@@ -43,9 +43,7 @@ class GameTextUI(UI):
         pos_hint: str = "relative",
         tag: Optional[str] = None,
     ):
-        super().__init__(
-            parent_layout=parent_layout, pos=pos, pos_hint=pos_hint, tag=tag
-        )
+        super().__init__(pos=pos, pos_hint=pos_hint, tag=tag)
         if isinstance(gametext, str):
             gametext = GameText(gametext)
         elif not isinstance(gametext, GameText):
@@ -83,7 +81,6 @@ class MsgboxUI(GameTextUI):
     ):
         super().__init__(
             gametext=gametext,
-            parent_layout=parent_layout,
             pos=pos,
             pos_hint=pos_hint,
             tag=tag,
@@ -136,14 +133,11 @@ class MsgboxUI(GameTextUI):
 class UILayout(UI):
     def __init__(
         self,
-        parent_layout: "UILayout" = None,
         pos: Optional[list[int]] = None,
         pos_hint: str = "relative",
         tag: Optional[str] = None,
     ):
-        super().__init__(
-            parent_layout=parent_layout, pos=pos, pos_hint=pos_hint, tag=tag
-        )
+        super().__init__(pos=pos, pos_hint=pos_hint, tag=tag)
         self.children: list[UI] = []
 
     def add_child(self, ui: UI, relocate_children_after_add=True):
@@ -178,21 +172,21 @@ class UIFlowLayout(UILayout):
         padding: int = 0,
         frame_width: int = 0,
         frame_color: ColorValue = pygame.Color(255, 255, 255),
-        parent_layout: "UILayout" = None,
         pos: Optional[list[int]] = None,
         pos_hint: str = "relative",
         tag: Optional[str] = None,
     ):
-        super().__init__(
-            parent_layout=parent_layout, pos=pos, pos_hint=pos_hint, tag=tag
-        )
+        super().__init__(pos=pos, pos_hint=pos_hint, tag=tag)
         self.orientation = orientation
         self.spacing = spacing
         self.padding = padding
         self.frame_width = frame_width
         self.frame_color = frame_color
-        self.__size_after_relocated_children = [0, 0]
-        self.calc_real_size = lambda: self.__size_after_relocated_children
+        self._size_after_relocated_children = [0, 0]
+        self.calc_real_size = self._calc_real_size
+
+    def _calc_real_size(self) -> list[int]:
+        return self._size_after_relocated_children
 
     def relocate_children(self):
         child_sizes = tuple(map(lambda child: child.real_size, self.children))
@@ -232,7 +226,7 @@ class UIFlowLayout(UILayout):
                 - self.spacing
             )
             height_to_calc_real_size = max([size[1] for size in child_sizes])
-        self.__size_after_relocated_children = [
+        self._size_after_relocated_children = [
             width_to_calc_real_size,
             height_to_calc_real_size,
         ]
@@ -373,7 +367,10 @@ class OptionsUI(UIFlowLayout):
         padding: int = 0,
         frame_width: int = 1,
         frame_color: ColorValue = pygame.Color(255, 255, 255),
-        parent_layout: "UILayout" = None,
+        option_highlight_style: str = "cursor",
+        cursor_char: str = "▶",
+        spacing_cursor_to_option: int = 0,
+        cursor_char_font: Optional[Font2] = None,
         pos: Optional[list[int]] = None,
         pos_hint: str = "relative",
         tag: Optional[str] = None,
@@ -384,14 +381,21 @@ class OptionsUI(UIFlowLayout):
             padding=padding,
             frame_width=frame_width,
             frame_color=frame_color,
-            parent_layout=parent_layout,
             pos=pos,
             pos_hint=pos_hint,
             tag=tag,
         )
+        if orientation == "horizontal":
+            raise ValueError("orientation `horizontal` is WIP")
         if menusystem_interface is None:
             menusystem_interface = MenuInterface()
         self.interface = menusystem_interface
+        self.cursor_char = cursor_char
+        if cursor_char_font is None:
+            cursor_char_font = GameText.font
+        self.cursor_char_font = cursor_char_font
+        self.option_highlight_style = option_highlight_style
+        self.spacing_cursor_to_option = spacing_cursor_to_option
 
     def add_child(self):
         """
@@ -399,6 +403,50 @@ class OptionsUI(UIFlowLayout):
         after `add_menuitem()` of its `interface` attr.
         """
         raise NotImplementedError(self.__doc__)
+
+    def relocate_children(self):
+        child_sizes = tuple(map(lambda child: child.real_size, self.children))
+        for i, child in enumerate(self.children):
+            if self.pos_hint == "relative":
+                if i == 0:
+                    if self.orientation == "vertical":
+                        child.pos[0] = (
+                            self.cursor_char_font.size(self.cursor_char)[0]
+                            + self.spacing_cursor_to_option
+                            + self.pos[0]
+                            + self.padding
+                        )
+                        child.pos[1] = self.padding + self.pos[1]
+                elif i > 0:
+                    if self.orientation == "vertical":
+                        child.pos[0] = (
+                            self.cursor_char_font.size(self.cursor_char)[0]
+                            + self.spacing_cursor_to_option
+                            + self.pos[0]
+                            + self.padding
+                        )
+                        child.pos[1] = self.spacing * (i + 1) + sum(
+                            [size[1] for size in child_sizes][0:i]
+                        )
+            elif self.pos_hint == "absolute":
+                pass
+        child_sizes = tuple(map(lambda child: child.real_size, self.children))
+        if self.orientation == "vertical":
+            width_to_calc_real_size = (
+                self.cursor_char_font.size(self.cursor_char)[0]
+                + self.spacing_cursor_to_option
+                + max([size[0] for size in child_sizes])
+                + self.padding * 2
+            )
+            height_to_calc_real_size = (
+                self.padding
+                + sum([size[1] + self.spacing for size in child_sizes])
+                + self.padding
+            )
+        self._size_after_relocated_children = [
+            width_to_calc_real_size,
+            height_to_calc_real_size,
+        ]
 
     def update(self, dt):
         # TODO: implement caching for performance.
@@ -409,3 +457,17 @@ class OptionsUI(UIFlowLayout):
 
     def draw(self, surface_to_blit: pygame.surface.Surface):
         super().draw(surface_to_blit)
+        cursor_surface = self.cursor_char_font.render(
+            self.cursor_char, True, pygame.Color(255, 255, 255)
+        )
+        # TODO: make positioning the cursor
+        if self.option_highlight_style == "cursor":
+            surface_to_blit.blit(
+                cursor_surface,
+                (
+                    self.pos[0] + self.padding,
+                    # self.cursor_char_font.size(self.cursor_char)[1]
+                    self.children[self.interface.selected_index].pos[1]
+                    * self.interface.selected_index,
+                ),
+            )
