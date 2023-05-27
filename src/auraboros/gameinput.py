@@ -163,6 +163,9 @@ class KeyboardManager(KeyboardSetupDict):
         self._current_setup = self.data[key]
         self._current_setup_key = key
 
+    def event(self, event: pygame.event.Event):
+        self.current_setup.event(event)
+
 
 FuncsOnMouseEvent = dict[str : dict[str, Callable]]
 
@@ -304,6 +307,11 @@ class Mouse:
             if self.is_dragging["right"]:
                 self._funcs_on_event[KEY]["right"](event.pos)
                 self.pos_prev_drag["right"] = event.pos
+
+
+class MouseManager:
+    def event(self, event: pygame.event.Event):
+        pass
 
 
 class TextInput:

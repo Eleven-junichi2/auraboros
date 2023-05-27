@@ -43,9 +43,6 @@ class Scene:
     def __init__(self, manager: "SceneManager"):
         self.manager = manager
         self.statemachine: StateMachine = StateMachine()
-        self.keyboard: KeyboardManager = KeyboardManager()
-        self.mouse: Mouse = Mouse()
-        self.visual_effects: list[AnimationImage] = []
         self._is_setup_finished = False  # turn True by SceneManager
 
     def setup(self):
@@ -55,7 +52,7 @@ class Scene:
         """
         pass
 
-    def event(self, event: pygame.event):
+    def event(self, event: pygame.event.Event):
         pass
 
     def draw(self, screen: pygame.surface.Surface):
@@ -79,8 +76,8 @@ class SceneManager:
     def current(self, value):
         self._current = value
 
-    def event(self, event: pygame.event) -> bool:
-        """return False as a signal of quit app"""
+    def event(self, event: pygame.event.Event) -> bool:
+        """return False to notify whether quit event is fired"""
         if event.type == pygame.QUIT:
             return False
         if self.current == -1:
@@ -88,10 +85,6 @@ class SceneManager:
         if not self.scenes[self.current]._is_setup_finished:
             return True
         self.scenes[self.current].event(event)
-        if self.scenes[self.current].keyboard.current_setup is not None:
-            self.scenes[self.current].keyboard.current_setup.event(event)
-        if self.scenes[self.current].mouse is not None:
-            self.scenes[self.current].mouse.event(event)
         return True
 
     def update(self, dt):
@@ -112,8 +105,6 @@ class SceneManager:
         self.scenes.pop()
 
     def transition_to(self, index: int):
-        if self.scenes[self.current].keyboard.current_setup is not None:
-            self.scenes[self.current].keyboard.current_setup.release_all_of_keys()
         self.current = index
         self.scenes[self.current].setup()
         self.scenes[self.current]._is_setup_finished = True

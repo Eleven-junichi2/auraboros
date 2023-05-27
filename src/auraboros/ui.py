@@ -9,20 +9,22 @@ from .utils.misc import ColorValue
 
 
 class UI:
+    _ui_manager: Optional["UIManager"] = None
+
     def __init__(
         self,
-        parent_layout: Optional["UILayout"] = None,
         pos: Optional[list[int]] = None,
         pos_hint: str = "relative",
         tag: Optional[str] = None,
     ):
-        self.parent_layout: Optional["UILayout"] = parent_layout
         if pos is None:
             pos = [0, 0]
         self.pos: list[int] = pos
         self.pos_hint: str = pos_hint
         self.calc_real_size: Callable[..., list[int]] = None
         self.tag = tag
+        if UI._ui_manager:
+            UI._ui_manager.ui_dict[self.tag].append(self)
 
     @property
     def real_size(self):
@@ -30,8 +32,27 @@ class UI:
             raise NotImplementedError("calc_real_size is not implemented")
         return self.calc_real_size()
 
+    def event(self, event: pygame.event.Event):
+        pass
+
     def draw(self, surface_to_blit: pygame.Surface):
         raise NotImplementedError("draw is not implemented")
+
+    def remove_self(self):
+        UI._ui_manager.ui_dict[self.tag].remove(self)
+
+
+TagStr = str
+
+
+class UIManager:
+    def __init__(self):
+        self.ui_dict: dict[TagStr, list[UI]] = {None: []}
+
+    def event(self, event: pygame.event.Event):
+        for ui_list in self.ui_dict.values():
+            for ui in ui_list:
+                ui.event(event)
 
 
 class GameTextUI(UI):
