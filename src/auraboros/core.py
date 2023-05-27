@@ -78,7 +78,7 @@ def init(
     Global.is_initialized = True
 
 
-def scale_px_of_display_from_pygame_get_surface():
+def scale_px_of_pygame_get_surface_display():
     if not Global.is_scale_px_of_display_from_pygame_get_surface_called:
         Global.screen = pygame.Surface(Global.shrinked_screen_size_for_scale_px)
         Global.is_scale_px_of_display_from_pygame_get_surface_called = True
