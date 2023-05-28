@@ -186,7 +186,7 @@ class Font2Dict(dict):
 
 class GameText:
     font_dict: Font2Dict = Font2Dict()
-    current_font_name: str
+    default_font_name: Optional[str] = None
 
     def __init__(
         self,
@@ -196,7 +196,20 @@ class GameText:
         color_background: Optional[ColorValue] = None,
         linelength: Optional[int] = None,
         is_linelength_in_px: bool = True,
+        font_name: Optional[str] = None,
     ):
+        if font_name:
+            if self.font_dict.get(font_name):
+                self.font_name = font_name
+            else:
+                raise ValueError("Font2 object for given `font_name` is not found.")
+        else:
+            if self.default_font_name:
+                self.font_name = self.default_font_name
+            else:
+                raise ValueError(
+                    "default_font_name is None." + "(hint: `setup_font()`)"
+                )
         self.text = text
         self.is_antialias_enable = is_antialias_enable
         self.color_foreground = color_foreground
@@ -205,31 +218,31 @@ class GameText:
         self.is_linelength_in_px = is_linelength_in_px
 
     @classmethod
-    def setup_font(cls, font: Font2, name_for_registering_in_dict: str):
+    def setup_font(cls, font: Font2, name_for_dict_key: str):
         """
         The classmethod to set Font object.
+        If `font_dict` is empty, given font will be a default font.
 
         Alias:
             register_font()
         """
-        cls.font_dict[name_for_registering_in_dict] = font
-        cls.current_font_name = name_for_registering_in_dict
+        if len(cls.font_dict) == 0:
+            cls.default_font_name = name_for_dict_key
+        cls.font_dict[name_for_dict_key] = font
 
     @classmethod
-    def use_font(cls, name_of_font_in_dict: str):
-        cls.current_font_name = name_of_font_in_dict
+    def set_font_as_default(cls, font_name: str):
+        cls.default_font_name = font_name
+
+    def use_font(self, font_name: str):
+        self.font_name = font_name
 
     # alias of the method
     register_font = setup_font
 
-    @classmethod
-    def get_font(cls) -> Font2:
-        return cls.font_dict[cls.current_font_name]
-
-    @classmethod
     @property
-    def font(cls) -> Font2:
-        return cls.font_dict[cls.current_font_name]
+    def font(self) -> Font2:
+        return self.font_dict[self.font_name]
 
     def rewrite(self, text: str):
         self.text = text

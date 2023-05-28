@@ -8,7 +8,7 @@ from auraboros import engine
 from auraboros.gametext import GameText, Font2
 
 # from auraboros.old_ui import LabelUI
-from auraboros.ui import GameTextUI, MsgboxUI, UIFlowLayout
+from auraboros.old_ui import GameTextUI, MsgboxUI, UIFlowLayout
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.utils.path import AssetFilePath
 from auraboros.utils.surface import draw_grid

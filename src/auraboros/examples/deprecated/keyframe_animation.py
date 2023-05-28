@@ -9,7 +9,7 @@ from auraboros.animation import KeyframeAnimation, Keyframe
 from auraboros.gametext import GameText, Font2
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.gameinput import Keyboard
-from auraboros.old_ui import MenuUI, MsgBoxUI
+from auraboros.oldold_ui import MenuUI, MsgBoxUI
 from auraboros.utils.path import AssetFilePath
 from auraboros.utils.surface import draw_grid
 from auraboros.utils.coordinate import in_scaled_px, window_size

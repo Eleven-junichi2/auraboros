@@ -12,7 +12,7 @@ from auraboros.utils import AssetFilePath, draw_grid
 from auraboros.gametext import GameText, Font2
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.gameinput import Keyboard
-from auraboros.old_ui import GameMenuSystem, GameMenuUI, MsgWindow
+from auraboros.oldold_ui import GameMenuSystem, GameMenuUI, MsgWindow
 from auraboros.particle import Emitter
 from auraboros import global_
 

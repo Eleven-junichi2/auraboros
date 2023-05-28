@@ -12,7 +12,7 @@ from auraboros.animation import AnimationImage, SpriteSheet
 from auraboros.gametext import TextSurfaceFactory
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.gameinput import Keyboard
-from auraboros.old_ui import GameMenuSystem, GameMenuUI, MsgWindow
+from auraboros.oldold_ui import GameMenuSystem, GameMenuUI, MsgWindow
 from auraboros.utils import AssetFilePath, draw_grid, pos_on_pixel_scale
 from auraboros.schedule import Stopwatch
 from auraboros import global_

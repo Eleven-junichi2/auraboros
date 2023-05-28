@@ -164,6 +164,8 @@ class KeyboardManager(KeyboardSetupDict):
         self._current_setup_key = key
 
     def event(self, event: pygame.event.Event):
+        if self.current_setup is None:
+            return
         self.current_setup.event(event)
 
 

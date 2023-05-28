@@ -1,4 +1,4 @@
-from src.auraboros.ui import UI, MenuInterface, MenuDatabase  # noqa
+from auraboros.old_ui import UI, MenuInterface, MenuDatabase  # noqa
 
 
 class ExampleUI(UI):

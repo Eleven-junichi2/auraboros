@@ -4,8 +4,8 @@ from typing import Any, Callable
 import pygame
 
 from .core import Global
-from .animation import AnimationImage
-from .gameinput import KeyboardManager, Mouse
+# from .animation import AnimationImage
+# from .gameinput import KeyboardManager, Mouse
 
 
 @dataclass
@@ -40,6 +40,22 @@ class StateMachine:
 
 
 class Scene:
+    """
+    Examples:
+        class ExampleScene(Scene):
+            def setup(self):
+                """"use instead of __init__""""
+
+            def event(self, event: pygame.event.Event):
+                pass
+
+            def update(self):
+                pass
+
+            def draw(self):
+                pass
+    """
+
     def __init__(self, manager: "SceneManager"):
         self.manager = manager
         self.statemachine: StateMachine = StateMachine()
@@ -82,12 +98,16 @@ class SceneManager:
             return False
         if self.current == -1:
             return False
+        if self.scenes == []:
+            return True
         if not self.scenes[self.current]._is_setup_finished:
             return True
         self.scenes[self.current].event(event)
         return True
 
     def update(self, dt):
+        if self.scenes == []:
+            return
         if not self.__is_finished_setup_of_first_scene:
             if Global.is_initialized:
                 self.scenes[0].setup()
@@ -96,6 +116,8 @@ class SceneManager:
         self.scenes[self.current].update(dt)
 
     def draw(self, screen: pygame.surface.Surface):
+        if self.scenes == []:
+            return
         self.scenes[self.current].draw(screen)
 
     def add(self, scene: Scene):

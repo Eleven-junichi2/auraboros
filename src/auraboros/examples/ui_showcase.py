@@ -21,16 +21,16 @@ GameText.setup_font(
 )
 
 
-class HelloWorldScene(Scene):
+class TextUIScene(Scene):
     def setup(self):
-        self.helloworld_textui = TextUI([0, 0], GameText("Hello, World!"))
+        self.textui_example = TextUI([0, 0], GameText("Example of TextUI"))
 
     def draw(self, screen: pygame.surface.Surface):
-        self.helloworld_textui.draw(screen)
+        self.textui_example.draw(screen)
 
 
 scenemanager = SceneManager()
-scenemanager.add(HelloWorldScene(scenemanager))
+scenemanager.add(TextUIScene(scenemanager))
 
 if __name__ == "__main__":
     engine.run(scenemanager)

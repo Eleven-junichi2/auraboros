@@ -12,7 +12,7 @@ from auraboros.utils.coordinate import window_size_in_scaled_px
 from auraboros.gametext import GameText, Font2
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.gameinput import Keyboard
-from auraboros.old_ui import MsgBoxUI, TextInputUI
+from auraboros.oldold_ui import MsgBoxUI, TextInputUI
 
 engine.init(base_pixel_scale=2)
 

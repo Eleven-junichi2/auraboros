@@ -6,7 +6,7 @@ from .core import Global, scale_px_of_pygame_get_surface_display
 from .gamescene import SceneManager
 from .schedule import Schedule, Stopwatch
 from .shader import Shader2D
-from .ui import UIManager, UI
+from .old_ui import UIManager, UI
 from .gameinput import KeyboardManager, MouseManager
 
 

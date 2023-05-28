@@ -6,7 +6,7 @@ import pygame
 import setup_syspath  # noqa
 from auraboros import engine
 from auraboros.gametext import GameText, Font2
-from auraboros.old_ui import MsgboxUI
+from auraboros.oldold_ui import MsgboxUI
 from auraboros.gamescene import Scene, SceneManager
 from auraboros.utils.path import AssetFilePath
 from auraboros.utils.surface import draw_grid
