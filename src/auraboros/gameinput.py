@@ -5,7 +5,7 @@ and other input events.
 
 from collections import UserDict
 from dataclasses import dataclass
-from typing import Callable, Union
+from typing import Callable, Optional, Union
 
 import pygame
 
@@ -173,6 +173,8 @@ FuncsOnMouseEvent = dict[str : dict[str, Callable]]
 
 
 class Mouse:
+    _mouse_manager: Optional["MouseManager"] = None
+
     def __init__(self):
         self.is_dragging = False
         self.pos_drag_start = None
@@ -312,6 +314,7 @@ class Mouse:
 
 
 class MouseManager:
+    """Not implemented"""
     def event(self, event: pygame.event.Event):
         pass
 
