@@ -23,10 +23,13 @@ logger.addHandler(console_handler)
 class UI:
     def __init__(
         self,
+        pos: list[int],
+        fixed_size: list[int],
         tag: Optional[str] = None,
     ):
         self.tag = tag
         self.children: list[UI] = []
+        self.parts = UIParts(pos=pos, fixed_size=fixed_size)
 
     def event(self, event: pygame.event.Event):
         for child in self.children:
@@ -45,9 +48,6 @@ class UI:
             self.children.append(UI)
         else:
             raise ValueError("`child` must be UI")
-
-
-TagStr = str
 
 
 @dataclass
@@ -87,6 +87,29 @@ class UIParts:
         return x and y
 
 
+class UIFlowLayout(UI):
+    def __init__(
+        self,
+        pos: list[int],
+        fixed_size: list[int],
+        tag: Optional[str] = None,
+    ):
+        self.tag = tag
+        self.children: list[UI] = []
+        self.parts = UIParts(pos=pos, fixed_size=fixed_size)
+
+    def reposition_children(self):
+        # TODO: make this
+        # for child in self.children:
+        #     child.parts.pos
+        pass
+
+    def calc_positions_for_children(self) -> tuple[tuple[int, int], ...]:
+        # TODO: make this
+        realsizes = [child.parts.real_size for child in self.children]
+        positions = [child.parts.pos for child in self.children]
+
+
 @dataclass
 class TextUIParts(UIParts):
     gametext: GameText
@@ -117,13 +140,15 @@ class TextUI(UI):
         fixed_size: Optional[list[int]] = None,
         tag: Optional[str] = None,
     ):
-        super().__init__(tag=tag)
+        super().__init__(pos=pos, fixed_size=fixed_size, tag=tag)
         self.parts = TextUIParts(pos=pos, fixed_size=fixed_size, gametext=gametext)
 
     def draw(self, surface_to_blit: pygame.Surface):
         super().draw(surface_to_blit)
         text_surface = self.parts.gametext.renderln()
-        surface_to_blit.blit(text_surface, (*self.parts.pos, *self.parts.real_size))
+        surface_to_blit.blit(
+            text_surface, self.parts.pos, (0, 0, *self.parts.real_size)
+        )
 
 
 @dataclass
