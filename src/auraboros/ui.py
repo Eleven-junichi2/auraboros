@@ -1,11 +1,12 @@
 from dataclasses import dataclass
+from enum import Enum, auto
 from typing import Callable, Optional
 import logging
 
 import pygame
 
-from auraboros.gameinput import Mouse
-from auraboros.gametext import GameText
+from .gameinput import Mouse
+from .gametext import GameText
 
 # from .gametext import Font2, GameText
 # from .utils.misc import ColorValue
@@ -24,7 +25,7 @@ class UI:
     def __init__(
         self,
         pos: list[int],
-        fixed_size: list[int],
+        fixed_size: list[int] = None,
         tag: Optional[str] = None,
     ):
         self.tag = tag
@@ -45,7 +46,7 @@ class UI:
 
     def add_child(self, child: "UI"):
         if isinstance(child, UI):
-            self.children.append(UI)
+            self.children.append(child)
         else:
             raise ValueError("`child` must be UI")
 
@@ -87,27 +88,80 @@ class UIParts:
         return x and y
 
 
+class Orientation(Enum):
+    VERTICAL = auto()
+    HORIZONTAL = auto()
+
+
+@dataclass
+class UIFlowLayoutParts(UIParts):
+    orientation: Orientation
+    spacing: int
+
+
 class UIFlowLayout(UI):
     def __init__(
         self,
         pos: list[int],
-        fixed_size: list[int],
+        orientation: Orientation = Orientation.VERTICAL,
+        spacing: int = 0,
+        fixed_size: list[int] = None,
         tag: Optional[str] = None,
     ):
         self.tag = tag
         self.children: list[UI] = []
-        self.parts = UIParts(pos=pos, fixed_size=fixed_size)
+        self.parts = UIFlowLayoutParts(
+            pos=pos, fixed_size=fixed_size, orientation=orientation, spacing=spacing
+        )
+        self.parts.func_to_calc_real_size = self.calc_entire_realsize
 
     def reposition_children(self):
-        # TODO: make this
-        # for child in self.children:
-        #     child.parts.pos
-        pass
+        for child, new_pos in zip(self.children, self.calc_positions_for_children()):
+            child.parts.pos = list(new_pos)
 
-    def calc_positions_for_children(self) -> tuple[tuple[int, int], ...]:
-        # TODO: make this
+    def calc_positions_for_children(
+        self,
+    ) -> tuple[tuple[int, int], ...]:
         realsizes = [child.parts.real_size for child in self.children]
-        positions = [child.parts.pos for child in self.children]
+        fixed_positions = []
+        fixed_positions.append((self.parts.pos[0], self.parts.pos[1]))
+        for i in range(len(realsizes))[1:]:
+            spacing = self.parts.spacing * i if i != len(realsizes) else 0
+            if self.parts.orientation == Orientation.VERTICAL:
+                fixed_positions.append(
+                    (
+                        self.parts.pos[0],
+                        self.parts.pos[1]
+                        + sum([size[1] for size in realsizes[0:i]])
+                        + spacing,
+                    )
+                )
+            elif self.parts.orientation == Orientation.HORIZONTAL:
+                fixed_positions.append(
+                    (
+                        self.parts.pos[0]
+                        + sum([size[0] for size in realsizes[0:i]])
+                        + spacing,
+                        self.parts.pos[1],
+                    )
+                )
+        return tuple(fixed_positions)
+
+    def calc_entire_realsize(self) -> tuple[int, int]:
+        # TODO: make this
+        children_positions = self.calc_positions_for_children()
+        children_realsizes = [child.parts.real_size for child in self.children]
+        entire_realsize = [0, 0]
+        if self.parts.orientation == Orientation.VERTICAL:
+            entire_realsize[0] = max(
+                [size[0] for size in children_realsizes], default=0
+            )
+        for pos, realsize in zip(children_positions, children_realsizes):
+            if self.parts.orientation == Orientation.VERTICAL:
+                pass
+            if self.parts.orientation == Orientation.HORIZONTAL:
+                pass
+        return entire_realsize
 
 
 @dataclass
