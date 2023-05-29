@@ -27,90 +27,18 @@
             },
         },
         {
-            "name": "Python: example shader",
+            "name": "Python: example helloworld",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/auraboros/examples/shader.py",
+            "program": "${workspaceFolder}/src/auraboros/examples/helloworld.py",
             "console": "integratedTerminal",
             "justMyCode": true
         },
         {
-            "name": "Python: example keyframe animation",
+            "name": "Python: example ui showcase",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/auraboros/examples/keyframe_animation.py",
-            "console": "integratedTerminal",
-            "justMyCode": true
-        },
-        {
-            "name": "Python: example mouse",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/src/auraboros/examples/mouse.py",
-            "console": "integratedTerminal",
-            "justMyCode": true
-        },
-        {
-            "name": "Python: example msgbox",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/src/auraboros/examples/msgbox.py",
-            "console": "integratedTerminal",
-            "justMyCode": true
-        },
-        {
-            "name": "Python: example scene transition",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/src/auraboros/examples/scene_transition.py",
-            "console": "integratedTerminal",
-            "justMyCode": true
-        },
-        {
-            "name": "Python: example stopwatch",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/src/auraboros/examples/stopwatch.py",
-            "console": "integratedTerminal",
-            "justMyCode": true
-        },
-        {
-            "name": "Python: example textinput",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/src/auraboros/examples/textinput.py",
-            "console": "integratedTerminal",
-            "justMyCode": true
-        },
-        {
-            "name": "Python: example gametext",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/src/auraboros/examples/gametext.py",
-            "console": "integratedTerminal",
-            "justMyCode": true
-        },
-        {
-            "name": "Python: example Label UI",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/src/auraboros/examples/label_ui.py",
-            "console": "integratedTerminal",
-            "justMyCode": true
-        },
-        {
-            "name": "Python: example UI 1",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/src/auraboros/examples/ui_example1.py",
-            "console": "integratedTerminal",
-            "justMyCode": true
-        },
-        {
-            "name": "Python: Menu UI example",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/src/auraboros/examples/menu_ui.py",
+            "program": "${workspaceFolder}/src/auraboros/examples/ui_showcase.py",
             "console": "integratedTerminal",
             "justMyCode": true
         },

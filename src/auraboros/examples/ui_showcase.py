@@ -31,16 +31,25 @@ class TextUIScene(Scene):
 
 class ButtonUIScene(Scene):
     def setup(self):
+        def show_pressed(ui: ButtonUI):
+            ui.parts.gametext.rewrite("Pressed!")
+            print("Pressed!")
+
         self.btnui_example = ButtonUI(
-            [0, 0], GameText("Example of Button UI"), on_press=lambda: print("pressed!")
+            [0, 0],
+            GameText("Example of Button UI"),
+            on_press=lambda: show_pressed(self.btnui_example),
         )
+
+    def event(self, event: pygame.event.Event):
+        self.btnui_example.event(event)
 
     def draw(self, screen: pygame.surface.Surface):
         self.btnui_example.draw(screen)
 
 
 scenemanager = SceneManager()
-scenemanager.add(TextUIScene(scenemanager))
+scenemanager.add(ButtonUIScene(scenemanager))
 
 if __name__ == "__main__":
     engine.run(scenemanager)

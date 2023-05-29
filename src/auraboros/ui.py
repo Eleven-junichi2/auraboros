@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-import logging
 from typing import Callable, Optional
+import logging
 
 import pygame
 
@@ -21,16 +21,11 @@ logger.addHandler(console_handler)
 
 
 class UI:
-    _ui_manager: Optional["UIManager"] = None
-
     def __init__(
         self,
         tag: Optional[str] = None,
     ):
         self.tag = tag
-        if UI._ui_manager:
-            logger.debug(f"append a UI(={self}) to UIManager(={UI._ui_manager})")
-            UI._ui_manager.ui_dict[self.tag].append(self)
         self.children: list[UI] = []
 
     def event(self, event: pygame.event.Event):
@@ -45,9 +40,6 @@ class UI:
         for child in self.children:
             child.draw(surface_to_blit)
 
-    def remove_self(self):
-        UI._ui_manager.ui_dict[self.tag].remove(self)
-
     def add_child(self, child: "UI"):
         if isinstance(child, UI):
             self.children.append(UI)
@@ -56,16 +48,6 @@ class UI:
 
 
 TagStr = str
-
-
-class UIManager:
-    def __init__(self):
-        self.ui_dict: dict[TagStr, list[UI]] = {None: []}
-
-    def event(self, event: pygame.event.Event):
-        for ui_list in self.ui_dict.values():
-            for ui in ui_list:
-                ui.event(event)
 
 
 @dataclass
@@ -109,7 +91,7 @@ class UIParts:
 class TextUIParts(UIParts):
     gametext: GameText
 
-    def _post_init(self):
+    def __post_init__(self):
         super().__post_init__()
         self.func_to_calc_min_size = self.calc_min_size
         self.func_to_calc_real_size = self.calc_real_size
@@ -163,16 +145,19 @@ class ButtonUI(TextUI):
     ):
         super().__init__(pos=pos, gametext=gametext, fixed_size=fixed_size, tag=tag)
         self.parts = ButtonUIParts(pos=pos, fixed_size=fixed_size, gametext=gametext)
-        self._on_press: Optional[Callable] = on_press
         self._mouse = Mouse()
+        self._on_press_setter(on_press)
 
     @property
     def on_press(self) -> Optional[Callable]:
         return self._on_press
 
     @on_press.setter
-    def on_press(self, func):
+    def on_press(self, func: Callable):
         print("go on_press setter")
+        self._on_press_setter(func)
+
+    def _on_press_setter(self, func: Callable):
         self._on_press: Optional[Callable] = func
         if self.on_press:
             self._mouse.register_mouseaction(
