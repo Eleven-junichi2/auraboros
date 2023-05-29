@@ -122,13 +122,10 @@ class TextUI(UI):
 
     def draw(self, surface_to_blit: pygame.Surface):
         super().draw(surface_to_blit)
-        self.parts.gametext.renderln(
-            surface_to_blit=surface_to_blit,
-            pos_for_surface_to_blit_option=self.parts.pos,
-        )
+        text_surface = self.parts.gametext.renderln()
+        surface_to_blit.blit(text_surface, (*self.parts.pos, *self.parts.real_size))
 
 
-# TODO: make ButtonUI
 @dataclass
 class ButtonUIParts(TextUIParts):
     pass
@@ -140,13 +137,15 @@ class ButtonUI(TextUI):
         pos: list[int],
         gametext: GameText,
         on_press: Optional[Callable] = None,
+        on_release: Optional[Callable] = None,
         fixed_size: Optional[list[int]] = None,
         tag: Optional[str] = None,
     ):
         super().__init__(pos=pos, gametext=gametext, fixed_size=fixed_size, tag=tag)
         self.parts = ButtonUIParts(pos=pos, fixed_size=fixed_size, gametext=gametext)
-        self._mouse = Mouse()
+        self.mouse = Mouse()
         self._on_press_setter(on_press)
+        self._on_release_setter(on_release)
 
     @property
     def on_press(self) -> Optional[Callable]:
@@ -154,25 +153,38 @@ class ButtonUI(TextUI):
 
     @on_press.setter
     def on_press(self, func: Callable):
-        print("go on_press setter")
         self._on_press_setter(func)
 
     def _on_press_setter(self, func: Callable):
         self._on_press: Optional[Callable] = func
         if self.on_press:
-            self._mouse.register_mouseaction(
+            self.mouse.register_mouseaction(
                 pygame.MOUSEBUTTONDOWN,
                 on_left=lambda: self.on_press()
                 if self.parts.is_given_pos_in_real_size(pygame.mouse.get_pos())
                 else None,
             )
 
+    @property
+    def on_release(self) -> Optional[Callable]:
+        return self._on_release
+
+    @on_release.setter
+    def on_release(self, func: Callable):
+        self._on_release_setter(func)
+
+    def _on_release_setter(self, func: Callable):
+        self._on_release: Optional[Callable] = func
+        if self.on_release:
+            self.mouse.register_mouseaction(
+                pygame.MOUSEBUTTONUP,
+                on_left=lambda: self.on_release()
+                if self.parts.is_given_pos_in_real_size(pygame.mouse.get_pos())
+                else None,
+            )
+
     def event(self, event: pygame.event.Event):
-        self._mouse.event(event)
+        self.mouse.event(event)
 
     def draw(self, surface_to_blit: pygame.Surface):
         super().draw(surface_to_blit)
-        self.parts.gametext.renderln(
-            surface_to_blit=surface_to_blit,
-            pos_for_surface_to_blit_option=self.parts.pos,
-        )

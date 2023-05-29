@@ -6,14 +6,9 @@ from .core import Global, scale_px_of_pygame_get_surface_display
 from .gamescene import SceneManager
 from .schedule import Schedule, Stopwatch
 from .shader import Shader2D
-from .ui import UI
-from .gameinput import KeyboardManager, MouseManager
 
 
 def run(scene_manager: SceneManager):
-    keyboard_manager = KeyboardManager()
-    mouse_manager = MouseManager()
-
     clock = pygame.time.Clock()
 
     if Global.use_opengl_display:
@@ -21,7 +16,6 @@ def run(scene_manager: SceneManager):
 
     running_flag = True
     while running_flag:
-        print(UI.ui_instances)
         # -control FPS and return delta time-
         dt = clock.tick(Global.fps)
         # --
@@ -36,8 +30,6 @@ def run(scene_manager: SceneManager):
         for event in pygame.event.get():
             # -process pygame events in all of scenes-
             running_flag = scene_manager.event(event)
-            keyboard_manager.event(event)
-            mouse_manager.event(event)
             #  --
         scene_manager.update(dt)
         scene_manager.draw(Global.screen)
