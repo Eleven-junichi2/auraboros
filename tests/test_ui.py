@@ -20,7 +20,6 @@ class TestButtonUI:
 
 
 class TestFlowLayout:
-
     @staticmethod
     def test_calc_positions_for_children():
         flowlayout = UIFlowLayout([0, 0])
@@ -42,3 +41,13 @@ class TestFlowLayout:
         assert flowlayout.children[0].parts.pos == [0, 0]
         assert flowlayout.children[1].parts.pos == [0, 20]
         assert flowlayout.children[2].parts.pos == [0, 50]
+
+    @staticmethod
+    def test_calc_entire_realsize():
+        flowlayout = UIFlowLayout([0, 0], spacing=10)
+        flowlayout.add_child(UI([0, 0], [11, 10]))
+        flowlayout.add_child(UI([0, 0], [11, 20]))
+        flowlayout.add_child(UI([0, 0], [11, 30]))
+        flowlayout.reposition_children()
+        assert flowlayout.calc_entire_realsize() == (11, 80)
+        assert flowlayout.parts.real_size == (11, 80)

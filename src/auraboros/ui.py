@@ -148,7 +148,6 @@ class UIFlowLayout(UI):
         return tuple(fixed_positions)
 
     def calc_entire_realsize(self) -> tuple[int, int]:
-        # TODO: make this
         children_positions = self.calc_positions_for_children()
         children_realsizes = [child.parts.real_size for child in self.children]
         entire_realsize = [0, 0]
@@ -156,12 +155,15 @@ class UIFlowLayout(UI):
             entire_realsize[0] = max(
                 [size[0] for size in children_realsizes], default=0
             )
-        for pos, realsize in zip(children_positions, children_realsizes):
-            if self.parts.orientation == Orientation.VERTICAL:
-                pass
-            if self.parts.orientation == Orientation.HORIZONTAL:
-                pass
-        return entire_realsize
+            entire_realsize[1] = (
+                children_positions[-1][1]
+                + children_realsizes[-1][1]
+                - children_positions[0][1]
+            )
+        elif self.parts.orientation == Orientation.HORIZONTAL:
+            # TODO: make this
+            raise NotImplementedError
+        return tuple(entire_realsize)
 
 
 @dataclass
