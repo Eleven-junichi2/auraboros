@@ -161,8 +161,14 @@ class UIFlowLayout(UI):
                 - children_positions[0][1]
             )
         elif self.parts.orientation == Orientation.HORIZONTAL:
-            # TODO: make this
-            raise NotImplementedError
+            entire_realsize[1] = max(
+                [size[1] for size in children_realsizes], default=0
+            )
+            entire_realsize[0] = (
+                children_positions[-1][0]
+                + children_realsizes[-1][0]
+                - children_positions[0][0]
+            )
         return tuple(entire_realsize)
 
 
