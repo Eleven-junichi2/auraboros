@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Callable, Optional
 import logging
@@ -24,10 +24,12 @@ logger.addHandler(console_handler)
 class UI:
     def __init__(
         self,
-        pos: list[int],
+        pos: list[int] = None,
         fixed_size: list[int] = None,
         tag: Optional[str] = None,
     ):
+        if pos is None:
+            pos = [0, 0]
         self.tag = tag
         self.children: list[UI] = []
         self.parts = UIParts(pos=pos, fixed_size=fixed_size)
@@ -47,6 +49,12 @@ class UI:
     def add_child(self, child: "UI"):
         if isinstance(child, UI):
             self.children.append(child)
+        else:
+            raise ValueError("`child` must be UI")
+
+    def remove_child(self, child: "UI"):
+        if isinstance(child, UI):
+            self.children.remove(child)
         else:
             raise ValueError("`child` must be UI")
 
@@ -102,14 +110,13 @@ class UIFlowLayoutParts(UIParts):
 class UIFlowLayout(UI):
     def __init__(
         self,
-        pos: list[int],
+        pos: list[int] = None,
         orientation: Orientation = Orientation.VERTICAL,
         spacing: int = 0,
         fixed_size: list[int] = None,
         tag: Optional[str] = None,
     ):
-        self.tag = tag
-        self.children: list[UI] = []
+        super().__init__(pos=pos, fixed_size=fixed_size, tag=tag)
         self.parts = UIFlowLayoutParts(
             pos=pos, fixed_size=fixed_size, orientation=orientation, spacing=spacing
         )
@@ -197,8 +204,8 @@ class TextUIParts(UIParts):
 class TextUI(UI):
     def __init__(
         self,
-        pos: list[int],
         gametext: GameText,
+        pos: list[int] = None,
         fixed_size: Optional[list[int]] = None,
         tag: Optional[str] = None,
     ):
@@ -221,8 +228,8 @@ class ButtonUIParts(TextUIParts):
 class ButtonUI(TextUI):
     def __init__(
         self,
-        pos: list[int],
         gametext: GameText,
+        pos: list[int] = None,
         on_press: Optional[Callable] = None,
         on_release: Optional[Callable] = None,
         fixed_size: Optional[list[int]] = None,
@@ -275,3 +282,121 @@ class ButtonUI(TextUI):
 
     def draw(self, surface_to_blit: pygame.Surface):
         super().draw(surface_to_blit)
+
+
+@dataclass
+class Option:
+    ui: UI | TextUI | ButtonUI
+    key: str
+    on_select: Optional[Callable] = None
+    on_highlight: Optional[Callable] = None
+
+
+@dataclass
+class MenuDatabase:
+    options: list[Option] = field(default_factory=list)
+
+    @property
+    def dict_from_options(self) -> dict[str, Option]:
+        return {option.key: option for option in self.options}
+
+    @property
+    def options_count(self) -> int:
+        return len(self.options)
+
+
+@dataclass
+class MenuInterface:
+    def __init__(
+        self,
+        database: Optional[MenuDatabase] = None,
+        func_on_cursor_up: Optional[Callable] = None,
+        func_on_cursor_down: Optional[Callable] = None,
+        loop_cursor: bool = True,
+    ):
+        if database is None:
+            database = MenuDatabase()
+        self.database: MenuDatabase = database
+        self.selected_index: int = 0
+        self.loop_cursor: bool = loop_cursor
+        self.func_on_cursor_up: Optional[Callable] = func_on_cursor_up
+        self.func_on_cursor_down: Optional[Callable] = func_on_cursor_down
+
+    def add_option(
+        self,
+        option: Option,
+    ):
+        self.database.options.append(option)
+
+    def set_func_on_cursor_up(self, func: Callable):
+        self.func_on_cursor_up = func
+
+    def set_func_on_cursor_down(self, func: Callable):
+        self.func_on_cursor_down = func
+
+    def up_cursor(self):
+        if 0 < self.selected_index:
+            self.selected_index -= 1
+        elif self.loop_cursor:
+            self.selected_index = self.database.options_count - 1
+        if self.func_on_cursor_up:
+            self.func_on_cursor_up()
+
+    def down_cursor(self):
+        if self.selected_index < self.database.options_count - 1:
+            self.selected_index += 1
+        elif self.loop_cursor:
+            self.selected_index = 0
+        if self.func_on_cursor_down:
+            self.func_on_cursor_down()
+
+    def do_func_on_select(self):
+        if self.database.options[self.selected_index].on_select:
+            return self.database.options[self.selected_index].on_select()
+
+    def do_func_on_highlight(self):
+        if self.database.options[self.selected_index].on_highlight:
+            return self.database.options[self.selected_index].on_highlight()
+
+    @property
+    def current_selected(self):
+        return self.database.options[self.selected_index]
+
+
+@dataclass
+class MenuParts(UIFlowLayoutParts):
+    pass
+
+
+class MenuUI(UIFlowLayout):
+    def __init__(
+        self,
+        pos: list[int],
+        interface: Optional[MenuInterface] = None,
+        orientation: Orientation = Orientation.VERTICAL,
+        spacing: int = 0,
+        fixed_size: list[int] = None,
+        tag: Optional[str] = None,
+    ):
+        super().__init__(pos=pos, fixed_size=fixed_size, tag=tag)
+        self.parts = MenuParts(
+            pos=pos, fixed_size=fixed_size, orientation=orientation, spacing=spacing
+        )
+        self.parts.func_to_calc_real_size = self.calc_entire_realsize
+        self.add_child = None
+        if interface:
+            self.interface = interface
+        else:
+            self.interface = MenuInterface(database=MenuDatabase())
+
+    @property
+    def database(self) -> MenuDatabase:
+        return self.interface.database
+
+    def add_option(self, option: Option):
+        super().add_child(option.ui)
+        self.interface.add_option(option)
+
+    def update_children_on_database():
+        # TODO: implement this
+        raise NotImplementedError
