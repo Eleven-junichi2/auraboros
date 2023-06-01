@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Callable, Optional
+from functools import singledispatchmethod
+from typing import Callable, Optional, overload
 import logging
 
 import pygame
@@ -300,6 +301,9 @@ class MenuDatabase:
     def dict_from_options(self) -> dict[str, Option]:
         return {option.key: option for option in self.options}
 
+    def index_for_key(self, key: str):
+        return tuple(self.dict_from_options.keys()).index(key)
+
     @property
     def options_count(self) -> int:
         return len(self.options)
@@ -327,6 +331,37 @@ class MenuInterface:
         option: Option,
     ):
         self.database.options.append(option)
+
+    @singledispatchmethod
+    def _remove_option(self, arg):
+        raise ValueError(f"Type {type(arg)} cannot be used with remove_option()")
+
+    @_remove_option.register
+    def _(self, index: int):
+        del self.database.options[index]
+
+    @_remove_option.register
+    def _(self, key: str):
+        del self.database.options[self.database.index_for_key(key)]
+
+    @_remove_option.register
+    def _(self, option: Option):
+        self.database.options.remove(option)
+
+    @overload
+    def remove_option(self, index: int):
+        ...
+
+    @overload
+    def remove_option(self, key: str):
+        ...
+
+    @overload
+    def remove_option(self, option: Option):
+        ...
+
+    def remove_option(self, *arg):
+        self._remove_option(*arg)
 
     def set_func_on_cursor_up(self, func: Callable):
         self.func_on_cursor_up = func
@@ -371,14 +406,20 @@ class MenuParts(UIFlowLayoutParts):
 class MenuUI(UIFlowLayout):
     def __init__(
         self,
-        pos: list[int],
+        pos: list[int] = None,
         interface: Optional[MenuInterface] = None,
         orientation: Orientation = Orientation.VERTICAL,
         spacing: int = 0,
         fixed_size: list[int] = None,
         tag: Optional[str] = None,
     ):
-        super().__init__(pos=pos, fixed_size=fixed_size, tag=tag)
+        super().__init__(
+            pos=pos,
+            fixed_size=fixed_size,
+            tag=tag,
+            orientation=orientation,
+            spacing=spacing,
+        )
         self.parts = MenuParts(
             pos=pos, fixed_size=fixed_size, orientation=orientation, spacing=spacing
         )
@@ -397,6 +438,7 @@ class MenuUI(UIFlowLayout):
         super().add_child(option.ui)
         self.interface.add_option(option)
 
-    def update_children_on_database():
-        # TODO: implement this
-        raise NotImplementedError
+    def update_children_on_database(self):
+        # TODO: improve performance
+        self.children.clear()
+        [super().add_child(option.ui) for option in self.interface.database.options]
