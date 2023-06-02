@@ -7,9 +7,10 @@ import pygame
 
 from auraboros import engine
 from auraboros.gamescene import SceneManager, Scene
-from auraboros.ui import TextUI, ButtonUI
+from auraboros.ui import MenuUI, Option, TextUI, ButtonUI
 from auraboros.gametext import Font2, GameText
 from auraboros.utils.path import AssetFilePath
+from auraboros.utils.coordinate import calc_pos_to_center
 
 engine.init(caption="Hello, World!")
 
@@ -23,7 +24,7 @@ GameText.setup_font(
 
 class TextUIScene(Scene):
     def setup(self):
-        self.textui_example = TextUI([0, 0], GameText("Example of TextUI"))
+        self.textui_example = TextUI(GameText("Example of TextUI"))
 
     def draw(self, screen: pygame.surface.Surface):
         self.textui_example.draw(screen)
@@ -36,9 +37,11 @@ class ButtonUIScene(Scene):
             print("Pressed!")
 
         self.btnui_example = ButtonUI(
-            [0, 0],
             GameText("Example of Button UI"),
             on_press=lambda: show_pressed(self.btnui_example),
+        )
+        self.btnui_example.parts.pos = calc_pos_to_center(
+            self.btnui_example.parts.real_size
         )
 
     def event(self, event: pygame.event.Event):
@@ -48,8 +51,24 @@ class ButtonUIScene(Scene):
         self.btnui_example.draw(screen)
 
 
+class MenuUIScene(Scene):
+    def setup(self):
+        # TODO: make button event on mouse cursor
+        self.menuui = MenuUI()
+        self.menuui.add_option(Option(ButtonUI(GameText("Option1")), "option1"))
+        self.menuui.add_option(Option(ButtonUI(GameText("Option2")), "option2"))
+        self.menuui.add_option(Option(ButtonUI(GameText("Option3")), "option3"))
+        self.menuui.reposition_children()
+
+    def event(self, event: pygame.event.Event):
+        self.menuui.event(event)
+
+    def draw(self, screen: pygame.surface.Surface):
+        self.menuui.draw(screen)
+
+
 scenemanager = SceneManager()
-scenemanager.add(ButtonUIScene(scenemanager))
+scenemanager.add(MenuUIScene(scenemanager))
 
 if __name__ == "__main__":
     engine.run(scenemanager)

@@ -59,19 +59,19 @@ class Keyboard:
             keyup=keyup,
         )
 
-    def is_keyaction_regitered(self, pygame_key_const: int) -> bool:
+    def is_keyaction_registered(self, pygame_key_const: int) -> bool:
         return True if self.keyactions.get(pygame_key_const) else False
 
-    def event(self, event):
+    def event(self, event: pygame.event.Event):
         if event.type == pygame.KEYDOWN:
-            if self.is_keyaction_regitered(event.key):
+            if self.is_keyaction_registered(event.key):
                 self.keyactions[event.key]._is_pressed = True
         if event.type == pygame.KEYUP:
-            if self.is_keyaction_regitered(event.key):
+            if self.is_keyaction_registered(event.key):
                 self.keyactions[event.key]._is_pressed = False
 
     def do_action_on_keyinput(self, pygame_key_const, ignore_unregistered=True):
-        if not self.is_keyaction_regitered(pygame_key_const) and ignore_unregistered:
+        if not self.is_keyaction_registered(pygame_key_const) and ignore_unregistered:
             return
         KEY = pygame_key_const
         DELAY = self.keyactions[KEY].delay

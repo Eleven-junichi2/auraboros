@@ -6,7 +6,7 @@ import logging
 
 import pygame
 
-from .gameinput import Mouse
+from .gameinput import Keyboard, Mouse
 from .gametext import GameText
 
 # from .gametext import Font2, GameText
@@ -25,12 +25,10 @@ logger.addHandler(console_handler)
 class UI:
     def __init__(
         self,
-        pos: list[int] = None,
-        fixed_size: list[int] = None,
+        pos: Optional[list[int]] = None,
+        fixed_size: Optional[list[int]] = None,
         tag: Optional[str] = None,
     ):
-        if pos is None:
-            pos = [0, 0]
         self.tag = tag
         self.children: list[UI] = []
         self.parts = UIParts(pos=pos, fixed_size=fixed_size)
@@ -64,12 +62,14 @@ class UI:
 class UIParts:
     """The properties for UI"""
 
-    pos: list[int]
+    pos: Optional[list[int]]
     fixed_size: Optional[list[int]]
 
     def __post_init__(self):
         self.func_to_calc_min_size: Optional[Callable[..., tuple[int, int]]] = None
         self.func_to_calc_real_size: Optional[Callable[..., tuple[int, int]]] = None
+        if self.pos is None:
+            self.pos = [0, 0]
 
     @property
     def real_size(self) -> tuple[int, int]:
@@ -206,7 +206,7 @@ class TextUI(UI):
     def __init__(
         self,
         gametext: GameText,
-        pos: list[int] = None,
+        pos: Optional[list[int]] = None,
         fixed_size: Optional[list[int]] = None,
         tag: Optional[str] = None,
     ):
@@ -230,7 +230,7 @@ class ButtonUI(TextUI):
     def __init__(
         self,
         gametext: GameText,
-        pos: list[int] = None,
+        pos: Optional[list[int]] = None,
         on_press: Optional[Callable] = None,
         on_release: Optional[Callable] = None,
         fixed_size: Optional[list[int]] = None,
@@ -406,7 +406,7 @@ class MenuParts(UIFlowLayoutParts):
 class MenuUI(UIFlowLayout):
     def __init__(
         self,
-        pos: list[int] = None,
+        pos: Optional[list[int]] = None,
         interface: Optional[MenuInterface] = None,
         orientation: Orientation = Orientation.VERTICAL,
         spacing: int = 0,
@@ -424,11 +424,25 @@ class MenuUI(UIFlowLayout):
             pos=pos, fixed_size=fixed_size, orientation=orientation, spacing=spacing
         )
         self.parts.func_to_calc_real_size = self.calc_entire_realsize
-        self.add_child = None
         if interface:
             self.interface = interface
         else:
             self.interface = MenuInterface(database=MenuDatabase())
+        self.keyboard = Keyboard()
+        if self.parts.orientation == Orientation.VERTICAL:
+            self.keyboard.register_keyaction(
+                pygame.K_UP, 10, 10, 10, keydown=self.interface.up_cursor
+            )
+            self.keyboard.register_keyaction(
+                pygame.K_DOWN, 10, 10, 10, keydown=self.interface.down_cursor
+            )
+        elif self.parts.orientation == Orientation.HORIZONTAL:
+            self.keyboard.register_keyaction(
+                pygame.K_LEFT, 10, 10, 10, keydown=self.interface.up_cursor
+            )
+            self.keyboard.register_keyaction(
+                pygame.K_RIGHT, 10, 10, 10, keydown=self.interface.down_cursor
+            )
 
     @property
     def database(self) -> MenuDatabase:
@@ -442,3 +456,6 @@ class MenuUI(UIFlowLayout):
         # TODO: improve performance
         self.children.clear()
         [super().add_child(option.ui) for option in self.interface.database.options]
+
+    def event(self, event: pygame.event.Event):
+        super().event(event)
