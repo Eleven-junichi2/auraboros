@@ -233,6 +233,7 @@ class ButtonUI(TextUI):
         pos: Optional[list[int]] = None,
         on_press: Optional[Callable] = None,
         on_release: Optional[Callable] = None,
+        on_hover: Optional[Callable] = None,
         fixed_size: Optional[list[int]] = None,
         tag: Optional[str] = None,
     ):
@@ -241,6 +242,7 @@ class ButtonUI(TextUI):
         self.mouse = Mouse()
         self._on_press_setter(on_press)
         self._on_release_setter(on_release)
+        self._on_hover_setter(on_hover)
 
     @property
     def on_press(self) -> Optional[Callable]:
@@ -278,8 +280,22 @@ class ButtonUI(TextUI):
                 else None,
             )
 
+    @property
+    def on_hover(self) -> Optional[Callable]:
+        return self._on_hover
+
+    @on_hover.setter
+    def on_hover(self, func: Callable):
+        self._on_hover_setter(func)
+
+    def _on_hover_setter(self, func: Callable):
+        self._on_hover: Optional[Callable] = func
+
     def event(self, event: pygame.event.Event):
         self.mouse.event(event)
+        if self.parts.is_given_pos_in_real_size(pygame.mouse.get_pos()):
+            if self.on_hover:
+                self.on_hover()
 
     def draw(self, surface_to_blit: pygame.Surface):
         super().draw(surface_to_blit)
