@@ -37,8 +37,10 @@ def run(scene_manager: SceneManager):
         scale_px_of_pygame_get_surface_display()
         if Global.use_opengl_display:
             # -render opengl-
-            shader2d.register_surface_as_texture(Global.screen, "display_surface")
-            shader2d.use_texture("display_surface", 0)
+            shader2d.register_surface_as_texture(
+                Global.screen, Global.texture_name_for_pygame_display
+            )
+            shader2d.use_texture(Global.texture_name_for_pygame_display, 0)
             shader2d.render()
             # --
             # -update display-

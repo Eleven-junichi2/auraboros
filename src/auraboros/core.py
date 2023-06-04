@@ -23,6 +23,7 @@ class Global:
     screen_size_in_unscaled_px: tuple[int, int] = None
     shrinked_screen_size_for_scale_px: tuple[int, int] = None
     is_scale_px_of_display_from_pygame_get_surface_called: bool = False
+    texture_name_for_pygame_display: str = "pygame_display"
 
     def __init__(self):
         raise Exception("Global cannot be instantiated.")
