@@ -359,7 +359,6 @@ class MenuInterface:
                         + " by `set_func_on_menu_updates_for_ui_event` flag"
                     )
                 option.ui.on_press = self.do_func_on_select
-
         self.database.options.append(option)
 
     @singledispatchmethod
