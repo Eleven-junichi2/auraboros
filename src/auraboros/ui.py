@@ -25,11 +25,12 @@ class UI:
         self,
         pos: Optional[list[int]] = None,
         fixed_size: Optional[list[int]] = None,
+        padding: int = 0,
         tag: Optional[str] = None,
     ):
         self.tag = tag
         self.children: list[UI] = []
-        self.parts = UIParts(pos=pos, fixed_size=fixed_size)
+        self.parts = UIParts(pos=pos, fixed_size=fixed_size, padding=padding)
 
     def event(self, event: pygame.event.Event):
         for child in self.children:
@@ -62,6 +63,7 @@ class UIParts:
 
     pos: Optional[list[int]]
     fixed_size: Optional[list[int]]
+    padding: int
 
     def __post_init__(self):
         self.func_to_calc_min_size: Optional[Callable[..., tuple[int, int]]] = None
@@ -100,10 +102,24 @@ class Orientation(Enum):
     HORIZONTAL = auto()
 
 
+class FrameStyle(Enum):
+    BORDER = auto()
+    IMAGE = auto()
+
+
 @dataclass
 class UIFlowLayoutParts(UIParts):
     orientation: Orientation
     spacing: int
+    frame_width: int
+    frame_style: Optional[FrameStyle]
+    frame_color: Optional[ColorValue]
+    frame_radius: Optional[int]
+
+    def __post_init__(self):
+        super().__post_init__()
+        if not self.frame_color:
+            self.frame_color = pygame.Color(220, 220, 220)
 
 
 class UIFlowLayout(UI):
@@ -113,11 +129,24 @@ class UIFlowLayout(UI):
         orientation: Orientation = Orientation.VERTICAL,
         spacing: int = 0,
         fixed_size: list[int] = None,
+        padding: int = 0,
+        frame_style: Optional[FrameStyle] = None,
+        frame_color: Optional[ColorValue] = None,
+        frame_width: int = 1,
+        frame_radius: Optional[int] = None,
         tag: Optional[str] = None,
     ):
-        super().__init__(pos=pos, fixed_size=fixed_size, tag=tag)
+        super().__init__(pos=pos, fixed_size=fixed_size, tag=tag, padding=padding)
         self.parts = UIFlowLayoutParts(
-            pos=pos, fixed_size=fixed_size, orientation=orientation, spacing=spacing
+            pos=pos,
+            fixed_size=fixed_size,
+            orientation=orientation,
+            spacing=spacing,
+            padding=padding,
+            frame_width=frame_width,
+            frame_style=frame_style,
+            frame_color=frame_color,
+            frame_radius=frame_radius,
         )
         self.parts.func_to_calc_real_size = self.calc_entire_realsize
 
@@ -130,14 +159,23 @@ class UIFlowLayout(UI):
     ) -> tuple[tuple[int, int], ...]:
         realsizes = [child.parts.real_size for child in self.children]
         fixed_positions = []
-        fixed_positions.append((self.parts.pos[0], self.parts.pos[1]))
+        fixed_positions.append(
+            (
+                self.parts.frame_width + self.parts.padding + self.parts.pos[0],
+                self.parts.frame_width + self.parts.padding + self.parts.pos[1],
+            )
+        )
         for i in range(len(realsizes))[1:]:
             spacing = self.parts.spacing * i if i != len(realsizes) else 0
+            padding = self.parts.padding
+            frame_width = self.parts.frame_width
             if self.parts.orientation == Orientation.VERTICAL:
                 fixed_positions.append(
                     (
-                        self.parts.pos[0],
-                        self.parts.pos[1]
+                        frame_width + padding + self.parts.pos[0],
+                        frame_width
+                        + padding
+                        + self.parts.pos[1]
                         + sum([size[1] for size in realsizes[0:i]])
                         + spacing,
                     )
@@ -145,10 +183,12 @@ class UIFlowLayout(UI):
             elif self.parts.orientation == Orientation.HORIZONTAL:
                 fixed_positions.append(
                     (
-                        self.parts.pos[0]
+                        frame_width
+                        + padding
+                        + self.parts.pos[0]
                         + sum([size[0] for size in realsizes[0:i]])
                         + spacing,
-                        self.parts.pos[1],
+                        frame_width + padding + self.parts.pos[1],
                     )
                 )
         return tuple(fixed_positions)
@@ -175,7 +215,31 @@ class UIFlowLayout(UI):
                 + children_realsizes[-1][0]
                 - children_positions[0][0]
             )
-        return tuple(entire_realsize)
+        return tuple(
+            map(
+                sum,
+                zip(
+                    entire_realsize,
+                    [self.parts.padding * 2] * 2,
+                    [self.parts.frame_width * 2] * 2,
+                ),
+            )
+        )
+
+    def draw(self, surface_to_blit: pygame.surface.Surface):
+        super().draw(surface_to_blit)
+        if self.parts.frame_style == FrameStyle.BORDER:
+            if self.parts.frame_radius:
+                border_radius = self.parts.frame_radius
+            else:
+                border_radius = -1
+            pygame.draw.rect(
+                surface_to_blit,
+                self.parts.frame_color,
+                (*self.parts.pos, *self.parts.real_size),
+                self.parts.frame_width,
+                border_radius,
+            )
 
 
 @dataclass
@@ -197,7 +261,7 @@ class TextUIParts(UIParts):
         )
 
     def calc_real_size(self) -> tuple[int, int]:
-        return tuple(self.calc_min_size())
+        return tuple(map(sum, zip(self.calc_min_size(), [self.padding * 2] * 2)))
 
 
 class TextUI(UI):
@@ -206,16 +270,21 @@ class TextUI(UI):
         gametext: GameText,
         pos: Optional[list[int]] = None,
         fixed_size: Optional[list[int]] = None,
+        padding: int = 0,
         tag: Optional[str] = None,
     ):
-        super().__init__(pos=pos, fixed_size=fixed_size, tag=tag)
-        self.parts = TextUIParts(pos=pos, fixed_size=fixed_size, gametext=gametext)
+        super().__init__(pos=pos, fixed_size=fixed_size, tag=tag, padding=padding)
+        self.parts = TextUIParts(
+            pos=pos, fixed_size=fixed_size, gametext=gametext, padding=padding
+        )
 
     def draw(self, surface_to_blit: pygame.Surface):
         super().draw(surface_to_blit)
         text_surface = self.parts.gametext.renderln()
         surface_to_blit.blit(
-            text_surface, self.parts.pos, (0, 0, *self.parts.real_size)
+            text_surface,
+            tuple(map(sum, zip(self.parts.pos, [self.parts.padding] * 2))),
+            (0, 0, *self.parts.real_size),
         )
 
 
@@ -233,10 +302,15 @@ class ButtonUI(TextUI):
         on_release: Optional[Callable] = None,
         on_hover: Optional[Callable] = None,
         fixed_size: Optional[list[int]] = None,
+        padding: int = 0,
         tag: Optional[str] = None,
     ):
-        super().__init__(pos=pos, gametext=gametext, fixed_size=fixed_size, tag=tag)
-        self.parts = ButtonUIParts(pos=pos, fixed_size=fixed_size, gametext=gametext)
+        super().__init__(
+            pos=pos, gametext=gametext, fixed_size=fixed_size, tag=tag, padding=padding
+        )
+        self.parts = ButtonUIParts(
+            pos=pos, fixed_size=fixed_size, gametext=gametext, padding=padding
+        )
         self.mouse = Mouse()
         self._on_press_setter(on_press)
         self._on_release_setter(on_release)
@@ -496,6 +570,11 @@ class MenuUI(UIFlowLayout):
         highlight_bg_color: ColorValue = pygame.Color(78, 78, 78),
         highlight_style: HighlightStyle = HighlightStyle.FILL_BG,
         fixed_size: list[int] = None,
+        padding: int = 0,
+        frame_style: Optional[FrameStyle] = FrameStyle.BORDER,
+        frame_color: Optional[ColorValue] = None,
+        frame_width: int = 1,
+        frame_radius: Optional[int] = None,
         tag: Optional[str] = None,
     ):
         super().__init__(
@@ -504,6 +583,11 @@ class MenuUI(UIFlowLayout):
             tag=tag,
             orientation=orientation,
             spacing=spacing,
+            padding=padding,
+            frame_width=frame_width,
+            frame_color=frame_color,
+            frame_style=frame_style,
+            frame_radius=frame_radius,
         )
         self.parts = MenuParts(
             pos=pos,
@@ -513,6 +597,11 @@ class MenuUI(UIFlowLayout):
             highlight_fg_color=highlight_fg_color,
             highlight_bg_color=highlight_bg_color,
             highlight_style=highlight_style,
+            padding=padding,
+            frame_width=frame_width,
+            frame_style=frame_style,
+            frame_color=frame_color,
+            frame_radius=frame_radius,
         )
         self.parts.func_to_calc_real_size = self.calc_entire_realsize
         if interface:
@@ -556,5 +645,5 @@ class MenuUI(UIFlowLayout):
             )
         elif self.parts.highlight_style == HighlightStyle.CURSOR:
             # TODO: implement this block
-            pass
+            raise NotImplementedError("`HighlightStyle.CURSOR` is not implemented")
         super().draw(surface_to_blit)

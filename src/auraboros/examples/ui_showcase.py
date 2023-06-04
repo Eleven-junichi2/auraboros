@@ -53,7 +53,7 @@ class ButtonUIScene(Scene):
 class MenuUIScene(Scene):
     def setup(self):
         # TODO: make button event on mouse cursor
-        self.menuui = MenuUI()
+        self.menuui = MenuUI(padding=10, spacing=10)
         btn1 = ButtonUI(GameText("Option1"))
         self.menuui.interface.add_option(
             Option(
