@@ -301,10 +301,10 @@ class ButtonUI(TextUI):
 
 @dataclass
 class Option:
-    ui: UI | TextUI | ButtonUI
+    ui: UI | ButtonUI | TextUI
     key: str
-    on_select: Optional[Callable] = None
-    on_highlight: Optional[Callable] = None
+    on_select: Optional[Callable[..., None]] = None
+    on_highlight: Optional[Callable[..., None]] = None
 
 
 @dataclass

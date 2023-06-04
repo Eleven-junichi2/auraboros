@@ -54,28 +54,20 @@ class MenuUIScene(Scene):
     def setup(self):
         # TODO: make button event on mouse cursor
         self.menuui = MenuUI()
+        btn1 = ButtonUI(GameText("Option1"))
         self.menuui.interface.add_option(
             Option(
-                ButtonUI(
-                    GameText("Option1"),
-                ),
+                btn1,
                 "option1",
+                on_select=lambda: btn1.parts.gametext.rewrite("Option1 was selected")
             )
         )
+        btn2 = ButtonUI(GameText("Option2"))
         self.menuui.interface.add_option(
             Option(
-                ButtonUI(
-                    GameText("Option2"),
-                ),
+                btn2,
                 "option2",
-            ),
-        )
-        self.menuui.interface.add_option(
-            Option(
-                ButtonUI(
-                    GameText("Option3"),
-                ),
-                "option3",
+                on_select=lambda: btn2.parts.gametext.rewrite("Option2 was selected")
             ),
         )
         self.menuui.update_children_on_menu()
