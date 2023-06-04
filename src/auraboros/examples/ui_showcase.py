@@ -7,8 +7,8 @@ import pygame
 
 from auraboros import engine
 from auraboros.gamescene import SceneManager, Scene
-from auraboros.ui import MenuUI, Option, TextUI, ButtonUI
 from auraboros.gametext import Font2, GameText
+from auraboros.ui import MenuUI, Option, TextUI, ButtonUI
 from auraboros.utils.path import AssetFilePath
 from auraboros.utils.coordinate import calc_pos_to_center
 
@@ -34,7 +34,6 @@ class ButtonUIScene(Scene):
     def setup(self):
         def show_pressed(ui: ButtonUI):
             ui.parts.gametext.rewrite("Pressed!")
-            print("Pressed!")
 
         self.btnui_example = ButtonUI(
             GameText("Example of Button UI"),
@@ -55,13 +54,45 @@ class MenuUIScene(Scene):
     def setup(self):
         # TODO: make button event on mouse cursor
         self.menuui = MenuUI()
-        self.menuui.add_option(Option(ButtonUI(GameText("Option1")), "option1"))
-        self.menuui.add_option(Option(ButtonUI(GameText("Option2")), "option2"))
-        self.menuui.add_option(Option(ButtonUI(GameText("Option3")), "option3"))
+        self.menuui.interface.add_option(
+            Option(
+                ButtonUI(
+                    GameText("Option1"),
+                ),
+                "option1",
+            )
+        )
+        self.menuui.interface.add_option(
+            Option(
+                ButtonUI(
+                    GameText("Option2"),
+                ),
+                "option2",
+            ),
+        )
+        self.menuui.interface.add_option(
+            Option(
+                ButtonUI(
+                    GameText("Option3"),
+                ),
+                "option3",
+            ),
+        )
+        self.menuui.update_children_on_menu()
         self.menuui.reposition_children()
+        self.menuui.keyboard.register_keyaction(
+            pygame.K_UP, 0, 78, 122, keydown=self.menuui.interface.up_cursor
+        )
+        self.menuui.keyboard.register_keyaction(
+            pygame.K_DOWN, 0, 78, 122, keydown=self.menuui.interface.down_cursor
+        )
 
     def event(self, event: pygame.event.Event):
         self.menuui.event(event)
+
+    def update(self, dt):
+        self.menuui.keyboard.do_action_on_keyinput(pygame.K_UP)
+        self.menuui.keyboard.do_action_on_keyinput(pygame.K_DOWN)
 
     def draw(self, screen: pygame.surface.Surface):
         self.menuui.draw(screen)

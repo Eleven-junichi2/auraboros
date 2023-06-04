@@ -132,6 +132,16 @@ class TestMenuInterface:
         interface.remove_option(test3)
         assert len(interface.database.options) == 0
 
+    @staticmethod
+    def test_move_cursor_to_option():
+        interface = MenuInterface()
+        interface.add_option(Option(TextUI("test1"), "test1"))
+        interface.add_option(Option(TextUI("test2"), "test2"))
+        interface.move_cursor(1)
+        assert interface.selected_index == 1
+        interface.move_cursor("test1")
+        assert interface.selected_index == 0
+
 
 class TestMenuUI:
     @staticmethod

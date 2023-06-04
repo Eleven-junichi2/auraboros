@@ -8,9 +8,7 @@ import pygame
 
 from .gameinput import Keyboard, Mouse
 from .gametext import GameText
-
-# from .gametext import Font2, GameText
-# from .utils.misc import ColorValue
+from .utils.misc import ColorValue
 
 # --setup logger--
 logger = logging.getLogger(__name__)
@@ -343,9 +341,25 @@ class MenuInterface:
         self.func_on_cursor_down: Optional[Callable] = func_on_cursor_down
 
     def add_option(
-        self,
-        option: Option,
+        self, option: Option, set_func_on_menu_updates_for_ui_event: bool = True
     ):
+        if set_func_on_menu_updates_for_ui_event:
+            if hasattr(option.ui, "on_hover"):
+                if option.ui.on_hover is not None:
+                    logger.warning(
+                        f"{option.ui}'s on_hover() was set to "
+                        + "`lambda: self.move_cursor(option.key)`"
+                        + " by `set_func_on_menu_updates_for_ui_event` flag"
+                    )
+                option.ui.on_hover = lambda: self.move_cursor(option.key)
+            if hasattr(option.ui, "on_press"):
+                if option.ui.on_press is not None:
+                    logger.warning(
+                        f"{option.ui}'s on_press() was set to `self.do_func_on_select`"
+                        + " by `set_func_on_menu_updates_for_ui_event` flag"
+                    )
+                option.ui.on_press = self.do_func_on_select
+
         self.database.options.append(option)
 
     @singledispatchmethod
@@ -378,6 +392,51 @@ class MenuInterface:
 
     def remove_option(self, *arg):
         self._remove_option(*arg)
+
+    @singledispatchmethod
+    def _move_cursor(self, arg):
+        raise ValueError(f"Type {type(arg)} cannot be used with remove_option()")
+
+    @_move_cursor.register
+    def _(self, index: int):
+        self.selected_index = index
+
+    @_move_cursor.register
+    def _(self, key: str):
+        self.selected_index = self.database.index_for_key(key)
+
+    @overload
+    def move_cursor(self, option_index: int):
+        ...
+
+    @overload
+    def move_cursor(self, option_key: str):
+        ...
+
+    def move_cursor(self, *arg):
+        prev_selected = self.selected_index
+        self._move_cursor(*arg)
+        if not prev_selected != self.selected_index:
+            return
+        if self.loop_cursor:
+            if prev_selected == self.database.options_count - 1:
+                # when cursor down with selected last option
+                if self.func_on_cursor_down:
+                    self.func_on_cursor_down()
+                return
+            elif prev_selected == 0:
+                # when cursor up with selected first option
+                if self.func_on_cursor_up:
+                    self.func_on_cursor_up()
+                return
+        if self.selected_index > prev_selected:
+            # when cursor down
+            if self.func_on_cursor_down:
+                self.func_on_cursor_down()
+        elif self.selected_index < prev_selected:
+            # when cursor up
+            if self.func_on_cursor_up:
+                self.func_on_cursor_up()
 
     def set_func_on_cursor_up(self, func: Callable):
         self.func_on_cursor_up = func
@@ -414,9 +473,17 @@ class MenuInterface:
         return self.database.options[self.selected_index]
 
 
+class HighlightStyle(Enum):
+    CURSOR = auto()
+    FILL_BG = auto()
+    FRAME_BG = auto()
+
+
 @dataclass
 class MenuParts(UIFlowLayoutParts):
-    pass
+    highlight_fg_color: ColorValue
+    highlight_bg_color: ColorValue
+    highlight_style: HighlightStyle
 
 
 class MenuUI(UIFlowLayout):
@@ -426,6 +493,9 @@ class MenuUI(UIFlowLayout):
         interface: Optional[MenuInterface] = None,
         orientation: Orientation = Orientation.VERTICAL,
         spacing: int = 0,
+        highlight_fg_color: ColorValue = pygame.Color(220, 220, 220),
+        highlight_bg_color: ColorValue = pygame.Color(78, 78, 78),
+        highlight_style: HighlightStyle = HighlightStyle.FILL_BG,
         fixed_size: list[int] = None,
         tag: Optional[str] = None,
     ):
@@ -437,7 +507,13 @@ class MenuUI(UIFlowLayout):
             spacing=spacing,
         )
         self.parts = MenuParts(
-            pos=pos, fixed_size=fixed_size, orientation=orientation, spacing=spacing
+            pos=pos,
+            fixed_size=fixed_size,
+            orientation=orientation,
+            spacing=spacing,
+            highlight_fg_color=highlight_fg_color,
+            highlight_bg_color=highlight_bg_color,
+            highlight_style=highlight_style,
         )
         self.parts.func_to_calc_real_size = self.calc_entire_realsize
         if interface:
@@ -445,33 +521,41 @@ class MenuUI(UIFlowLayout):
         else:
             self.interface = MenuInterface(database=MenuDatabase())
         self.keyboard = Keyboard()
-        if self.parts.orientation == Orientation.VERTICAL:
-            self.keyboard.register_keyaction(
-                pygame.K_UP, 10, 10, 10, keydown=self.interface.up_cursor
-            )
-            self.keyboard.register_keyaction(
-                pygame.K_DOWN, 10, 10, 10, keydown=self.interface.down_cursor
-            )
-        elif self.parts.orientation == Orientation.HORIZONTAL:
-            self.keyboard.register_keyaction(
-                pygame.K_LEFT, 10, 10, 10, keydown=self.interface.up_cursor
-            )
-            self.keyboard.register_keyaction(
-                pygame.K_RIGHT, 10, 10, 10, keydown=self.interface.down_cursor
-            )
 
     @property
     def database(self) -> MenuDatabase:
         return self.interface.database
 
-    def add_option(self, option: Option):
-        super().add_child(option.ui)
-        self.interface.add_option(option)
-
-    def update_children_on_database(self):
+    def update_children_on_menu(self):
         # TODO: improve performance
         self.children.clear()
-        [super().add_child(option.ui) for option in self.interface.database.options]
+        [self.add_child(option.ui) for option in self.interface.database.options]
 
     def event(self, event: pygame.event.Event):
         super().event(event)
+        self.keyboard.event(event)
+
+    def draw(self, surface_to_blit: pygame.Surface):
+        if self.parts.highlight_style == HighlightStyle.FILL_BG:
+            pygame.draw.rect(
+                surface_to_blit,
+                self.parts.highlight_bg_color,
+                (
+                    *self.children[self.interface.selected_index].parts.pos,
+                    *self.children[self.interface.selected_index].parts.real_size,
+                ),
+            )
+        elif self.parts.highlight_style == HighlightStyle.FRAME_BG:
+            pygame.draw.rect(
+                surface_to_blit,
+                self.parts.highlight_bg_color,
+                (
+                    *self.children[self.interface.selected_index].parts.pos,
+                    *self.children[self.interface.selected_index].parts.real_size,
+                ),
+                width=1,
+            )
+        elif self.parts.highlight_style == HighlightStyle.CURSOR:
+            # TODO: implement this block
+            pass
+        super().draw(surface_to_blit)
