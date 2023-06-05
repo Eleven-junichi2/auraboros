@@ -118,8 +118,6 @@ class MenuUIScene(Scene):
 
         self.menuui = MenuUI(padding=10, spacing=10, frame_style=FrameStyle.BORDER)
         self.uilayout.add_child(self.menuui)
-        print(self.uilayout.children[1].parts.real_size)
-        print(self.uilayout.children[1].parts.real_size)
         self.uilayout.reposition_children()
         btn1 = ButtonUI(GameText("Option1"))
         self.menuui.interface.add_option(
