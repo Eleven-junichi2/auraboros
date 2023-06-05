@@ -115,7 +115,6 @@ class MenuUIScene(Scene):
     def setup(self):
         self.uilayout = UIFlowLayout()
         self.uilayout.add_child(navbar_ui)
-
         self.menuui = MenuUI(padding=10, spacing=10, frame_style=FrameStyle.BORDER)
         self.uilayout.add_child(self.menuui)
         self.uilayout.reposition_children()
