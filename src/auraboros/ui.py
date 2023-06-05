@@ -195,7 +195,10 @@ class UIFlowLayout(UI):
 
     def calc_entire_realsize(self) -> tuple[int, int]:
         children_positions = self.calc_positions_for_children()
-        children_realsizes = [child.parts.real_size for child in self.children]
+        if len(self.children) > 0:
+            children_realsizes = [child.parts.real_size for child in self.children]
+        else:
+            children_realsizes = [(0, 0)]
         entire_realsize = [0, 0]
         if self.parts.orientation == Orientation.VERTICAL:
             entire_realsize[0] = max(
@@ -571,7 +574,7 @@ class MenuUI(UIFlowLayout):
         highlight_style: HighlightStyle = HighlightStyle.FILL_BG,
         fixed_size: list[int] = None,
         padding: int = 0,
-        frame_style: Optional[FrameStyle] = FrameStyle.BORDER,
+        frame_style: Optional[FrameStyle] = None,
         frame_color: Optional[ColorValue] = None,
         frame_width: int = 1,
         frame_radius: Optional[int] = None,
