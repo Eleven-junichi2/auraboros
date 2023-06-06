@@ -16,6 +16,7 @@ from auraboros.ui import (
     ButtonUI,
     FrameStyle,
     UIFlowLayout,
+    HighlightStyle,
 )
 from auraboros.utils.path import AssetFilePath
 from auraboros.utils.coordinate import calc_pos_to_center
@@ -115,23 +116,62 @@ class MenuUIScene(Scene):
     def setup(self):
         self.uilayout = UIFlowLayout()
         self.uilayout.add_child(navbar_ui)
-        self.menuui = MenuUI(padding=10, spacing=10, frame_style=FrameStyle.BORDER)
+        self.menuui = MenuUI(
+            padding=10,
+            spacing=10,
+            frame_style=FrameStyle.BORDER,
+            highlight_style=HighlightStyle.FILL_BG,
+            highlight_bg_color=pygame.Color("#1086b8"),
+        )
         self.uilayout.add_child(self.menuui)
         self.uilayout.reposition_children()
-        btn1 = ButtonUI(GameText("Option1"))
         self.menuui.interface.add_option(
             Option(
-                btn1,
+                ButtonUI(
+                    GameText("HighlightStyle.CURSOR", color_foreground=(89, 89, 89))
+                ),
                 "option1",
-                on_select=lambda: btn1.parts.gametext.rewrite("Option1 was selected"),
+                on_select=lambda: setattr(
+                    self.menuui.parts, "highlight_style", HighlightStyle.CURSOR
+                ),
             )
         )
-        btn2 = ButtonUI(GameText("Option2"))
         self.menuui.interface.add_option(
             Option(
-                btn2,
+                ButtonUI(
+                    GameText("HighlightStyle.FRAME_BG", color_foreground=(89, 89, 89))
+                ),
                 "option2",
-                on_select=lambda: btn2.parts.gametext.rewrite("Option2 was selected"),
+                on_select=lambda: setattr(
+                    self.menuui.parts, "highlight_style", HighlightStyle.FRAME_BG
+                ),
+            ),
+        )
+        self.menuui.interface.add_option(
+            Option(
+                ButtonUI(
+                    GameText("HighlightStyle.FILL_BG", color_foreground=(89, 89, 89))
+                ),
+                "option3",
+                on_select=lambda: setattr(
+                    self.menuui.parts, "highlight_style", HighlightStyle.FILL_BG
+                ),
+            ),
+        )
+        self.menuui.interface.add_option(
+            Option(
+                ButtonUI(
+                    GameText(
+                        "HighlightStyle.RECOLOR_GAMETEXT_FG",
+                        color_foreground=(89, 89, 89),
+                    )
+                ),
+                "option4",
+                on_select=lambda: setattr(
+                    self.menuui.parts,
+                    "highlight_style",
+                    HighlightStyle.RECOLOR_GAMETEXT_FG,
+                ),
             ),
         )
         self.menuui.update_children_on_menu()
@@ -142,13 +182,23 @@ class MenuUIScene(Scene):
         self.menuui.keyboard.register_keyaction(
             pygame.K_DOWN, 0, 78, 122, keydown=self.menuui.interface.down_cursor
         )
+        self.menuui.keyboard.register_keyaction(
+            pygame.K_z, 0, 78, 122, keydown=self.menuui.interface.do_func_on_select
+        )
+        self.current_highlight_style_display_ui = TextUI(GameText(""))
+        self.uilayout.add_child(self.current_highlight_style_display_ui)
+        self.uilayout.reposition_children()
 
     def event(self, event: pygame.event.Event):
         self.uilayout.event(event)
 
     def update(self, dt):
+        self.current_highlight_style_display_ui.parts.gametext.rewrite(
+            f"Current Highlight Style: {self.menuui.parts.highlight_style}"
+        )
         self.menuui.keyboard.do_action_on_keyinput(pygame.K_UP)
         self.menuui.keyboard.do_action_on_keyinput(pygame.K_DOWN)
+        self.menuui.keyboard.do_action_on_keyinput(pygame.K_z)
 
     def draw(self, screen: pygame.surface.Surface):
         self.uilayout.draw(screen)

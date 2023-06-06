@@ -1,3 +1,5 @@
+# TODO: refactoring
+
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from functools import singledispatchmethod
@@ -5,6 +7,7 @@ from typing import Callable, Optional, overload
 import logging
 
 import pygame
+
 
 from .gameinput import Keyboard, Mouse
 from .gametext import GameText
@@ -29,7 +32,7 @@ class UI:
         tag: Optional[str] = None,
     ):
         self.tag = tag
-        self.children: list[UI] = []
+        self.children: list[UI | TextUI | ButtonUI | UIFlowLayout] = []
         self.parts = UIParts(pos=pos, fixed_size=fixed_size, padding=padding)
 
     def event(self, event: pygame.event.Event):
@@ -553,13 +556,16 @@ class HighlightStyle(Enum):
     CURSOR = auto()
     FILL_BG = auto()
     FRAME_BG = auto()
+    RECOLOR_GAMETEXT_FG = auto()
 
 
 @dataclass
 class MenuParts(UIFlowLayoutParts):
     highlight_fg_color: ColorValue
     highlight_bg_color: ColorValue
+    color_for_recoloring_gametext: ColorValue
     highlight_style: HighlightStyle
+    cursor_char: str
 
 
 class MenuUI(UIFlowLayout):
@@ -569,7 +575,7 @@ class MenuUI(UIFlowLayout):
         interface: Optional[MenuInterface] = None,
         orientation: Orientation = Orientation.VERTICAL,
         spacing: int = 0,
-        highlight_fg_color: ColorValue = pygame.Color(220, 220, 220),
+        highlight_fg_color: ColorValue = pygame.Color(144, 144, 144),
         highlight_bg_color: ColorValue = pygame.Color(78, 78, 78),
         highlight_style: HighlightStyle = HighlightStyle.FILL_BG,
         fixed_size: list[int] = None,
@@ -578,8 +584,16 @@ class MenuUI(UIFlowLayout):
         frame_color: Optional[ColorValue] = None,
         frame_width: int = 1,
         frame_radius: Optional[int] = None,
+        color_for_recoloring_gametext: Optional[ColorValue] = None,
+        cursor_char: str = "▶",
         tag: Optional[str] = None,
     ):
+        """
+        Args:
+            color_for_recoloring_gametext (Optional[ColorValue], optional):
+                `highlight_style`に`HighlightStyle.RECOLOR_GAMETEXT_FG`を指定した際の色として使われる。
+                Noneの場合、その色は`GameText.color_foreground`を反転したものを使う。
+        """
         super().__init__(
             pos=pos,
             fixed_size=fixed_size,
@@ -605,6 +619,8 @@ class MenuUI(UIFlowLayout):
             frame_style=frame_style,
             frame_color=frame_color,
             frame_radius=frame_radius,
+            color_for_recoloring_gametext=color_for_recoloring_gametext,
+            cursor_char=cursor_char,
         )
         self.parts.func_to_calc_real_size = self.calc_entire_realsize
         if interface:
@@ -627,26 +643,76 @@ class MenuUI(UIFlowLayout):
         self.keyboard.event(event)
 
     def draw(self, surface_to_blit: pygame.Surface):
-        if self.parts.highlight_style == HighlightStyle.FILL_BG:
-            pygame.draw.rect(
-                surface_to_blit,
-                self.parts.highlight_bg_color,
-                (
-                    *self.children[self.interface.selected_index].parts.pos,
-                    *self.children[self.interface.selected_index].parts.real_size,
-                ),
-            )
-        elif self.parts.highlight_style == HighlightStyle.FRAME_BG:
-            pygame.draw.rect(
-                surface_to_blit,
-                self.parts.highlight_bg_color,
-                (
-                    *self.children[self.interface.selected_index].parts.pos,
-                    *self.children[self.interface.selected_index].parts.real_size,
-                ),
-                width=1,
-            )
-        elif self.parts.highlight_style == HighlightStyle.CURSOR:
-            # TODO: implement this block
-            raise NotImplementedError("`HighlightStyle.CURSOR` is not implemented")
+        recolor_gametext_fg_flag = False
+        highlight_with_cursor_flag = False
+        # -draw highlighting-
+        match self.parts.highlight_style:
+            case HighlightStyle.FILL_BG:
+                pygame.draw.rect(
+                    surface_to_blit,
+                    self.parts.highlight_bg_color,
+                    (
+                        *self.children[self.interface.selected_index].parts.pos,
+                        *self.children[self.interface.selected_index].parts.real_size,
+                    ),
+                )
+            case HighlightStyle.FRAME_BG:
+                pygame.draw.rect(
+                    surface_to_blit,
+                    self.parts.highlight_bg_color,
+                    (
+                        *self.children[self.interface.selected_index].parts.pos,
+                        *self.children[self.interface.selected_index].parts.real_size,
+                    ),
+                    width=1,
+                )
+            case HighlightStyle.RECOLOR_GAMETEXT_FG:
+                if hasattr(
+                    self.children[self.interface.selected_index].parts, "gametext"
+                ):
+                    recolor_gametext_fg_flag = True
+                    gametext_color = self.children[
+                        self.interface.selected_index
+                    ].parts.gametext.color_foreground
+                    if self.parts.color_for_recoloring_gametext is None:
+                        # invert color
+                        gametext_color = pygame.Color(gametext_color)
+                        self.parts.color_for_recoloring_gametext = pygame.Color(
+                            abs(255 - gametext_color.r),
+                            abs(255 - gametext_color.g),
+                            abs(255 - gametext_color.b),
+                        )
+                    self.children[
+                        self.interface.selected_index
+                    ].parts.gametext.color_foreground = (
+                        self.parts.color_for_recoloring_gametext
+                    )
+            case HighlightStyle.CURSOR:
+                highlight_with_cursor_flag = True
+                if hasattr(
+                    self.children[self.interface.selected_index].parts, "gametext"
+                ):
+                    self.children[self.interface.selected_index].parts.gametext.text = (
+                        self.parts.cursor_char
+                        + self.children[
+                            self.interface.selected_index
+                        ].parts.gametext.text
+                    )
+        # ---
         super().draw(surface_to_blit)
+        # -post-processing for highlight drawing-
+        if recolor_gametext_fg_flag:
+            # process to undo recoloring
+            self.children[
+                self.interface.selected_index
+            ].parts.gametext.color_foreground = gametext_color
+        if highlight_with_cursor_flag:
+            # process to undo editing gametext's text for show cursor
+            self.children[
+                self.interface.selected_index
+            ].parts.gametext.text = self.children[
+                self.interface.selected_index
+            ].parts.gametext.text[
+                len(self.parts.cursor_char) :
+            ]
+        # ---
