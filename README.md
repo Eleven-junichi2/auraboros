@@ -5,6 +5,15 @@
 A game framework of pygame.
 This project is made for me, reducing the burden of game dev using pygame.
 
+## Features
+
+- Entity Component System
+- GUI
+- State Machine
+- Scene management
+- Custom vertex / pixel shaders
+- Distribution with PyInstaller
+
 ## how to install
 
 ```:
@@ -22,7 +31,3 @@ python -m auraboros --example
 # download assets
 python -m auraboros --getasset
 ```
-
-## how to PyInstaller
-
-Put hook-auraboros.py into hooks dir in site-packages/Pyinstaller.
