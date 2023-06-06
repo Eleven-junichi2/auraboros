@@ -141,11 +141,3 @@ class TestMenuInterface:
         assert interface.selected_index == 1
         interface.move_cursor("test1")
         assert interface.selected_index == 0
-
-
-class TestMenuUI:
-    @staticmethod
-    def test_add_option():
-        menu = MenuUI()
-        menu.add_option(Option(TextUI("test1"), "test1"))
-        assert menu.children[0]

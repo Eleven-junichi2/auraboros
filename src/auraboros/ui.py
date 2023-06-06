@@ -162,16 +162,18 @@ class UIFlowLayout(UI):
     ) -> tuple[tuple[int, int], ...]:
         realsizes = [child.parts.real_size for child in self.children]
         fixed_positions = []
+        frame_width = (
+            self.parts.frame_width if self.parts.frame_style is not None else 0
+        )
+        padding = self.parts.padding
         fixed_positions.append(
             (
-                self.parts.frame_width + self.parts.padding + self.parts.pos[0],
-                self.parts.frame_width + self.parts.padding + self.parts.pos[1],
+                frame_width + self.parts.padding + self.parts.pos[0],
+                frame_width + self.parts.padding + self.parts.pos[1],
             )
         )
         for i in range(len(realsizes))[1:]:
             spacing = self.parts.spacing * i if i != len(realsizes) else 0
-            padding = self.parts.padding
-            frame_width = self.parts.frame_width
             if self.parts.orientation == Orientation.VERTICAL:
                 fixed_positions.append(
                     (
@@ -227,7 +229,12 @@ class UIFlowLayout(UI):
                 zip(
                     entire_realsize,
                     [self.parts.padding * 2] * 2,
-                    [self.parts.frame_width * 2] * 2,
+                    [
+                        self.parts.frame_width * 2
+                        if self.parts.frame_style is not None
+                        else 0
+                    ]
+                    * 2,
                 ),
             )
         )
