@@ -176,7 +176,9 @@ class UIContainer(UI):
         if padding is None:
             padding = Padding()
         self.padding = padding
-        self.children: list[UI] = []
+        self.children: list[
+            UI | TextButtonUI | TextUI | UIContainer | UIFlowLayout
+        ] = []
 
     def event(self, event: pygame.event.Event):
         super().event(event)
@@ -227,9 +229,12 @@ class UIFlowLayout(UIContainer):
         self.size.set_func_to_calc_min(self._calc_size_min)
         self.size.set_func_to_calc_real(self._calc_size_real)
 
-    def relocate_children(self):
+    def relocate_children(self, do_relocation_func_of_children=True):
         for child, new_pos in zip(self.children, self.calc_poss_for_children()):
             child.pos = list(new_pos)
+            if do_relocation_func_of_children:
+                if isinstance(child, UIContainer):
+                    child.relocate_children()
 
     def calc_poss_for_children(
         self,
@@ -485,340 +490,296 @@ class TextButtonUI(UI):
         self.mouse.event(event)
 
 
-# @dataclass
-# class Option:
-#     ui: UI | ButtonUI | TextUI
-#     key: str
-#     on_select: Optional[Callable[..., None]] = None
-#     on_highlight: Optional[Callable[..., None]] = None
+@dataclass
+class Option:
+    ui: UI | TextButtonUI | TextUI | UIContainer | UIFlowLayout
+    key: str
+    on_select: Optional[Callable[..., None]] = None
+    on_highlight: Optional[Callable[..., None]] = None
 
 
-# @dataclass
-# class MenuDatabase:
-#     options: list[Option] = field(default_factory=list)
+@dataclass
+class Menu:
+    options: list[Option] = field(default_factory=list)
 
-#     @property
-#     def dict_from_options(self) -> dict[str, Option]:
-#         return {option.key: option for option in self.options}
+    @property
+    def dict_from_options(self) -> dict[str, Option]:
+        return {option.key: option for option in self.options}
 
-#     def index_for_key(self, key: str):
-#         return tuple(self.dict_from_options.keys()).index(key)
+    def index_for_key(self, key: str):
+        return tuple(self.dict_from_options.keys()).index(key)
 
-#     @property
-#     def options_count(self) -> int:
-#         return len(self.options)
-
-
-# @dataclass
-# class MenuInterface:
-#     def __init__(
-#         self,
-#         database: Optional[MenuDatabase] = None,
-#         func_on_cursor_up: Optional[Callable] = None,
-#         func_on_cursor_down: Optional[Callable] = None,
-#         loop_cursor: bool = True,
-#     ):
-#         if database is None:
-#             database = MenuDatabase()
-#         self.database: MenuDatabase = database
-#         self.selected_index: int = 0
-#         self.loop_cursor: bool = loop_cursor
-#         self.func_on_cursor_up: Optional[Callable] = func_on_cursor_up
-#         self.func_on_cursor_down: Optional[Callable] = func_on_cursor_down
-
-#     def add_option(
-#         self, option: Option, set_func_on_menu_updates_for_ui_event: bool = True
-#     ):
-#         if set_func_on_menu_updates_for_ui_event:
-#             if hasattr(option.ui, "on_hover"):
-#                 if option.ui.on_hover is not None:
-#                     logger.warning(
-#                         f"{option.ui}'s on_hover() was set to "
-#                         + "`lambda: self.move_cursor(option.key)`"
-#                         + " by `set_func_on_menu_updates_for_ui_event` flag"
-#                     )
-#                 option.ui.on_hover = lambda: self.move_cursor(option.key)
-#             if hasattr(option.ui, "on_press"):
-#                 if option.ui.on_press is not None:
-#                     logger.warning(
-#                         f"{option.ui}'s on_press() was set to `self.do_func_on_select`"
-#                         + " by `set_func_on_menu_updates_for_ui_event` flag"
-#                     )
-#                 option.ui.on_press = self.do_func_on_select
-#         self.database.options.append(option)
-
-#     @singledispatchmethod
-#     def _remove_option(self, arg):
-#         raise ValueError(f"Type {type(arg)} cannot be used with remove_option()")
-
-#     @_remove_option.register
-#     def _(self, index: int):
-#         del self.database.options[index]
-
-#     @_remove_option.register
-#     def _(self, key: str):
-#         del self.database.options[self.database.index_for_key(key)]
-
-#     @_remove_option.register
-#     def _(self, option: Option):
-#         self.database.options.remove(option)
-
-#     @overload
-#     def remove_option(self, index: int):
-#         ...
-
-#     @overload
-#     def remove_option(self, key: str):
-#         ...
-
-#     @overload
-#     def remove_option(self, option: Option):
-#         ...
-
-#     def remove_option(self, *arg):
-#         self._remove_option(*arg)
-
-#     @singledispatchmethod
-#     def _move_cursor(self, arg):
-#         raise ValueError(f"Type {type(arg)} cannot be used with remove_option()")
-
-#     @_move_cursor.register
-#     def _(self, index: int):
-#         self.selected_index = index
-
-#     @_move_cursor.register
-#     def _(self, key: str):
-#         self.selected_index = self.database.index_for_key(key)
-
-#     @overload
-#     def move_cursor(self, option_index: int):
-#         ...
-
-#     @overload
-#     def move_cursor(self, option_key: str):
-#         ...
-
-#     def move_cursor(self, *arg):
-#         prev_selected = self.selected_index
-#         self._move_cursor(*arg)
-#         if not prev_selected != self.selected_index:
-#             return
-#         if self.loop_cursor:
-#             if prev_selected == self.database.options_count - 1:
-#                 # when cursor down with selected last option
-#                 if self.func_on_cursor_down:
-#                     self.func_on_cursor_down()
-#                 return
-#             elif prev_selected == 0:
-#                 # when cursor up with selected first option
-#                 if self.func_on_cursor_up:
-#                     self.func_on_cursor_up()
-#                 return
-#         if self.selected_index > prev_selected:
-#             # when cursor down
-#             if self.func_on_cursor_down:
-#                 self.func_on_cursor_down()
-#         elif self.selected_index < prev_selected:
-#             # when cursor up
-#             if self.func_on_cursor_up:
-#                 self.func_on_cursor_up()
-
-#     def set_func_on_cursor_up(self, func: Callable):
-#         self.func_on_cursor_up = func
-
-#     def set_func_on_cursor_down(self, func: Callable):
-#         self.func_on_cursor_down = func
-
-#     def up_cursor(self):
-#         if 0 < self.selected_index:
-#             self.selected_index -= 1
-#         elif self.loop_cursor:
-#             self.selected_index = self.database.options_count - 1
-#         if self.func_on_cursor_up:
-#             self.func_on_cursor_up()
-
-#     def down_cursor(self):
-#         if self.selected_index < self.database.options_count - 1:
-#             self.selected_index += 1
-#         elif self.loop_cursor:
-#             self.selected_index = 0
-#         if self.func_on_cursor_down:
-#             self.func_on_cursor_down()
-
-#     def do_func_on_select(self):
-#         if self.database.options[self.selected_index].on_select:
-#             return self.database.options[self.selected_index].on_select()
-
-#     def do_func_on_highlight(self):
-#         if self.database.options[self.selected_index].on_highlight:
-#             return self.database.options[self.selected_index].on_highlight()
-
-#     @property
-#     def current_selected(self):
-#         return self.database.options[self.selected_index]
+    @property
+    def options_count(self) -> int:
+        return len(self.options)
 
 
-# class HighlightStyle(Enum):
-#     CURSOR = auto()
-#     FILL_BG = auto()
-#     FRAME_BG = auto()
-#     RECOLOR_GAMETEXT_FG = auto()
+@dataclass
+class MenuInterface:
+    def __init__(
+        self,
+        menu: Optional[Menu] = None,
+        on_cursor_up: Optional[Callable] = None,
+        on_cursor_down: Optional[Callable] = None,
+        loop_cursor: bool = True,
+    ):
+        if menu is None:
+            menu = Menu()
+        self.menu: Menu = menu
+        self.selected_index: int = 0
+        self.loop_cursor: bool = loop_cursor
+        self.on_cursor_up: Optional[Callable] = on_cursor_up
+        self.on_cursor_down: Optional[Callable] = on_cursor_down
+
+    def add_option(
+        self, option: Option, set_func_on_menu_updates_for_ui_event: bool = True
+    ):
+        if set_func_on_menu_updates_for_ui_event:
+            if hasattr(option.ui, "on_hover"):
+                if option.ui.on_hover is not None:
+                    logger.warning(
+                        f"{option.ui}'s on_hover() was set to "
+                        + "`lambda: self.move_cursor(option.key)`"
+                        + " by `set_func_on_menu_updates_for_ui_event` flag"
+                    )
+                option.ui.on_hover = lambda: self.move_cursor(option.key)
+            if hasattr(option.ui, "on_press"):
+                if option.ui.on_press is not None:
+                    logger.warning(
+                        f"{option.ui}'s on_press() was set to `self.do_func_on_select`"
+                        + " by `set_func_on_menu_updates_for_ui_event` flag"
+                    )
+                option.ui.on_press = self.do_func_on_select
+        self.menu.options.append(option)
+
+    @singledispatchmethod
+    def _remove_option(self, arg):
+        raise ValueError(f"Type {type(arg)} cannot be used with remove_option()")
+
+    @_remove_option.register
+    def _(self, index: int):
+        del self.menu.options[index]
+
+    @_remove_option.register
+    def _(self, key: str):
+        del self.menu.options[self.menu.index_for_key(key)]
+
+    @_remove_option.register
+    def _(self, option: Option):
+        self.menu.options.remove(option)
+
+    @overload
+    def remove_option(self, index: int):
+        ...
+
+    @overload
+    def remove_option(self, key: str):
+        ...
+
+    @overload
+    def remove_option(self, option: Option):
+        ...
+
+    def remove_option(self, *arg):
+        self._remove_option(*arg)
+
+    @singledispatchmethod
+    def _move_cursor(self, arg):
+        raise ValueError(f"Type {type(arg)} cannot be used with remove_option()")
+
+    @_move_cursor.register
+    def _(self, index: int):
+        self.selected_index = index
+
+    @_move_cursor.register
+    def _(self, key: str):
+        self.selected_index = self.menu.index_for_key(key)
+
+    @overload
+    def move_cursor(self, option_index: int):
+        ...
+
+    @overload
+    def move_cursor(self, option_key: str):
+        ...
+
+    def move_cursor(self, *arg):
+        prev_selected = self.selected_index
+        self._move_cursor(*arg)
+        if not prev_selected != self.selected_index:
+            return
+        if self.loop_cursor:
+            if prev_selected == self.menu.options_count - 1:
+                # when cursor down with selected last option
+                if self.on_cursor_down:
+                    self.on_cursor_down()
+                return
+            elif prev_selected == 0:
+                # when cursor up with selected first option
+                if self.on_cursor_up:
+                    self.on_cursor_up()
+                return
+        if self.selected_index > prev_selected:
+            # when cursor down
+            if self.on_cursor_down:
+                self.on_cursor_down()
+        elif self.selected_index < prev_selected:
+            # when cursor up
+            if self.on_cursor_up:
+                self.on_cursor_up()
+
+    def set_on_cursor_up(self, func: Callable):
+        self.on_cursor_up = func
+
+    def set_on_cursor_down(self, func: Callable):
+        self.on_cursor_down = func
+
+    def up_cursor(self):
+        if 0 < self.selected_index:
+            self.selected_index -= 1
+        elif self.loop_cursor:
+            self.selected_index = self.menu.options_count - 1
+        if self.on_cursor_up:
+            self.on_cursor_up()
+
+    def down_cursor(self):
+        if self.selected_index < self.menu.options_count - 1:
+            self.selected_index += 1
+        elif self.loop_cursor:
+            self.selected_index = 0
+        if self.on_cursor_down:
+            self.on_cursor_down()
+
+    def do_func_on_select(self):
+        if self.menu.options[self.selected_index].on_select:
+            return self.menu.options[self.selected_index].on_select()
+
+    def do_func_on_highlight(self):
+        if self.menu.options[self.selected_index].on_highlight:
+            return self.menu.options[self.selected_index].on_highlight()
+
+    @property
+    def current_selected(self):
+        return self.menu.options[self.selected_index]
 
 
-# @dataclass
-# class MenuParts(UIFlowLayoutParts):
-#     highlight_fg_color: ColorValue
-#     highlight_bg_color: ColorValue
-#     color_for_recoloring_gametext: ColorValue
-#     highlight_style: HighlightStyle
-#     cursor_char: str
+class HighlightStyle(Enum):
+    CURSOR = auto()
+    FILL_BG = auto()
+    FRAME = auto()
+    LIGHTEN_GAMETEXT_FG = auto()
+    DARKEN_GAMETEXT_FG = auto()
 
 
-# class MenuUI(UIFlowLayout):
-#     def __init__(
-#         self,
-#         pos: Optional[list[int]] = None,
-#         interface: Optional[MenuInterface] = None,
-#         orientation: Orientation = Orientation.VERTICAL,
-#         spacing: int = 0,
-#         highlight_fg_color: ColorValue = pygame.Color(144, 144, 144),
-#         highlight_bg_color: ColorValue = pygame.Color(78, 78, 78),
-#         highlight_style: HighlightStyle = HighlightStyle.FILL_BG,
-#         fixed_size: list[int] = None,
-#         padding: int = 0,
-#         frame_style: Optional[FrameStyle] = None,
-#         frame_color: Optional[ColorValue] = None,
-#         frame_width: int = 1,
-#         frame_radius: Optional[int] = None,
-#         color_for_recoloring_gametext: Optional[ColorValue] = None,
-#         cursor_char: str = "▶",
-#         tag: Optional[str] = None,
-#     ):
-#         """
-#         Args:
-#             color_for_recoloring_gametext (Optional[ColorValue], optional):
-#                 `highlight_style`に`HighlightStyle.RECOLOR_GAMETEXT_FG`を指定した際の色として使われる。
-#                 Noneの場合、その色は`GameText.color_foreground`を反転したものを使う。
-#         """
-#         super().__init__(
-#             pos=pos,
-#             fixed_size=fixed_size,
-#             tag=tag,
-#             orientation=orientation,
-#             spacing=spacing,
-#             padding=padding,
-#             frame_width=frame_width,
-#             frame_color=frame_color,
-#             frame_style=frame_style,
-#             frame_radius=frame_radius,
-#         )
-#         self.parts = MenuParts(
-#             pos=pos,
-#             fixed_size=fixed_size,
-#             orientation=orientation,
-#             spacing=spacing,
-#             highlight_fg_color=highlight_fg_color,
-#             highlight_bg_color=highlight_bg_color,
-#             highlight_style=highlight_style,
-#             padding=padding,
-#             frame_width=frame_width,
-#             frame_style=frame_style,
-#             frame_color=frame_color,
-#             frame_radius=frame_radius,
-#             color_for_recoloring_gametext=color_for_recoloring_gametext,
-#             cursor_char=cursor_char,
-#         )
-#         self.parts.func_to_calc_real_size = self.calc_entire_realsize
-#         if interface:
-#             self.interface = interface
-#         else:
-#             self.interface = MenuInterface(database=MenuDatabase())
-#         self.keyboard = Keyboard()
+@dataclass
+class OptionHighlight:
+    style: HighlightStyle = HighlightStyle.FRAME
+    frame_color: pygame.Color = field(
+        default_factory=lambda: pygame.Color(220, 220, 220)
+    )
+    fillbg_color: pygame.Color = field(
+        default_factory=lambda: pygame.Color(110, 110, 110)
+    )
+    lighten_gametext_fg_blendcolor: pygame.Color = field(
+        default_factory=lambda: pygame.Color(110, 110, 110)
+    )
+    darken_gametext_fg_blendcolor: pygame.Color = field(
+        default_factory=lambda: pygame.Color(110, 110, 110)
+    )
+    cursor_char: str = "▶"
 
-#     @property
-#     def database(self) -> MenuDatabase:
-#         return self.interface.database
 
-#     def update_children_on_menu(self):
-#         # TODO: improve performance
-#         self.children.clear()
-#         [self.add_child(option.ui) for option in self.interface.database.options]
+class MenuUI(UIFlowLayout):
+    def __init__(
+        self,
+        pos: list[int] = None,
+        fixed_size: list[int] = None,
+        tag: Optional[str] = None,
+        padding: Padding = None,
+        spacing: int = 0,
+        frame: Optional[Frame] = None,
+        orientation: Orientation = Orientation.VERTICAL,
+        menu_interface: Optional[MenuInterface] = None,
+        option_highlight: Optional[OptionHighlight] = None,
+        on_hover: Optional[Callable] = None,
+    ):
+        super().__init__(pos, fixed_size, tag, padding=padding, on_hover=on_hover)
+        self.spacing = spacing
+        self.orientation = orientation
+        if frame is None:
+            frame = Frame()
+        self.frame = frame
+        if menu_interface is None:
+            menu_interface = MenuInterface()
+        self.interface = menu_interface
+        if option_highlight is None:
+            option_highlight = OptionHighlight()
+        self.option_highlight = option_highlight
+        self.size.set_func_to_calc_min(self._calc_size_min)
+        self.size.set_func_to_calc_real(self._calc_size_real)
+        self.keyboard = Keyboard()
 
-#     def event(self, event: pygame.event.Event):
-#         super().event(event)
-#         self.keyboard.event(event)
+    @property
+    def menu(self) -> Menu:
+        return self.interface.menu
 
-#     def draw(self, surface_to_blit: pygame.Surface):
-#         recolor_gametext_fg_flag = False
-#         highlight_with_cursor_flag = False
-#         # -draw highlighting-
-#         match self.parts.highlight_style:
-#             case HighlightStyle.FILL_BG:
-#                 pygame.draw.rect(
-#                     surface_to_blit,
-#                     self.parts.highlight_bg_color,
-#                     (
-#                         *self.children[self.interface.selected_index].parts.pos,
-#                         *self.children[self.interface.selected_index].parts.real_size,
-#                     ),
-#                 )
-#             case HighlightStyle.FRAME_BG:
-#                 pygame.draw.rect(
-#                     surface_to_blit,
-#                     self.parts.highlight_bg_color,
-#                     (
-#                         *self.children[self.interface.selected_index].parts.pos,
-#                         *self.children[self.interface.selected_index].parts.real_size,
-#                     ),
-#                     width=1,
-#                 )
-#             case HighlightStyle.RECOLOR_GAMETEXT_FG:
-#                 if hasattr(
-#                     self.children[self.interface.selected_index].parts, "gametext"
-#                 ):
-#                     recolor_gametext_fg_flag = True
-#                     gametext_color = self.children[
-#                         self.interface.selected_index
-#                     ].parts.gametext.color_foreground
-#                     if self.parts.color_for_recoloring_gametext is None:
-#                         # invert color
-#                         gametext_color = pygame.Color(gametext_color)
-#                         self.parts.color_for_recoloring_gametext = pygame.Color(
-#                             abs(255 - gametext_color.r),
-#                             abs(255 - gametext_color.g),
-#                             abs(255 - gametext_color.b),
-#                         )
-#                     self.children[
-#                         self.interface.selected_index
-#                     ].parts.gametext.color_foreground = (
-#                         self.parts.color_for_recoloring_gametext
-#                     )
-#             case HighlightStyle.CURSOR:
-#                 highlight_with_cursor_flag = True
-#                 if hasattr(
-#                     self.children[self.interface.selected_index].parts, "gametext"
-#                 ):
-#                     self.children[self.interface.selected_index].parts.gametext.text = (
-#                         self.parts.cursor_char
-#                         + self.children[
-#                             self.interface.selected_index
-#                         ].parts.gametext.text
-#                     )
-#         # ---
-#         super().draw(surface_to_blit)
-#         # -post-processing for highlight drawing-
-#         if recolor_gametext_fg_flag:
-#             # process to undo recoloring
-#             self.children[
-#                 self.interface.selected_index
-#             ].parts.gametext.color_foreground = gametext_color
-#         if highlight_with_cursor_flag:
-#             # process to undo editing gametext's text for show cursor
-#             self.children[
-#                 self.interface.selected_index
-#             ].parts.gametext.text = self.children[
-#                 self.interface.selected_index
-#             ].parts.gametext.text[
-#                 len(self.parts.cursor_char) :
-#             ]
-#         # ---
+    def update_children_on_menu(self):
+        # TODO: improve performance
+        self.children.clear()
+        [self.add_child(option.ui) for option in self.interface.menu.options]
+
+    def event(self, event: pygame.event.Event):
+        super().event(event)
+        self.keyboard.event(event)
+
+    def draw(self, surface_to_blit: pygame.Surface):
+        lighten_gametext_fg_flag = False
+        darken_gametext_fg_flag = False
+        match self.option_highlight.style:
+            case HighlightStyle.FILL_BG:
+                pygame.draw.rect(
+                    surface_to_blit,
+                    self.option_highlight.fillbg_color,
+                    (
+                        *self.children[self.interface.selected_index].pos,
+                        *self.children[self.interface.selected_index].size.real,
+                    ),
+                )
+            case HighlightStyle.LIGHTEN_GAMETEXT_FG:
+                if hasattr(self.children[self.interface.selected_index], "gametext"):
+                    lighten_gametext_fg_flag = True
+                    original_color = self.children[
+                        self.interface.selected_index
+                    ].gametext.fg_color
+                    self.children[
+                        self.interface.selected_index
+                    ].gametext.fg_color += (
+                        self.option_highlight.lighten_gametext_fg_blendcolor
+                    )
+            case HighlightStyle.DARKEN_GAMETEXT_FG:
+                if hasattr(self.children[self.interface.selected_index], "gametext"):
+                    darken_gametext_fg_flag = True
+                    original_color = self.children[
+                        self.interface.selected_index
+                    ].gametext.fg_color
+                    self.children[
+                        self.interface.selected_index
+                    ].gametext.fg_color -= (
+                        self.option_highlight.lighten_gametext_fg_blendcolor
+                    )
+        super().draw(surface_to_blit)
+        match self.option_highlight.style:
+            case HighlightStyle.FRAME:
+                pygame.draw.rect(
+                    surface_to_blit,
+                    self.option_highlight.frame_color,
+                    (
+                        *self.children[self.interface.selected_index].pos,
+                        *self.children[self.interface.selected_index].size.real,
+                    ),
+                    width=1,
+                )
+        if lighten_gametext_fg_flag or darken_gametext_fg_flag:
+            self.children[
+                self.interface.selected_index
+            ].gametext.fg_color = original_color

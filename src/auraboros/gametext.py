@@ -191,8 +191,8 @@ class GameText:
         self,
         text: str | bytes | None,
         is_antialias_enable: bool = True,
-        color_foreground: pygame.Color = pygame.Color(255, 255, 255, 255),
-        color_background: Optional[pygame.Color] = None,
+        fg_color: Optional[pygame.Color] = None,
+        bg_color: Optional[pygame.Color] = None,
         linelength: Optional[int] = None,
         is_linelength_in_px: bool = True,
         font_name: Optional[str] = None,
@@ -211,8 +211,10 @@ class GameText:
                 )
         self.text = text
         self.is_antialias_enable = is_antialias_enable
-        self.color_foreground = color_foreground
-        self.color_background = color_background
+        if fg_color is None:
+            fg_color = pygame.Color(255, 255, 255)
+        self.fg_color = fg_color
+        self.bg_color = bg_color
         self.linelength = linelength
         self.is_linelength_in_px = is_linelength_in_px
 
@@ -255,8 +257,8 @@ class GameText:
         text_surface = self.font.render(
             self.text,
             self.is_antialias_enable,
-            self.color_foreground,
-            self.color_background,
+            self.fg_color,
+            self.bg_color,
         )
         if surface_to_blit:
             if pos_for_surface_to_blit_option:
@@ -281,8 +283,8 @@ class GameText:
         text_surface = self.font.renderln(
             text=self.text,
             antialias=self.is_antialias_enable,
-            color=self.color_foreground,
-            background_color=self.color_background,
+            color=self.fg_color,
+            background_color=self.bg_color,
             linelength=linelength,
             is_linelength_in_px=is_linelength_in_px,
             is_window_size_default_for_length=is_window_size_default_for_length,
