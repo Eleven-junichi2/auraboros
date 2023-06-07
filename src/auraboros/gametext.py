@@ -15,7 +15,6 @@ from .utils.sequence import (
     search_consecutive_pairs_of_list,
     joint_stritems_in_range_indexpair_list,
 )
-from .utils.misc import ColorValue
 
 pygame.font.init()
 
@@ -146,8 +145,8 @@ class Font2(pygame.font.Font):
         self,
         text: str,
         antialias: bool,
-        color: ColorValue,
-        background_color: Optional[ColorValue] = None,
+        color: pygame.Color,
+        background_color: Optional[pygame.Color] = None,
         linelength: Optional[int] = None,
         is_linelength_in_px: bool = True,
         is_window_size_default_for_length: bool = True,
@@ -192,8 +191,8 @@ class GameText:
         self,
         text: str | bytes | None,
         is_antialias_enable: bool = True,
-        color_foreground: ColorValue = pygame.Color(255, 255, 255, 255),
-        color_background: Optional[ColorValue] = None,
+        color_foreground: pygame.Color = pygame.Color(255, 255, 255, 255),
+        color_background: Optional[pygame.Color] = None,
         linelength: Optional[int] = None,
         is_linelength_in_px: bool = True,
         font_name: Optional[str] = None,
