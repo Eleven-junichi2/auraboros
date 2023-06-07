@@ -142,7 +142,6 @@ class UIFlowLayoutScene(Scene):
         self.uiflowlayout1.add_child(TextUI(GameText("child ui 1")))
         self.uiflowlayout1.add_child(TextUI(GameText("child ui 2")))
         self.uiflowlayout1.add_child(TextUI(GameText("child ui 3")))
-        # self.uiflowlayout1.relocate_children()
 
         self.uilayout.add_child(self.uiflowlayout1)
         self.uilayout.relocate_children()
