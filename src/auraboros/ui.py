@@ -121,7 +121,7 @@ class UIFlowLayoutParts(UIParts):
 
     def __post_init__(self):
         super().__post_init__()
-        if not self.frame_color:
+        if self.frame_color is None:
             self.frame_color = pygame.Color(220, 220, 220)
 
 
