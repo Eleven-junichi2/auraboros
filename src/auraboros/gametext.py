@@ -150,7 +150,8 @@ class Font2(pygame.font.Font):
         linelength: Optional[int] = None,
         is_linelength_in_px: bool = True,
         is_window_size_default_for_length: bool = True,
-    ) -> pygame.surface.Surface:
+        get_pos_for_caret_at_text_end: bool = False,
+    ) -> pygame.surface.Surface | tuple[pygame.surface.Surface, tuple[int, int]]:
         if not isinstance(text, str):
             raise ValueError("argument `text` must be str")
         lines, size_in_px, _ = self.lines_and_sizes_of_multilinetext(
@@ -161,12 +162,21 @@ class Font2(pygame.font.Font):
         )
         text_surf = pygame.surface.Surface(size=size_in_px)
         for line_num, line in enumerate(lines):
+            line_surf = self.render(line, antialias, color, background_color)
             text_surf.blit(
-                self.render(line, antialias, color, background_color),
+                line_surf,
                 (0, self.get_linesize() * line_num),
             )
         text_surf.set_colorkey((0, 0, 0))
-        return text_surf
+        if get_pos_for_caret_at_text_end:
+            pos_for_char_at_text_end = (
+                line_surf.get_width(),
+                self.get_linesize() * line_num,
+            )
+            result = (text_surf, pos_for_char_at_text_end)
+        else:
+            result = text_surf
+        return result
 
 
 class Font2Dict(dict):
@@ -193,8 +203,6 @@ class GameText:
         is_antialias_enable: bool = True,
         fg_color: Optional[pygame.Color] = None,
         bg_color: Optional[pygame.Color] = None,
-        linelength: Optional[int] = None,
-        is_linelength_in_px: bool = True,
         font_name: Optional[str] = None,
     ):
         if font_name:
@@ -215,8 +223,6 @@ class GameText:
             fg_color = pygame.Color(255, 255, 255)
         self.fg_color = fg_color
         self.bg_color = bg_color
-        self.linelength = linelength
-        self.is_linelength_in_px = is_linelength_in_px
 
     @classmethod
     def setup_font(cls, font: Font2, name_for_dict_key: str):
@@ -278,9 +284,10 @@ class GameText:
         linelength: Optional[int] = None,
         is_linelength_in_px: bool = True,
         is_window_size_default_for_length: bool = True,
-    ) -> pygame.surface.Surface:
+        get_pos_for_caret_at_text_end: bool = False,
+    ) -> pygame.surface.Surface | tuple[pygame.surface.Surface, tuple[int, int]]:
         """GameText.font.renderln(with its attributes as args)"""
-        text_surface = self.font.renderln(
+        result = self.font.renderln(
             text=self.text,
             antialias=self.is_antialias_enable,
             color=self.fg_color,
@@ -288,7 +295,12 @@ class GameText:
             linelength=linelength,
             is_linelength_in_px=is_linelength_in_px,
             is_window_size_default_for_length=is_window_size_default_for_length,
+            get_pos_for_caret_at_text_end=get_pos_for_caret_at_text_end,
         )
+        if get_pos_for_caret_at_text_end:
+            text_surface, get_pos_for_caret_at_text_end = result[0], result[1]
+        else:
+            text_surface = result
         if surface_to_blit:
             if pos_for_surface_to_blit_option:
                 surface_to_blit.blit(text_surface, pos_for_surface_to_blit_option)
@@ -297,4 +309,4 @@ class GameText:
                     "Require `pos_for_surface_to_blit_option`"
                     + " when `surface_to_blit` is True"
                 )
-        return text_surface
+        return result

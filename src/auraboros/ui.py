@@ -1,5 +1,3 @@
-# TODO: refactoring
-
 from dataclasses import InitVar, dataclass, field
 from enum import Enum, auto
 from functools import singledispatchmethod
@@ -321,7 +319,13 @@ class TextUI(UI):
 
     def draw(self, surface_to_blit: pygame.Surface):
         super().draw(surface_to_blit)
-        text_surface = self.gametext.renderln()
+        if self.size.fixed:
+            linelength = self.size.fixed[0]
+        else:
+            linelength = None
+        text_surface = self.gametext.renderln(
+            linelength=linelength, is_linelength_in_px=True
+        )
         surface_to_blit.blit(
             text_surface,
             self.pos,
@@ -329,11 +333,15 @@ class TextUI(UI):
         )
 
     def _calc_size_min(self) -> tuple[int, int]:
+        if self.size.fixed:
+            linelength = self.size.fixed[0]
+        else:
+            linelength = None
         return tuple(
             self.gametext.font.lines_and_sizes_of_multilinetext(
                 self.gametext.text,
-                self.gametext.linelength,
-                self.gametext.is_linelength_in_px,
+                linelength_limit=linelength,
+                is_linelength_limit_in_px=True,
             )[1]
         )
 
@@ -356,7 +364,7 @@ class TextButtonUI(UI):
         tag: Optional[str] = None,
         padding: Optional[Padding] = None,
         frame: Optional[Frame] = None,
-        bg_color: pygame.Color = pygame.Color(0, 0, 0, 0),
+        bg_color: Optional[pygame.Color] = None,
         text_alignment: TextAlignment = TextAlignment.CENTER,
         on_hover: Optional[Callable] = None,
         on_press: Optional[Callable] = None,
@@ -392,16 +400,24 @@ class TextButtonUI(UI):
         if self.frame.style == FrameStyle.BORDER:
             if self.frame.radius:
                 radius = self.frame.radius
-        pygame.draw.rect(
-            surface_to_blit,
-            self.bg_color,
-            (*self.pos, *self.size.real),
-            0,
-            radius,
-        )
+        if self.bg_color:
+            pygame.draw.rect(
+                surface_to_blit,
+                self.bg_color,
+                (*self.pos, *self.size.real),
+                0,
+                radius,
+            )
         super().draw(surface_to_blit)
-        self.gametext.color_background = self.bg_color
-        text_surface = self.gametext.renderln()
+        if self.bg_color:
+            self.gametext.bg_color = self.bg_color
+        if self.size.fixed:
+            linelength = self.size.fixed[0]
+        else:
+            linelength = None
+        text_surface = self.gametext.renderln(
+            linelength=linelength, is_linelength_in_px=True
+        )
         match self.text_alignment:
             case TextAlignment.CENTER:
                 text_pos = (
@@ -430,11 +446,15 @@ class TextButtonUI(UI):
         self.frame.draw(surface_to_blit, self.pos, self.size.real)
 
     def _calc_size_min(self) -> tuple[int, int]:
+        if self.size.fixed:
+            linelength = self.size.fixed[0]
+        else:
+            linelength = None
         return tuple(
             self.gametext.font.lines_and_sizes_of_multilinetext(
                 self.gametext.text,
-                self.gametext.linelength,
-                self.gametext.is_linelength_in_px,
+                linelength_limit=linelength,
+                is_linelength_limit_in_px=True,
             )[1]
         )
 
@@ -664,11 +684,15 @@ class MenuInterface:
 
 
 class HighlightStyle(Enum):
-    CURSOR = auto()
-    FILL_BG = auto()
     FRAME = auto()
+    FILL_BG = auto()
     LIGHTEN_GAMETEXT_FG = auto()
     DARKEN_GAMETEXT_FG = auto()
+    LIGHTEN_GAMETEXT_BG = auto()
+    DARKEN_GAMETEXT_BG = auto()
+    LIGHTEN_GAMETEXT = auto()
+    DARKEN_GAMETEXT = auto()
+    CURSOR = auto()
 
 
 @dataclass
@@ -681,10 +705,16 @@ class OptionHighlight:
         default_factory=lambda: pygame.Color(110, 110, 110)
     )
     lighten_gametext_fg_blendcolor: pygame.Color = field(
-        default_factory=lambda: pygame.Color(110, 110, 110)
+        default_factory=lambda: pygame.Color(63, 63, 63)
     )
     darken_gametext_fg_blendcolor: pygame.Color = field(
-        default_factory=lambda: pygame.Color(110, 110, 110)
+        default_factory=lambda: pygame.Color(63, 63, 63)
+    )
+    lighten_gametext_bg_blendcolor: pygame.Color = field(
+        default_factory=lambda: pygame.Color(63, 63, 63)
+    )
+    darken_gametext_bg_blendcolor: pygame.Color = field(
+        default_factory=lambda: pygame.Color(63, 63, 63)
     )
     cursor_char: str = "▶"
 
@@ -732,9 +762,55 @@ class MenuUI(UIFlowLayout):
         super().event(event)
         self.keyboard.event(event)
 
+    def _lighten_child_gametext_fg(self) -> pygame.Color | None:
+        if hasattr(self.children[self.interface.selected_index], "gametext"):
+            color_before_edit = self.children[
+                self.interface.selected_index
+            ].gametext.fg_color
+            self.children[
+                self.interface.selected_index
+            ].gametext.fg_color += self.option_highlight.lighten_gametext_fg_blendcolor
+            return color_before_edit
+
+    def _darken_child_gametext_fg(self) -> pygame.Color | None:
+        if hasattr(self.children[self.interface.selected_index], "gametext"):
+            color_before_edit = self.children[
+                self.interface.selected_index
+            ].gametext.fg_color
+            self.children[
+                self.interface.selected_index
+            ].gametext.fg_color -= self.option_highlight.darken_gametext_fg_blendcolor
+            return color_before_edit
+
+    def _lighten_child_gametext_bg(self) -> pygame.Color | None:
+        if hasattr(self.children[self.interface.selected_index], "gametext"):
+            if gametext_bg_color_before_edit := self.children[
+                self.interface.selected_index
+            ].gametext.bg_color:
+                self.children[
+                    self.interface.selected_index
+                ].gametext.bg_color += (
+                    self.option_highlight.lighten_gametext_bg_blendcolor
+                )
+                return gametext_bg_color_before_edit
+
+    def _darken_child_gametext_bg(self) -> pygame.Color | None:
+        if hasattr(self.children[self.interface.selected_index], "gametext"):
+            if gametext_bg_color_before_edit := self.children[
+                self.interface.selected_index
+            ].gametext.bg_color:
+                self.children[
+                    self.interface.selected_index
+                ].gametext.bg_color -= (
+                    self.option_highlight.darken_gametext_bg_blendcolor
+                )
+                return gametext_bg_color_before_edit
+
     def draw(self, surface_to_blit: pygame.Surface):
         lighten_gametext_fg_flag = False
         darken_gametext_fg_flag = False
+        lighten_gametext_bg_flag = False
+        darken_gametext_bg_flag = False
         match self.option_highlight.style:
             case HighlightStyle.FILL_BG:
                 pygame.draw.rect(
@@ -746,27 +822,27 @@ class MenuUI(UIFlowLayout):
                     ),
                 )
             case HighlightStyle.LIGHTEN_GAMETEXT_FG:
-                if hasattr(self.children[self.interface.selected_index], "gametext"):
+                if gametext_fg_color_before_edit := self._lighten_child_gametext_fg():
                     lighten_gametext_fg_flag = True
-                    original_color = self.children[
-                        self.interface.selected_index
-                    ].gametext.fg_color
-                    self.children[
-                        self.interface.selected_index
-                    ].gametext.fg_color += (
-                        self.option_highlight.lighten_gametext_fg_blendcolor
-                    )
             case HighlightStyle.DARKEN_GAMETEXT_FG:
-                if hasattr(self.children[self.interface.selected_index], "gametext"):
+                if gametext_fg_color_before_edit := self._darken_child_gametext_fg():
                     darken_gametext_fg_flag = True
-                    original_color = self.children[
-                        self.interface.selected_index
-                    ].gametext.fg_color
-                    self.children[
-                        self.interface.selected_index
-                    ].gametext.fg_color -= (
-                        self.option_highlight.lighten_gametext_fg_blendcolor
-                    )
+            case HighlightStyle.LIGHTEN_GAMETEXT_BG:
+                if gametext_bg_color_before_edit := self._lighten_child_gametext_bg():
+                    lighten_gametext_bg_flag = True
+            case HighlightStyle.DARKEN_GAMETEXT_BG:
+                if gametext_bg_color_before_edit := self._darken_child_gametext_bg():
+                    darken_gametext_bg_flag = True
+            case HighlightStyle.LIGHTEN_GAMETEXT:
+                if gametext_fg_color_before_edit := self._lighten_child_gametext_fg():
+                    lighten_gametext_fg_flag = True
+                if gametext_bg_color_before_edit := self._lighten_child_gametext_bg():
+                    lighten_gametext_bg_flag = True
+            case HighlightStyle.DARKEN_GAMETEXT:
+                if gametext_fg_color_before_edit := self._darken_child_gametext_fg():
+                    darken_gametext_fg_flag = True
+                if gametext_bg_color_before_edit := self._darken_child_gametext_bg():
+                    darken_gametext_bg_flag = True
         super().draw(surface_to_blit)
         match self.option_highlight.style:
             case HighlightStyle.FRAME:
@@ -782,4 +858,232 @@ class MenuUI(UIFlowLayout):
         if lighten_gametext_fg_flag or darken_gametext_fg_flag:
             self.children[
                 self.interface.selected_index
-            ].gametext.fg_color = original_color
+            ].gametext.fg_color = gametext_fg_color_before_edit
+        if lighten_gametext_bg_flag or darken_gametext_bg_flag:
+            self.children[
+                self.interface.selected_index
+            ].gametext.bg_color = gametext_bg_color_before_edit
+
+
+@dataclass
+class Scroll:
+    x: int = 0
+    y: int = 0
+    x_max: int = None
+    x_min: int = 0
+    y_max: int = None
+    y_min: int = 0
+
+    def up(self):
+        if self.y > self.y_min:
+            self.y -= 1
+
+    def down(self):
+        if self.y_max:
+            y_max = self.y_max
+        else:
+            y_max = self.y + 1
+        if self.y < y_max:
+            self.y += 1
+
+    def left(self):
+        if self.x > self.x_min:
+            self.x -= 1
+
+    def right(self):
+        if self.x_max:
+            x_max = self.x_max
+        else:
+            x_max = self.x + 1
+        if self.x < x_max:
+            self.x += 1
+
+
+class TextFieldUI(UI):
+    """EXPERIMENTAL!"""
+    def __init__(
+        self,
+        gametext: Optional[GameText] = None,
+        pos: Optional[list[int]] = None,
+        fixed_size: Optional[list[int]] = None,
+        tag: Optional[str] = None,
+        padding: Optional[Padding] = None,
+        frame: Optional[Frame] = None,
+        frame_color_on_focus: Optional[pygame.Color] = None,
+        scroll: Optional[Scroll] = None,
+        bg_color: Optional[pygame.Color] = None,
+        on_hover: Optional[Callable] = None,
+        on_focus: Optional[Callable] = None,
+        on_unfocus: Optional[Callable] = None,
+    ):
+        super().__init__(pos=pos, fixed_size=fixed_size, tag=tag, on_hover=on_hover)
+        if gametext is None:
+            gametext = GameText("")
+        self.gametext = gametext
+        # if self.size.fixed and self.gametext.linelength is None:
+        #     self.gametext.is_linelength_in_px = True
+        #     self.gametext.linelength = self.size.fixed[0]
+        self.size.set_func_to_calc_min(self._calc_size_min)
+        self.size.set_func_to_calc_real(self._calc_size_real)
+        if padding is None:
+            padding = Padding()
+        self.padding = padding
+        if frame is None:
+            frame = Frame()
+        self.frame = frame
+        if bg_color is None:
+            bg_color = pygame.Color(44, 44, 44)
+        if frame_color_on_focus is None:
+            frame_color_on_focus = pygame.Color(22, 178, 244)
+        self.frame_color_on_focus = frame_color_on_focus
+        if scroll is None:
+            scroll = Scroll()
+        self.scroll = scroll
+        self.bg_color = bg_color
+        self.is_focused = False
+        self.on_focus = on_focus
+        self.on_unfocus = on_unfocus
+        self.mouse = Mouse()
+        self.mouse.register_mouseaction(
+            pygame.MOUSEBUTTONDOWN, on_left=self.check_and_switch_focus_flag
+        )
+        self.keyboard = Keyboard()
+        self.keyboard.register_keyaction(
+            pygame.K_BACKSPACE, 0, 44, 88, keydown=self.backspace_text
+        )
+        self.keyboard.register_keyaction(
+            pygame.K_RETURN, 0, 44, 88, keydown=self.begin_newline
+        )
+        self.mouse.register_mouseaction(
+            pygame.MOUSEBUTTONDOWN,
+            on_wheel_up=self.scroll.up,
+            on_wheel_down=self.scroll.down,
+        )
+
+    def check_and_switch_focus_flag(self):
+        if self.is_givenpos_over_ui(pygame.mouse.get_pos()):
+            self.be_focused()
+        else:
+            self.be_unfocused()
+
+    def be_focused(self):
+        self.is_focused = True
+        pygame.key.start_text_input()
+        if self.on_focus:
+            self.on_focus()
+
+    def be_unfocused(self):
+        self.is_focused = False
+        pygame.key.stop_text_input()
+        if self.on_unfocus:
+            self.on_unfocus()
+
+    def draw(self, surface_to_blit: pygame.Surface):
+        # -display IME's candidate list-
+        pygame.key.set_text_input_rect(pygame.Rect(*self.pos, *self.size.real))
+        # --
+        super().draw(surface_to_blit)
+        # -draw text-
+        if self.size.fixed:
+            linelength = self.size.fixed[0] - self.padding.right - self.frame.width
+        else:
+            linelength = None
+        text_surface, pos_for_caret_at_text_end = self.gametext.renderln(
+            linelength=linelength,
+            is_linelength_in_px=True,
+            get_pos_for_caret_at_text_end=True,
+        )
+        surface_to_blit.blit(
+            text_surface,
+            (
+                self.pos[0] + self.padding.left + self.frame.width,
+                self.pos[1] + self.padding.top + self.frame.width,
+            ),
+            (
+                self.scroll.x,
+                self.scroll.y,
+                self.size.real[0]
+                - self.padding.left
+                - self.padding.right
+                - self.frame.width * 2,
+                self.size.real[1]
+                - self.padding.top
+                - self.padding.bottom
+                - self.frame.width * 2,
+            ),
+        )
+        # --
+        # -draw caret-
+        if self.is_focused:
+            surface_to_blit.fill(
+                pygame.Color(255, 255, 255),
+                (
+                    *map(
+                        sum,
+                        zip(
+                            self.pos,
+                            pos_for_caret_at_text_end,
+                            (
+                                self.padding.left + self.frame.width,
+                                self.padding.top + self.frame.width,
+                            ),
+                        ),
+                    ),
+                    1,
+                    self.gametext.font.get_linesize(),
+                ),
+            )
+        # --
+        # draw ui frame
+        if self.is_focused:
+            color_before_modified = self.frame.color
+            self.frame.color = self.frame_color_on_focus
+        self.frame.draw(surface_to_blit, self.pos, self.size.real)
+        if self.is_focused:
+            self.frame.color = color_before_modified
+
+    def _calc_size_min(self) -> tuple[int, int]:
+        if self.size.fixed:
+            linelength = self.size.fixed[0]
+        else:
+            linelength = None
+        return tuple(
+            self.gametext.font.lines_and_sizes_of_multilinetext(
+                self.gametext.text,
+                linelength_limit=linelength,
+                is_linelength_limit_in_px=True,
+            )[1]
+        )
+
+    def _calc_size_real(self) -> tuple[int, int]:
+        return tuple(
+            map(
+                sum,
+                zip(
+                    self._calc_size_min(),
+                    (
+                        self.padding.left + self.padding.right + self.frame.width * 2,
+                        self.padding.top + self.padding.bottom + self.frame.width * 2,
+                    ),
+                ),
+            )
+        )
+
+    def backspace_text(self):
+        if self.is_focused:
+            self.gametext.text = self.gametext.text[:-1]
+
+    def begin_newline(self):
+        if self.is_focused:
+            self.gametext.text += "\n"
+
+    def event(self, event: pygame.event.Event):
+        super().event(event)
+        self.mouse.event(event)
+        self.keyboard.event(event)
+        if self.is_focused:
+            if event.type == pygame.TEXTEDITING:
+                # on using IME
+                pass
+            elif event.type == pygame.TEXTINPUT:
+                self.gametext.text += event.text

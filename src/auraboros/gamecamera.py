@@ -55,8 +55,8 @@ class TopDownCamera:
 
     def projection_on_screen(
             self, screen: pygame.Surface,
-            surface_to_projection: pygame.Surface,
+            surface_for_projection_to_screen: pygame.Surface,
             window_size):
-        screen.blit(surface_to_projection, (0, 0),
+        screen.blit(surface_for_projection_to_screen, (0, 0),
                     (self.offset_x, self.offset_y,
                      window_size[0], window_size[1]))

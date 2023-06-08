@@ -2,17 +2,21 @@
 
 [Japanese（日本語）](./README.jp.md)
 
-A game framework of pygame.
-This project is made for me, reducing the burden of game dev using pygame.
+A game framework using pygame.
+(This project is made for me, reducing the burden of game dev using pygame.)
 
 ## Features
 
-- Entity Component System
-- GUI
+- Basic Entity Component System
+- Basic UI
+  - Text
+  - Button
+  - Flow Layout
+  - Menu UI
 - State Machine
 - Scene management
 - Custom vertex / pixel shaders
-- Distribution with PyInstaller
+- [hook](./src/auraboros/__pyinstaller/hook-auraboros.py) for PyInstaller
 
 ## how to install
 

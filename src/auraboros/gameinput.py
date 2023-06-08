@@ -212,6 +212,7 @@ class Mouse:
         return {
             pygame.MOUSEBUTTONDOWN: "down",
             pygame.MOUSEBUTTONUP: "up",
+            pygame.MOUSEWHEEL: "wheel",
             pygame.MOUSEMOTION: "motion",
         }[int_pygame_mouse_event_type]
 
