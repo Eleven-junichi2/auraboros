@@ -18,13 +18,13 @@ A game framework using pygame.
 - Custom vertex / pixel shaders
 - [hook](./src/auraboros/__pyinstaller/hook-auraboros.py) for PyInstaller
 
-## how to install
+## How to install
 
 ```:
 pip install auraboros
 ```
 
-## how to use CLI
+## How to use CLI
 
 ```:
 python -m auraboros
