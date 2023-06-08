@@ -1,3 +1,4 @@
+from typing import Callable
 import pygame
 
 
@@ -7,8 +8,28 @@ from .gamescene import SceneManager
 from .schedule import Schedule, Stopwatch
 from .shader import Shader2D
 
+DeltaTime = float
+PygameEvent = pygame.event.Event
 
-def run(scene_manager: SceneManager):
+
+def run(
+    scene_manager: SceneManager,
+    mod_for_mainloop: Callable[[DeltaTime]] = None,
+    mod_for_eventloop: Callable[[PygameEvent]] = None,
+):
+    """_summary_
+
+    Args:
+        scene_manager (SceneManager): _description_
+        mod_for_mainloop (Callable[[DeltaTime]], optional):
+            Append and do given func for mainloop.
+            this is useful to provide the engine mainloop section for thirdparty
+            pygame package.
+        mod_for_eventloop (Callable[[PygameEvent]], optional):
+            Append and do given func for mainloop.
+            this is useful to provide the engine eventloop section for thirdparty
+            pygame package.
+    """
     clock = pygame.time.Clock()
 
     if Global.use_opengl_display:
@@ -30,7 +51,11 @@ def run(scene_manager: SceneManager):
         for event in pygame.event.get():
             # -process pygame events in all of scenes-
             running_flag = scene_manager.event(event)
+            if func := mod_for_eventloop:
+                func(event)
             #  --
+        if func := mod_for_mainloop:
+            func(dt)
         scene_manager.update(dt)
         scene_manager.draw(Global.screen)
         # --
