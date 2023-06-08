@@ -14,19 +14,18 @@ PygameEvent = pygame.event.Event
 
 def run(
     scene_manager: SceneManager,
-    mod_for_mainloop: Callable[[DeltaTime]] = None,
-    mod_for_eventloop: Callable[[PygameEvent]] = None,
+    mod_for_mainloop: Callable = None,
+    mod_for_eventloop: Callable = None,
 ):
-    """_summary_
-
+    """
     Args:
         scene_manager (SceneManager): _description_
-        mod_for_mainloop (Callable[[DeltaTime]], optional):
+        mod_for_mainloop (Callable, optional):
             Append and do given func for mainloop.
             this is useful to provide the engine mainloop section for thirdparty
             pygame package.
-        mod_for_eventloop (Callable[[PygameEvent]], optional):
-            Append and do given func for mainloop.
+        mod_for_eventloop (Callable, optional):
+            Append and do given func for eventloop.
             this is useful to provide the engine eventloop section for thirdparty
             pygame package.
     """
