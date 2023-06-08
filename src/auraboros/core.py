@@ -48,6 +48,8 @@ def init(
         display_set_mode_flags (int):
             pygame.display.set_mode(flags=display_set_mode_flags)
     """
+    pygame.init()
+
     # --configure fps--
     Global.fps = fps
 
