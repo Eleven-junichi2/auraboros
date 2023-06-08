@@ -24,6 +24,7 @@ pytest-logbook = "*"
 mkdocs = "*"
 mkdocs-material = "*"
 click = "*"
+build = "*"
 
 [requires]
 python_version = "3.11"

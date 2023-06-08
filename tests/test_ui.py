@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from auraboros.ui import (
+from src.auraboros.ui import (
     UIFlowLayout,
     UI,
     MenuInterface,
